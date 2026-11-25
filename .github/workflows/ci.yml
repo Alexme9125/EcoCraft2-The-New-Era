@@ -134,6 +134,8 @@ jobs:
         run: |
           ./gradlew :forge:1.19.2:build \
             --no-daemon --console=plain \
+            -Dorg.gradle.internal.http.connectionTimeout=120000 \
+            -Dorg.gradle.internal.http.socketTimeout=120000 \
             -Porg.gradle.java.installations.paths="${{ steps.java17.outputs.path }}"
 
       - name: Audit packaged Forge 1.19.2 JAR
