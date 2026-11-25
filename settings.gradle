@@ -1,0 +1,29 @@
+pluginManagement {
+    repositories {
+        maven { url = 'https://maven.neoforged.net/releases' }
+        gradlePluginPortal()
+    }
+    plugins {
+        id 'net.neoforged.moddev' version providers.gradleProperty('moddev_version').get()
+    }
+}
+
+rootProject.name = 'ecocraft2'
+
+include 'common', 'test'
+project(':common').projectDir = file('src/common')
+project(':test').projectDir = file('src/test')
+
+def minecraftTargets = ['1.21.1', '26.1.2', '26.2']
+def anyNeoForge = false
+minecraftTargets.each { target ->
+    def dir = file("src/neoforge/$target")
+    if (new File(dir, 'build.gradle').exists()) {
+        include "neoforge:$target"
+        project(":neoforge:$target").projectDir = dir
+        anyNeoForge = true
+    }
+}
+if (anyNeoForge) {
+    project(':neoforge').projectDir = file('src/neoforge')
+}

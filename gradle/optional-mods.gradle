@@ -1,0 +1,55 @@
+// Compile-only optional compatibility APIs pinned to Modrinth version IDs.
+// None of these third-party JARs are ever bundled in the EcoCraft 2 distribution JAR.
+def optionalModVersions = [
+        '1.19.2': [jei: 'yr59GtS6', emi: 'lvh62wOB', jade: 'kp0HjPre', top: 'KCnKC3d7', curios: 'uUAY30IE'],
+        '1.21.1': [jei: 'lDv3cHMp', emi: '5sIPA1To', jade: 'eYz2YBGT', top: 'kxB9y8zd', curios: 'KJsZIQrT'],
+        '26.1.2': [jei: 'dptdI3yM', emi: null, jade: 'Pr1h4azo', top: 'xD8Yvxod', curios: 'dRnRThvD'],
+        '26.2'  : [jei: 'lU7Sz0zI', emi: null, jade: 'GBES6etT', top: 'igbuHaA1', curios: 'BI7D0sbK']
+][project.ext.has('minecraftVersion') ? minecraftVersion : minecraft_version]
+
+ext.hasJeiCompat = optionalModVersions?.jei != null
+ext.hasEmiCompat = optionalModVersions?.emi != null
+ext.hasJadeCompat = optionalModVersions?.jade != null
+ext.hasTopCompat = optionalModVersions?.top != null
+ext.hasCuriosCompat = optionalModVersions?.curios != null
+
+repositories {
+    exclusiveContent {
+        forRepository {
+            maven {
+                name = 'ModrinthOptionalMods'
+                url = 'https://api.modrinth.com/maven'
+            }
+        }
+        filter { includeGroup('maven.modrinth') }
+    }
+}
+
+configurations {
+    compatTestMods {
+        canBeConsumed = false
+        canBeResolved = true
+        transitive = false
+    }
+    compileOnly.extendsFrom(compatTestMods)
+}
+
+dependencies {
+    if (optionalModVersions != null) {
+        if (optionalModVersions.jei != null) {
+            compatTestMods "maven.modrinth:jei:${optionalModVersions.jei}"
+        }
+        if (optionalModVersions.emi != null) {
+            compatTestMods "maven.modrinth:emi:${optionalModVersions.emi}"
+        }
+        if (optionalModVersions.jade != null) {
+            compatTestMods "maven.modrinth:jade:${optionalModVersions.jade}"
+        }
+        if (optionalModVersions.top != null) {
+            compatTestMods "maven.modrinth:the-one-probe:${optionalModVersions.top}"
+        }
+        if (optionalModVersions.curios != null) {
+            compatTestMods "maven.modrinth:curios:${optionalModVersions.curios}"
+        }
+    }
+}
