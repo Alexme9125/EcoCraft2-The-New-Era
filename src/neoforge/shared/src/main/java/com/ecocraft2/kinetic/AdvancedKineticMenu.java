@@ -25,11 +25,12 @@ public final class AdvancedKineticMenu extends DeviceAccessMenu {
 
     private final Container container;
     private final AdvancedKineticBlockEntity blockEntity;
+    private final AdvancedKineticBlockEntity filterHint;
     private final ContainerData data;
 
     /** Client constructor invoked via {@code IMenuTypeExtension}. */
     public AdvancedKineticMenu(int containerId, Inventory playerInv, RegistryFriendlyByteBuf buf) {
-        this(containerId, playerInv, resolveClientEntity(playerInv, buf.readBlockPos()));
+        this(containerId, playerInv, null, resolveClientEntity(playerInv, buf.readBlockPos()));
     }
 
     private static AdvancedKineticBlockEntity resolveClientEntity(
@@ -41,19 +42,28 @@ public final class AdvancedKineticMenu extends DeviceAccessMenu {
         return null;
     }
 
-    /** Server (and resolved-client) constructor. */
+    /** Server constructor. */
     public AdvancedKineticMenu(
             int containerId, Inventory playerInv, AdvancedKineticBlockEntity blockEntity) {
+        this(containerId, playerInv, blockEntity, blockEntity);
+    }
+
+    private AdvancedKineticMenu(
+            int containerId,
+            Inventory playerInv,
+            AdvancedKineticBlockEntity serverEntity,
+            AdvancedKineticBlockEntity filterHint) {
         super(
                 SolarKineticModule.KINETIC_GENERATOR_MENU.get(),
                 containerId,
                 playerInv,
-                blockEntity);
-        this.blockEntity = blockEntity;
-        this.container = blockEntity != null ? blockEntity : new SimpleContainer(1);
+                serverEntity);
+        this.blockEntity = serverEntity;
+        this.filterHint = filterHint;
+        this.container = serverEntity != null ? serverEntity : new SimpleContainer(1);
         this.data =
-                blockEntity != null
-                        ? new KineticData(blockEntity)
+                serverEntity != null
+                        ? new KineticData(serverEntity)
                         : new SimpleContainerData(DATA_SLOTS);
 
         // Rotor slot (80, 24) matching assets-gen/gui_coordinates.json
@@ -61,7 +71,7 @@ public final class AdvancedKineticMenu extends DeviceAccessMenu {
                 new Slot(this.container, AdvancedKineticBlockEntity.SLOT_ROTOR, 80, 24) {
                     @Override
                     public boolean mayPlace(ItemStack stack) {
-                        return blockEntity == null || blockEntity.acceptsRotor(stack);
+                        return filterHint == null || filterHint.acceptsRotor(stack);
                     }
 
                     @Override
@@ -152,7 +162,7 @@ public final class AdvancedKineticMenu extends DeviceAccessMenu {
                 return ItemStack.EMPTY;
             }
         } else {
-            boolean accepts = blockEntity == null || blockEntity.acceptsRotor(stack);
+            boolean accepts = filterHint == null || filterHint.acceptsRotor(stack);
             if (accepts && moveItemStackTo(stack, 0, 1, false)) {
                 // placed rotor
             } else if (index < invEnd) {

@@ -1,6 +1,7 @@
 package com.ecocraft2.mixin;
 
 import com.ecocraft2.bridge.Ecc2ExternalRecipes;
+import com.ecocraft2.common.util.ExternalWorkshopRecipeCache;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
@@ -34,10 +35,13 @@ public final class WorkshopRecipesMixin {
     @Unique private static volatile MethodHandle ecc2$recipeCtor;
     @Unique private static volatile boolean ecc2$ctorLookupFailed;
 
-    @Unique private static volatile long ecc2$cachedExtruderRevision = -1L;
-    @Unique private static volatile long ecc2$cachedCannerRevision = -1L;
-    @Unique private static volatile List<Object> ecc2$cachedExtruder;
-    @Unique private static volatile List<Object> ecc2$cachedCannerBottle;
+    @Unique
+    private static final ExternalWorkshopRecipeCache ECC2_EXTRUDER_CACHE =
+            new ExternalWorkshopRecipeCache();
+
+    @Unique
+    private static final ExternalWorkshopRecipeCache ECC2_CANNER_CACHE =
+            new ExternalWorkshopRecipeCache();
 
     @Inject(method = "forType", at = @At("RETURN"), cancellable = true)
     private static void ecc2$appendExternalWorkshopRecipes(
@@ -46,7 +50,11 @@ public final class WorkshopRecipesMixin {
             if (Ecc2ExternalRecipes.extruderRecipes().isEmpty()) {
                 return;
             }
-            var merged = ecc2$mergedExtruder(cir.getReturnValue());
+            var merged =
+                    ECC2_EXTRUDER_CACHE.getOrMerge(
+                            Ecc2ExternalRecipes.revision(),
+                            cir.getReturnValue(),
+                            WorkshopRecipesMixin::ecc2$buildExtruderAdditions);
             if (merged != null) {
                 cir.setReturnValue(merged);
             }
@@ -54,7 +62,11 @@ public final class WorkshopRecipesMixin {
             if (Ecc2ExternalRecipes.canningBottleRecipes().isEmpty()) {
                 return;
             }
-            var merged = ecc2$mergedCannerBottle(cir.getReturnValue());
+            var merged =
+                    ECC2_CANNER_CACHE.getOrMerge(
+                            Ecc2ExternalRecipes.revision(),
+                            cir.getReturnValue(),
+                            WorkshopRecipesMixin::ecc2$buildCannerAdditions);
             if (merged != null) {
                 cir.setReturnValue(merged);
             }
@@ -62,65 +74,50 @@ public final class WorkshopRecipesMixin {
     }
 
     @Unique
-    private static List<Object> ecc2$mergedExtruder(List<Object> base) {
-        long rev = Ecc2ExternalRecipes.revision();
-        var cached = ecc2$cachedExtruder;
-        if (cached != null && ecc2$cachedExtruderRevision == rev) {
-            return cached;
-        }
+    private static List<Object> ecc2$buildExtruderAdditions() {
         if (!ecc2$ensureHandles()) {
             return null;
         }
         var entries = Ecc2ExternalRecipes.extruderRecipes();
-        var merged = new ArrayList<Object>(base.size() + entries.size());
-        merged.addAll(base);
+        var additions = new ArrayList<Object>(entries.size());
         int idx = 0;
         for (var entry : entries) {
-            Object recipe =
-                    ecc2$buildRecipe(
-                            "ecc2:metal_former_extruding/" + (idx++),
-                            List.of(ecc2$buildStack(entry.inputId(), entry.inputCount())),
-                            List.of(ecc2$buildStack(entry.outputId(), entry.outputCount())));
+            var inputs =
+                    ExternalWorkshopRecipeCache.nonNullListOf(
+                            ecc2$buildStack(entry.inputId(), entry.inputCount()));
+            var outputs =
+                    ExternalWorkshopRecipeCache.nonNullListOf(
+                            ecc2$buildStack(entry.outputId(), entry.outputCount()));
+            Object recipe = ecc2$buildRecipe("ecc2:metal_former_extruding/" + (idx++), inputs, outputs);
             if (recipe != null) {
-                merged.add(recipe);
+                additions.add(recipe);
             }
         }
-        var immutable = List.copyOf(merged);
-        ecc2$cachedExtruder = immutable;
-        ecc2$cachedExtruderRevision = rev;
-        return immutable;
+        return additions;
     }
 
     @Unique
-    private static List<Object> ecc2$mergedCannerBottle(List<Object> base) {
-        long rev = Ecc2ExternalRecipes.revision();
-        var cached = ecc2$cachedCannerBottle;
-        if (cached != null && ecc2$cachedCannerRevision == rev) {
-            return cached;
-        }
+    private static List<Object> ecc2$buildCannerAdditions() {
         if (!ecc2$ensureHandles()) {
             return null;
         }
         var entries = Ecc2ExternalRecipes.canningBottleRecipes();
-        var merged = new ArrayList<Object>(base.size() + entries.size());
-        merged.addAll(base);
+        var additions = new ArrayList<Object>(entries.size());
         int idx = 0;
         for (var entry : entries) {
-            Object recipe =
-                    ecc2$buildRecipe(
-                            "ecc2:canner_bottle/" + (idx++),
-                            List.of(
-                                    ecc2$buildStack(entry.containerId(), entry.containerCount()),
-                                    ecc2$buildStack(entry.ingredientId(), entry.ingredientCount())),
-                            List.of(ecc2$buildStack(entry.outputId(), entry.outputCount())));
+            var inputs =
+                    ExternalWorkshopRecipeCache.nonNullListOf(
+                            ecc2$buildStack(entry.containerId(), entry.containerCount()),
+                            ecc2$buildStack(entry.ingredientId(), entry.ingredientCount()));
+            var outputs =
+                    ExternalWorkshopRecipeCache.nonNullListOf(
+                            ecc2$buildStack(entry.outputId(), entry.outputCount()));
+            Object recipe = ecc2$buildRecipe("ecc2:canner_bottle/" + (idx++), inputs, outputs);
             if (recipe != null) {
-                merged.add(recipe);
+                additions.add(recipe);
             }
         }
-        var immutable = List.copyOf(merged);
-        ecc2$cachedCannerBottle = immutable;
-        ecc2$cachedCannerRevision = rev;
-        return immutable;
+        return additions;
     }
 
     @Unique
@@ -164,7 +161,8 @@ public final class WorkshopRecipesMixin {
 
     @Unique
     private static Object ecc2$buildRecipe(String id, List<Object> inputs, List<Object> outputs) {
-        if (inputs.contains(null) || outputs.contains(null)) {
+        if (ExternalWorkshopRecipeCache.hasNullElement(inputs)
+                || ExternalWorkshopRecipeCache.hasNullElement(outputs)) {
             return null;
         }
         try {

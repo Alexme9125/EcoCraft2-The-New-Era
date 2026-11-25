@@ -9,6 +9,7 @@ import com.ecocraft2.common.config.Ecc2ConfigDefaults;
 import com.ecocraft2.common.solar.SolarHelmetEngine;
 import com.ecocraft2.common.solar.SolarHelmetSpec;
 import com.ecocraft2.config.Ecc2Config;
+import com.industrialage.ia2.industrial.Radiation;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -20,10 +21,8 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -36,7 +35,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.biome.Biome;
-import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -197,11 +195,9 @@ public class SolarHelmetItem extends ArmorItem implements Ecc2ElectricItem, Ecc2
 
     private void applyQuantumAbilities(
             SolarHelmetEngine engine, ItemStack helmetStack, ServerPlayer player) {
-        MobEffect radiationEffect =
-                ForgeRegistries.MOB_EFFECTS.getValue(new ResourceLocation("ic2", "radiation"));
         boolean hasWither = player.hasEffect(MobEffects.WITHER);
         boolean hasPoison = player.hasEffect(MobEffects.POISON);
-        boolean hasRadiation = radiationEffect != null && player.hasEffect(radiationEffect);
+        boolean hasRadiation = Radiation.has(player);
         int foodSlot = findFilledFoodCanSlot(player);
 
         var plan =
@@ -232,8 +228,8 @@ public class SolarHelmetItem extends ArmorItem implements Ecc2ElectricItem, Ecc2
         if (plan.curePoison()) {
             player.removeEffect(MobEffects.POISON);
         }
-        if (plan.cureRadiation() && radiationEffect != null) {
-            player.removeEffect(radiationEffect);
+        if (plan.cureRadiation()) {
+            Radiation.clear(player);
         }
         if (plan.autoFeed() && foodSlot >= 0) {
             consumeOneFoodCan(player, foodSlot);

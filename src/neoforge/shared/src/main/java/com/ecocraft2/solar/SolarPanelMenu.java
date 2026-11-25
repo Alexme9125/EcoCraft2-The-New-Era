@@ -27,11 +27,12 @@ public final class SolarPanelMenu extends DeviceAccessMenu {
 
     private final Container container;
     private final SolarPanelBlockEntity blockEntity;
+    private final SolarPanelBlockEntity filterHint;
     private final ContainerData data;
 
     /** Client constructor invoked by NeoForge's {@code IMenuTypeExtension}. */
     public SolarPanelMenu(int containerId, Inventory playerInv, RegistryFriendlyByteBuf buf) {
-        this(containerId, playerInv, resolveClientEntity(playerInv, buf.readBlockPos()));
+        this(containerId, playerInv, null, resolveClientEntity(playerInv, buf.readBlockPos()));
     }
 
     private static SolarPanelBlockEntity resolveClientEntity(Inventory playerInv, BlockPos pos) {
@@ -41,16 +42,27 @@ public final class SolarPanelMenu extends DeviceAccessMenu {
         return null;
     }
 
-    /** Server (and resolved-client) constructor. */
+    /** Server constructor. */
     public SolarPanelMenu(
             int containerId, Inventory playerInv, SolarPanelBlockEntity blockEntity) {
-        super(SolarKineticModule.SOLAR_PANEL_MENU.get(), containerId, playerInv, blockEntity);
-        this.blockEntity = blockEntity;
+        this(containerId, playerInv, blockEntity, blockEntity);
+    }
+
+    private SolarPanelMenu(
+            int containerId,
+            Inventory playerInv,
+            SolarPanelBlockEntity serverEntity,
+            SolarPanelBlockEntity filterHint) {
+        super(SolarKineticModule.SOLAR_PANEL_MENU.get(), containerId, playerInv, serverEntity);
+        this.blockEntity = serverEntity;
+        this.filterHint = filterHint;
         this.container =
-                blockEntity != null ? blockEntity : new SimpleContainer(SolarPanelBlockEntity.CHARGE_SLOTS);
+                serverEntity != null
+                        ? serverEntity
+                        : new SimpleContainer(SolarPanelBlockEntity.CHARGE_SLOTS);
         this.data =
-                blockEntity != null
-                        ? new PanelData(blockEntity)
+                serverEntity != null
+                        ? new PanelData(serverEntity)
                         : new SimpleContainerData(DATA_SLOTS);
 
         for (int i = 0; i < SolarPanelBlockEntity.CHARGE_SLOTS; i++) {
@@ -58,7 +70,7 @@ public final class SolarPanelMenu extends DeviceAccessMenu {
                     new Slot(this.container, i, CHARGE_SLOT_X[i], CHARGE_SLOT_Y) {
                         @Override
                         public boolean mayPlace(ItemStack stack) {
-                            return blockEntity == null || blockEntity.acceptsChargeItem(stack);
+                            return filterHint == null || filterHint.acceptsChargeItem(stack);
                         }
 
                         @Override
@@ -139,7 +151,7 @@ public final class SolarPanelMenu extends DeviceAccessMenu {
                 return ItemStack.EMPTY;
             }
         } else {
-            boolean accepts = blockEntity == null || blockEntity.acceptsChargeItem(stack);
+            boolean accepts = filterHint == null || filterHint.acceptsChargeItem(stack);
             if (accepts && moveItemStackTo(stack, 0, machineSlots, false)) {
                 // moved into charge slot
             } else if (index < invEnd) {
