@@ -9,14 +9,14 @@
 
 - **Mod ID**: `ecc2`
 - **Root Package**: `com.ecocraft2`
-- **Repository Root**: `/Users/alex/Tools/EcC2/ecocraft2`
-- **IC2NE 1.0.6 External JAR Dir (READ-ONLY, NEVER COPY INTO REPO)**: `/Users/alex/Tools/EcC2/.ic2-libs/`
+- **Repository Root**: `<repo-root>`
+- **IC2NE 1.0.6 External JAR Dir (READ-ONLY, NEVER COPY INTO REPO)**: `../.ic2-libs/` (or `-Pic2_libs_dir=<path>`)
   - `ic2-neoforge-1.21.1-1.0.6.jar`
   - `ic2-neoforge-26.1.2-1.0.6.jar`
   - `ic2-neoforge-26.2-1.0.6.jar`
   - `ic2-forge-1.19.2-1.0.6.jar`
-- **NEVER read or copy from `/Users/alex/Tools/EcC2/asp-research/` or `Advanced Solar Panels-4.3.0.jar`!**
-- **NEVER modify any file inside `/Users/alex/Tools/IC2/rebuild/`!**
+- **Clean-room rule**: Never include decompiled third-party source code, legacy jars, or third-party original textures in this repository.
+- **Host isolation**: Never modify IC2NE source files; integrate strictly through runtime Mixins and public hooks.
 
 ---
 

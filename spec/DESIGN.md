@@ -17,7 +17,7 @@
 | 同步发行目标（四平台） | **NeoForge 1.21.1**（Java 21）· **NeoForge 26.1.2**（Java 25）· **NeoForge 26.2**（Java 25）· **Forge 1.19.2**（Java 17） |
 | 联动模组 | **JEI** · **EMI** · **Jade** · **The One Probe (TOP)** · 通用标签（`c:` / `forge:`）与 `FoodProperties` 食物自动兼容 |
 
-### 1.1 仓库目录布局（`/Users/alex/Tools/EcC2/ecocraft2/` 或仓库根）
+### 1.1 仓库目录布局
 
 采用与 IC2NE 同构的**逻辑核心与平台适配分层**，最大化共享代码并把 1.19.2 / 1.21.1 / 26.1.2 / 26.2 差异收束在薄适配层：
 
