@@ -1,0 +1,1940 @@
+{
+  "solar_panel": {
+    "texture": "ecc2:textures/gui/solar_panel.png",
+    "panel": [
+      0,
+      0,
+      194,
+      168
+    ],
+    "lcd": [
+      18,
+      20,
+      158,
+      38
+    ],
+    "sky_icon_pos": [
+      24,
+      32,
+      14,
+      14
+    ],
+    "energy_bar_pos": [
+      46,
+      25,
+      24,
+      14
+    ],
+    "text_area": [
+      76,
+      24,
+      94,
+      30
+    ],
+    "charge_slots": [
+      {
+        "frame": [
+          61,
+          62,
+          18,
+          18
+        ],
+        "item": [
+          62,
+          63
+        ]
+      },
+      {
+        "frame": [
+          79,
+          62,
+          18,
+          18
+        ],
+        "item": [
+          80,
+          63
+        ]
+      },
+      {
+        "frame": [
+          97,
+          62,
+          18,
+          18
+        ],
+        "item": [
+          98,
+          63
+        ]
+      },
+      {
+        "frame": [
+          115,
+          62,
+          18,
+          18
+        ],
+        "item": [
+          116,
+          63
+        ]
+      }
+    ],
+    "player_inventory": {
+      "top_left_item": [
+        17,
+        86
+      ],
+      "hotbar_item": [
+        17,
+        144
+      ]
+    },
+    "sprites": {
+      "energy_bar_fill": [
+        196,
+        0,
+        24,
+        14
+      ],
+      "sky_day": [
+        196,
+        16,
+        14,
+        14
+      ],
+      "sky_night": [
+        196,
+        32,
+        14,
+        14
+      ],
+      "sky_rain": [
+        196,
+        48,
+        14,
+        14
+      ],
+      "sky_none": [
+        196,
+        64,
+        14,
+        14
+      ]
+    }
+  },
+  "quantum_generator": {
+    "texture": "ecc2:textures/gui/quantum_generator.png",
+    "panel": [
+      0,
+      0,
+      176,
+      193
+    ],
+    "lcd": [
+      10,
+      18,
+      156,
+      42
+    ],
+    "led_pos": [
+      152,
+      24,
+      10,
+      10
+    ],
+    "button_deck": [
+      10,
+      64,
+      156,
+      42
+    ],
+    "production_buttons": [
+      [
+        12,
+        68,
+        24,
+        16
+      ],
+      [
+        38,
+        68,
+        24,
+        16
+      ],
+      [
+        64,
+        68,
+        24,
+        16
+      ],
+      [
+        90,
+        68,
+        24,
+        16
+      ],
+      [
+        116,
+        68,
+        24,
+        16
+      ],
+      [
+        142,
+        68,
+        24,
+        16
+      ]
+    ],
+    "tier_buttons": [
+      [
+        12,
+        87,
+        24,
+        16
+      ],
+      [
+        38,
+        87,
+        24,
+        16
+      ],
+      [
+        64,
+        87,
+        24,
+        16
+      ],
+      [
+        90,
+        87,
+        24,
+        16
+      ],
+      [
+        116,
+        87,
+        24,
+        16
+      ],
+      [
+        142,
+        87,
+        24,
+        16
+      ]
+    ],
+    "player_inventory": {
+      "top_left_item": [
+        8,
+        111
+      ],
+      "hotbar_item": [
+        8,
+        169
+      ]
+    },
+    "sprites": {
+      "led_active": [
+        180,
+        0,
+        10,
+        10
+      ],
+      "led_inactive": [
+        180,
+        12,
+        10,
+        10
+      ],
+      "button_normal": [
+        180,
+        26,
+        24,
+        16
+      ],
+      "button_hover": [
+        180,
+        44,
+        24,
+        16
+      ],
+      "button_selected": [
+        180,
+        62,
+        24,
+        16
+      ]
+    }
+  },
+  "molecular_transformer": {
+    "texture": "ecc2:textures/gui/molecular_transformer.png",
+    "panel": [
+      0,
+      0,
+      220,
+      193
+    ],
+    "input_slot": {
+      "frame": [
+        19,
+        25,
+        18,
+        18
+      ],
+      "item": [
+        20,
+        26
+      ]
+    },
+    "output_slot": {
+      "frame": [
+        19,
+        67,
+        18,
+        18
+      ],
+      "item": [
+        20,
+        68
+      ]
+    },
+    "progress_bar_pos": [
+      23,
+      47,
+      10,
+      15
+    ],
+    "lcd": [
+      52,
+      22,
+      156,
+      74
+    ],
+    "player_inventory": {
+      "top_left_item": [
+        30,
+        111
+      ],
+      "hotbar_item": [
+        30,
+        169
+      ]
+    },
+    "sprites": {
+      "progress_fill": [
+        224,
+        0,
+        10,
+        15
+      ],
+      "progress_idle": [
+        224,
+        18,
+        10,
+        15
+      ]
+    }
+  },
+  "kinetic_generator": {
+    "texture": "ecc2:textures/gui/kinetic_generator.png",
+    "panel": [
+      0,
+      0,
+      176,
+      166
+    ],
+    "rotor_slot": {
+      "frame": [
+        79,
+        23,
+        18,
+        18
+      ],
+      "item": [
+        80,
+        24
+      ]
+    },
+    "tier_badge_pos": [
+      134,
+      18,
+      34,
+      12
+    ],
+    "durability_bar_pos": [
+      52,
+      48,
+      72,
+      7
+    ],
+    "lcd": [
+      16,
+      59,
+      144,
+      20
+    ],
+    "player_inventory": {
+      "top_left_item": [
+        8,
+        84
+      ],
+      "hotbar_item": [
+        8,
+        142
+      ]
+    },
+    "sprites": {
+      "durability_green": [
+        180,
+        0,
+        72,
+        7
+      ],
+      "durability_yellow": [
+        180,
+        10,
+        72,
+        7
+      ],
+      "durability_red": [
+        180,
+        20,
+        72,
+        7
+      ],
+      "badge_durable": [
+        180,
+        32,
+        34,
+        12
+      ],
+      "badge_overclocked": [
+        180,
+        46,
+        34,
+        12
+      ],
+      "badge_precision": [
+        180,
+        60,
+        34,
+        12
+      ],
+      "status_active": [
+        180,
+        76,
+        12,
+        12
+      ],
+      "status_overwind": [
+        194,
+        76,
+        12,
+        12
+      ]
+    }
+  },
+  "giant_machine": {
+    "texture": "ecc2:textures/gui/giant_machine.png",
+    "panel": [
+      0,
+      0,
+      256,
+      236
+    ],
+    "header_status_lcd": [
+      152,
+      4,
+      96,
+      11
+    ],
+    "input_slots": [
+      {
+        "lane": 0,
+        "frame": [
+          12,
+          24,
+          18,
+          18
+        ],
+        "item": [
+          13,
+          25
+        ]
+      },
+      {
+        "lane": 1,
+        "frame": [
+          32,
+          24,
+          18,
+          18
+        ],
+        "item": [
+          33,
+          25
+        ]
+      },
+      {
+        "lane": 2,
+        "frame": [
+          52,
+          24,
+          18,
+          18
+        ],
+        "item": [
+          53,
+          25
+        ]
+      },
+      {
+        "lane": 3,
+        "frame": [
+          12,
+          48,
+          18,
+          18
+        ],
+        "item": [
+          13,
+          49
+        ]
+      },
+      {
+        "lane": 4,
+        "frame": [
+          32,
+          48,
+          18,
+          18
+        ],
+        "item": [
+          33,
+          49
+        ]
+      },
+      {
+        "lane": 5,
+        "frame": [
+          52,
+          48,
+          18,
+          18
+        ],
+        "item": [
+          53,
+          49
+        ]
+      },
+      {
+        "lane": 6,
+        "frame": [
+          12,
+          72,
+          18,
+          18
+        ],
+        "item": [
+          13,
+          73
+        ]
+      },
+      {
+        "lane": 7,
+        "frame": [
+          32,
+          72,
+          18,
+          18
+        ],
+        "item": [
+          33,
+          73
+        ]
+      },
+      {
+        "lane": 8,
+        "frame": [
+          52,
+          72,
+          18,
+          18
+        ],
+        "item": [
+          53,
+          73
+        ]
+      }
+    ],
+    "micro_progress_bars": [
+      {
+        "lane": 0,
+        "pos": [
+          13,
+          43,
+          16,
+          3
+        ]
+      },
+      {
+        "lane": 1,
+        "pos": [
+          33,
+          43,
+          16,
+          3
+        ]
+      },
+      {
+        "lane": 2,
+        "pos": [
+          53,
+          43,
+          16,
+          3
+        ]
+      },
+      {
+        "lane": 3,
+        "pos": [
+          13,
+          67,
+          16,
+          3
+        ]
+      },
+      {
+        "lane": 4,
+        "pos": [
+          33,
+          67,
+          16,
+          3
+        ]
+      },
+      {
+        "lane": 5,
+        "pos": [
+          53,
+          67,
+          16,
+          3
+        ]
+      },
+      {
+        "lane": 6,
+        "pos": [
+          13,
+          91,
+          16,
+          3
+        ]
+      },
+      {
+        "lane": 7,
+        "pos": [
+          33,
+          91,
+          16,
+          3
+        ]
+      },
+      {
+        "lane": 8,
+        "pos": [
+          53,
+          91,
+          16,
+          3
+        ]
+      }
+    ],
+    "eu_core_bar": [
+      80,
+      25,
+      14,
+      52
+    ],
+    "battery_slot": {
+      "frame": [
+        78,
+        82,
+        18,
+        18
+      ],
+      "item": [
+        79,
+        83
+      ]
+    },
+    "active_batch_lcd": [
+      99,
+      23,
+      26,
+      16
+    ],
+    "flow_arrow_pos": [
+      100,
+      44,
+      24,
+      15
+    ],
+    "eu_draw_lcd": [
+      99,
+      64,
+      26,
+      15
+    ],
+    "water_tank": {
+      "frame": [
+        128,
+        23,
+        20,
+        76
+      ],
+      "fluid": [
+        130,
+        25,
+        16,
+        72
+      ]
+    },
+    "washer_container_in_slot": {
+      "frame": [
+        129,
+        105,
+        18,
+        18
+      ],
+      "item": [
+        130,
+        106
+      ]
+    },
+    "washer_container_out_slot": {
+      "frame": [
+        129,
+        125,
+        18,
+        18
+      ],
+      "item": [
+        130,
+        126
+      ]
+    },
+    "telemetry_lcd": [
+      10,
+      105,
+      114,
+      40
+    ],
+    "output_slots": [
+      {
+        "index": 0,
+        "frame": [
+          156,
+          24,
+          18,
+          18
+        ],
+        "item": [
+          157,
+          25
+        ]
+      },
+      {
+        "index": 1,
+        "frame": [
+          176,
+          24,
+          18,
+          18
+        ],
+        "item": [
+          177,
+          25
+        ]
+      },
+      {
+        "index": 2,
+        "frame": [
+          196,
+          24,
+          18,
+          18
+        ],
+        "item": [
+          197,
+          25
+        ]
+      },
+      {
+        "index": 3,
+        "frame": [
+          156,
+          48,
+          18,
+          18
+        ],
+        "item": [
+          157,
+          49
+        ]
+      },
+      {
+        "index": 4,
+        "frame": [
+          176,
+          48,
+          18,
+          18
+        ],
+        "item": [
+          177,
+          49
+        ]
+      },
+      {
+        "index": 5,
+        "frame": [
+          196,
+          48,
+          18,
+          18
+        ],
+        "item": [
+          197,
+          49
+        ]
+      },
+      {
+        "index": 6,
+        "frame": [
+          156,
+          72,
+          18,
+          18
+        ],
+        "item": [
+          157,
+          73
+        ]
+      },
+      {
+        "index": 7,
+        "frame": [
+          176,
+          72,
+          18,
+          18
+        ],
+        "item": [
+          177,
+          73
+        ]
+      },
+      {
+        "index": 8,
+        "frame": [
+          196,
+          72,
+          18,
+          18
+        ],
+        "item": [
+          197,
+          73
+        ]
+      }
+    ],
+    "upgrade_slots": [
+      {
+        "index": 0,
+        "frame": [
+          225,
+          24,
+          18,
+          18
+        ],
+        "item": [
+          226,
+          25
+        ]
+      },
+      {
+        "index": 1,
+        "frame": [
+          225,
+          44,
+          18,
+          18
+        ],
+        "item": [
+          226,
+          45
+        ]
+      },
+      {
+        "index": 2,
+        "frame": [
+          225,
+          64,
+          18,
+          18
+        ],
+        "item": [
+          226,
+          65
+        ]
+      },
+      {
+        "index": 3,
+        "frame": [
+          225,
+          84,
+          18,
+          18
+        ],
+        "item": [
+          226,
+          85
+        ]
+      }
+    ],
+    "port_summary_lcd": [
+      153,
+      105,
+      64,
+      40
+    ],
+    "port_access_button": [
+      224,
+      114,
+      20,
+      20
+    ],
+    "player_inventory": {
+      "top_left_item": [
+        48,
+        152
+      ],
+      "hotbar_item": [
+        48,
+        210
+      ]
+    },
+    "sprites": {
+      "micro_progress_fill": [
+        2,
+        238,
+        16,
+        3
+      ],
+      "micro_progress_bg": [
+        2,
+        243,
+        16,
+        3
+      ],
+      "flow_arrow_fill": [
+        24,
+        238,
+        24,
+        15
+      ],
+      "eu_segment_fill": [
+        52,
+        238,
+        14,
+        16
+      ],
+      "port_full_icon": [
+        70,
+        238,
+        12,
+        12
+      ],
+      "port_input_icon": [
+        84,
+        238,
+        12,
+        12
+      ],
+      "port_output_icon": [
+        98,
+        238,
+        12,
+        12
+      ],
+      "port_blocked_icon": [
+        112,
+        238,
+        12,
+        12
+      ],
+      "led_active": [
+        128,
+        238,
+        8,
+        8
+      ],
+      "led_idle": [
+        138,
+        238,
+        8,
+        8
+      ],
+      "tank_scale_overlay": [
+        150,
+        238,
+        16,
+        16
+      ],
+      "gear_button_bg": [
+        170,
+        237,
+        18,
+        18
+      ],
+      "gear_button_hover": [
+        190,
+        237,
+        18,
+        18
+      ]
+    }
+  },
+  "water_gas_machine": {
+    "texture": "ecc2:textures/gui/water_gas_machine.png",
+    "panel": [
+      0,
+      0,
+      176,
+      180
+    ],
+    "water_tank": {
+      "frame": [
+        12,
+        20,
+        20,
+        54
+      ],
+      "fluid": [
+        14,
+        22,
+        16,
+        50
+      ]
+    },
+    "water_cell_in": {
+      "frame": [
+        36,
+        20,
+        18,
+        18
+      ],
+      "item": [
+        37,
+        21
+      ]
+    },
+    "water_cell_out": {
+      "frame": [
+        36,
+        56,
+        18,
+        18
+      ],
+      "item": [
+        37,
+        57
+      ]
+    },
+    "coal_dust_slot": {
+      "frame": [
+        60,
+        24,
+        18,
+        18
+      ],
+      "item": [
+        61,
+        25
+      ]
+    },
+    "solar_icon_pos": [
+      84,
+      22,
+      14,
+      14
+    ],
+    "progress_arrow_pos": [
+      60,
+      46,
+      24,
+      15
+    ],
+    "energy_bolt_pos": [
+      62,
+      65,
+      14,
+      14
+    ],
+    "battery_slot": {
+      "frame": [
+        82,
+        63,
+        18,
+        18
+      ],
+      "item": [
+        83,
+        64
+      ]
+    },
+    "gas_tank": {
+      "frame": [
+        106,
+        20,
+        20,
+        54
+      ],
+      "fluid": [
+        108,
+        22,
+        16,
+        50
+      ]
+    },
+    "gas_cell_in": {
+      "frame": [
+        130,
+        20,
+        18,
+        18
+      ],
+      "item": [
+        131,
+        21
+      ]
+    },
+    "gas_cell_out": {
+      "frame": [
+        130,
+        56,
+        18,
+        18
+      ],
+      "item": [
+        131,
+        57
+      ]
+    },
+    "upgrade_slots": [
+      {
+        "index": 0,
+        "frame": [
+          152,
+          18,
+          18,
+          18
+        ],
+        "item": [
+          153,
+          19
+        ]
+      },
+      {
+        "index": 1,
+        "frame": [
+          152,
+          36,
+          18,
+          18
+        ],
+        "item": [
+          153,
+          37
+        ]
+      },
+      {
+        "index": 2,
+        "frame": [
+          152,
+          54,
+          18,
+          18
+        ],
+        "item": [
+          153,
+          55
+        ]
+      },
+      {
+        "index": 3,
+        "frame": [
+          152,
+          72,
+          18,
+          18
+        ],
+        "item": [
+          153,
+          73
+        ]
+      }
+    ],
+    "player_inventory": {
+      "top_left_item": [
+        8,
+        98
+      ],
+      "hotbar_item": [
+        8,
+        156
+      ]
+    },
+    "sprites": {
+      "progress_arrow": [
+        180,
+        0,
+        24,
+        15
+      ],
+      "energy_bolt": [
+        180,
+        18,
+        14,
+        14
+      ],
+      "solar_on": [
+        180,
+        34,
+        14,
+        14
+      ],
+      "solar_off": [
+        180,
+        50,
+        14,
+        14
+      ],
+      "tank_overlay": [
+        180,
+        68,
+        16,
+        50
+      ]
+    }
+  },
+  "gas_furnace": {
+    "texture": "ecc2:textures/gui/gas_furnace.png",
+    "panel": [
+      0,
+      0,
+      176,
+      166
+    ],
+    "gas_tank": {
+      "frame": [
+        14,
+        20,
+        20,
+        54
+      ],
+      "fluid": [
+        16,
+        22,
+        16,
+        50
+      ]
+    },
+    "gas_cell_in": {
+      "frame": [
+        38,
+        20,
+        18,
+        18
+      ],
+      "item": [
+        39,
+        21
+      ]
+    },
+    "gas_cell_out": {
+      "frame": [
+        38,
+        56,
+        18,
+        18
+      ],
+      "item": [
+        39,
+        57
+      ]
+    },
+    "input_slot": {
+      "frame": [
+        66,
+        20,
+        18,
+        18
+      ],
+      "item": [
+        67,
+        21
+      ]
+    },
+    "flame_pos": [
+      68,
+      41,
+      14,
+      14
+    ],
+    "progress_arrow_pos": [
+      90,
+      36,
+      24,
+      15
+    ],
+    "output_slot": {
+      "frame": [
+        120,
+        34,
+        18,
+        18
+      ],
+      "item": [
+        121,
+        35
+      ]
+    },
+    "upgrade_slots": [
+      {
+        "index": 0,
+        "frame": [
+          152,
+          8,
+          18,
+          18
+        ],
+        "item": [
+          153,
+          9
+        ]
+      },
+      {
+        "index": 1,
+        "frame": [
+          152,
+          26,
+          18,
+          18
+        ],
+        "item": [
+          153,
+          27
+        ]
+      },
+      {
+        "index": 2,
+        "frame": [
+          152,
+          44,
+          18,
+          18
+        ],
+        "item": [
+          153,
+          45
+        ]
+      },
+      {
+        "index": 3,
+        "frame": [
+          152,
+          62,
+          18,
+          18
+        ],
+        "item": [
+          153,
+          63
+        ]
+      }
+    ],
+    "player_inventory": {
+      "top_left_item": [
+        8,
+        84
+      ],
+      "hotbar_item": [
+        8,
+        142
+      ]
+    },
+    "sprites": {
+      "flame_blue": [
+        180,
+        0,
+        14,
+        14
+      ],
+      "progress_arrow": [
+        180,
+        18,
+        24,
+        15
+      ],
+      "tank_overlay": [
+        180,
+        36,
+        16,
+        50
+      ]
+    }
+  },
+  "gas_generator": {
+    "texture": "ecc2:textures/gui/gas_generator.png",
+    "panel": [
+      0,
+      0,
+      176,
+      166
+    ],
+    "gas_tank": {
+      "frame": [
+        18,
+        20,
+        20,
+        54
+      ],
+      "fluid": [
+        20,
+        22,
+        16,
+        50
+      ]
+    },
+    "gas_cell_in": {
+      "frame": [
+        44,
+        20,
+        18,
+        18
+      ],
+      "item": [
+        45,
+        21
+      ]
+    },
+    "gas_cell_out": {
+      "frame": [
+        44,
+        56,
+        18,
+        18
+      ],
+      "item": [
+        45,
+        57
+      ]
+    },
+    "flame_pos": [
+      76,
+      36,
+      14,
+      14
+    ],
+    "eu_bar_pos": [
+      98,
+      24,
+      24,
+      14
+    ],
+    "charge_slot": {
+      "frame": [
+        134,
+        22,
+        18,
+        18
+      ],
+      "item": [
+        135,
+        23
+      ]
+    },
+    "lcd": [
+      72,
+      54,
+      86,
+      22
+    ],
+    "player_inventory": {
+      "top_left_item": [
+        8,
+        84
+      ],
+      "hotbar_item": [
+        8,
+        142
+      ]
+    },
+    "sprites": {
+      "flame_blue": [
+        180,
+        0,
+        14,
+        14
+      ],
+      "eu_bar_fill": [
+        180,
+        18,
+        24,
+        14
+      ],
+      "tank_overlay": [
+        180,
+        36,
+        16,
+        50
+      ]
+    }
+  },
+  "culture_incubator": {
+    "texture": "ecc2:textures/gui/culture_incubator.png",
+    "panel": [
+      0,
+      0,
+      176,
+      180
+    ],
+    "water_tank": {
+      "frame": [
+        12,
+        20,
+        20,
+        54
+      ],
+      "fluid": [
+        14,
+        22,
+        16,
+        50
+      ]
+    },
+    "water_cell_in": {
+      "frame": [
+        36,
+        20,
+        18,
+        18
+      ],
+      "item": [
+        37,
+        21
+      ]
+    },
+    "water_cell_out": {
+      "frame": [
+        36,
+        56,
+        18,
+        18
+      ],
+      "item": [
+        37,
+        57
+      ]
+    },
+    "bonemeal_slot": {
+      "frame": [
+        66,
+        24,
+        18,
+        18
+      ],
+      "item": [
+        67,
+        25
+      ]
+    },
+    "progress_arrow_pos": [
+      64,
+      46,
+      24,
+      15
+    ],
+    "energy_bolt_pos": [
+      62,
+      65,
+      14,
+      14
+    ],
+    "battery_slot": {
+      "frame": [
+        82,
+        63,
+        18,
+        18
+      ],
+      "item": [
+        83,
+        64
+      ]
+    },
+    "culture_tank": {
+      "frame": [
+        106,
+        20,
+        20,
+        54
+      ],
+      "fluid": [
+        108,
+        22,
+        16,
+        50
+      ]
+    },
+    "culture_cell_in": {
+      "frame": [
+        130,
+        20,
+        18,
+        18
+      ],
+      "item": [
+        131,
+        21
+      ]
+    },
+    "culture_cell_out": {
+      "frame": [
+        130,
+        56,
+        18,
+        18
+      ],
+      "item": [
+        131,
+        57
+      ]
+    },
+    "upgrade_slots": [
+      {
+        "index": 0,
+        "frame": [
+          152,
+          18,
+          18,
+          18
+        ],
+        "item": [
+          153,
+          19
+        ]
+      },
+      {
+        "index": 1,
+        "frame": [
+          152,
+          36,
+          18,
+          18
+        ],
+        "item": [
+          153,
+          37
+        ]
+      },
+      {
+        "index": 2,
+        "frame": [
+          152,
+          54,
+          18,
+          18
+        ],
+        "item": [
+          153,
+          55
+        ]
+      },
+      {
+        "index": 3,
+        "frame": [
+          152,
+          72,
+          18,
+          18
+        ],
+        "item": [
+          153,
+          73
+        ]
+      }
+    ],
+    "player_inventory": {
+      "top_left_item": [
+        8,
+        98
+      ],
+      "hotbar_item": [
+        8,
+        156
+      ]
+    },
+    "sprites": {
+      "progress_arrow": [
+        180,
+        0,
+        24,
+        15
+      ],
+      "energy_bolt": [
+        180,
+        18,
+        14,
+        14
+      ],
+      "tank_overlay": [
+        180,
+        36,
+        16,
+        50
+      ]
+    }
+  },
+  "organic_fermenter": {
+    "texture": "ecc2:textures/gui/organic_fermenter.png",
+    "panel": [
+      0,
+      0,
+      176,
+      180
+    ],
+    "culture_tank": {
+      "frame": [
+        12,
+        20,
+        20,
+        54
+      ],
+      "fluid": [
+        14,
+        22,
+        16,
+        50
+      ]
+    },
+    "culture_cell_in": {
+      "frame": [
+        36,
+        20,
+        18,
+        18
+      ],
+      "item": [
+        37,
+        21
+      ]
+    },
+    "culture_cell_out": {
+      "frame": [
+        36,
+        56,
+        18,
+        18
+      ],
+      "item": [
+        37,
+        57
+      ]
+    },
+    "food_input_slot": {
+      "frame": [
+        60,
+        20,
+        18,
+        18
+      ],
+      "item": [
+        61,
+        21
+      ]
+    },
+    "container_return_slot": {
+      "frame": [
+        82,
+        20,
+        18,
+        18
+      ],
+      "item": [
+        83,
+        21
+      ]
+    },
+    "progress_arrow_pos": [
+      64,
+      44,
+      24,
+      15
+    ],
+    "energy_bolt_pos": [
+      62,
+      65,
+      14,
+      14
+    ],
+    "battery_slot": {
+      "frame": [
+        82,
+        63,
+        18,
+        18
+      ],
+      "item": [
+        83,
+        64
+      ]
+    },
+    "biogas_tank": {
+      "frame": [
+        106,
+        20,
+        20,
+        54
+      ],
+      "fluid": [
+        108,
+        22,
+        16,
+        50
+      ]
+    },
+    "biogas_cell_in": {
+      "frame": [
+        130,
+        20,
+        18,
+        18
+      ],
+      "item": [
+        131,
+        21
+      ]
+    },
+    "biogas_cell_out": {
+      "frame": [
+        130,
+        56,
+        18,
+        18
+      ],
+      "item": [
+        131,
+        57
+      ]
+    },
+    "upgrade_slots": [
+      {
+        "index": 0,
+        "frame": [
+          152,
+          18,
+          18,
+          18
+        ],
+        "item": [
+          153,
+          19
+        ]
+      },
+      {
+        "index": 1,
+        "frame": [
+          152,
+          36,
+          18,
+          18
+        ],
+        "item": [
+          153,
+          37
+        ]
+      },
+      {
+        "index": 2,
+        "frame": [
+          152,
+          54,
+          18,
+          18
+        ],
+        "item": [
+          153,
+          55
+        ]
+      },
+      {
+        "index": 3,
+        "frame": [
+          152,
+          72,
+          18,
+          18
+        ],
+        "item": [
+          153,
+          73
+        ]
+      }
+    ],
+    "player_inventory": {
+      "top_left_item": [
+        8,
+        98
+      ],
+      "hotbar_item": [
+        8,
+        156
+      ]
+    },
+    "sprites": {
+      "progress_arrow": [
+        180,
+        0,
+        24,
+        15
+      ],
+      "energy_bolt": [
+        180,
+        18,
+        14,
+        14
+      ],
+      "tank_overlay": [
+        180,
+        36,
+        16,
+        50
+      ]
+    }
+  },
+  "icons": {
+    "port_access_gear": {
+      "texture": "ecc2:textures/gui/icons/port_access_gear.png",
+      "size": [
+        16,
+        16
+      ]
+    }
+  }
+}

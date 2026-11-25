@@ -1,0 +1,21 @@
+{
+  "required": true,
+  "package": "com.ecocraft2.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "ArmorEffectsMixin",
+    "CableBlockMixin",
+    "CellFamilyMixin",
+    "PortableGearMixin",
+    "ProcessingRecipesMixin",
+    "TransportPlatformMixin",
+    "WorkshopKineticMixin",
+    "WorkshopNativeMixin",
+    "WorkshopNodeAccessor",
+    "WorkshopPlansMixin",
+    "WorkshopRecipesMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

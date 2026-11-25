@@ -1,0 +1,114 @@
+java.toolchain.languageVersion = JavaLanguageVersion.of(platformJava)
+base.archivesName = "ecc2-neoforge-$minecraftVersion"
+
+sourceSets.main.java.srcDir('../shared/src/main/java')
+if (file('../../minecraft/shared/src/main/java').isDirectory()) {
+    sourceSets.main.java.srcDir('../../minecraft/shared/src/main/java')
+}
+
+def ic2LibsDir = rootProject.file(providers.gradleProperty('ic2_libs_dir').getOrElse('../.ic2-libs'))
+def ic2Jar = new File(ic2LibsDir, "ic2-neoforge-${minecraftVersion}-1.0.6.jar")
+if (!ic2Jar.isFile()) {
+    throw new GradleException("Required IC2NE 1.0.6 JAR not found at ${ic2Jar.absolutePath}")
+}
+
+configurations {
+    localRuntime
+    runtimeClasspath.extendsFrom(localRuntime)
+}
+
+dependencies {
+    implementation project(':common')
+    // Compile against IC2NE 1.0.6 and load it in dev runs, but NEVER bundle it inside EcoCraft 2's JAR.
+    compileOnly files(ic2Jar)
+    localRuntime files(ic2Jar)
+}
+
+apply from: rootProject.file('gradle/optional-mods.gradle')
+
+neoForge {
+    enable {
+        version = neoForgeVersion
+        disableRecompilation = true
+    }
+    runs {
+        client {
+            client()
+        }
+        server {
+            server()
+            programArgument '--nogui'
+        }
+        data {
+            if (platformJava == 21) {
+                data()
+            } else {
+                clientData()
+            }
+            programArguments.addAll '--mod', 'ecc2', '--all', '--output', file('src/generated/resources').absolutePath
+        }
+    }
+    mods {
+        ecc2 {
+            sourceSet sourceSets.main
+            sourceSet project(':common').sourceSets.main
+        }
+    }
+}
+
+def generatedEcc2Resources = layout.buildDirectory.dir('generated/ecc2-resources')
+def dataGeneratorScript = rootProject.file('assets-gen/generate_data.py')
+def generateEcc2Resources = tasks.register('generateEcc2Resources', Exec) {
+    onlyIf { dataGeneratorScript.isFile() }
+    inputs.property('minecraftTarget', minecraftVersion)
+    if (dataGeneratorScript.isFile()) {
+        inputs.file(dataGeneratorScript)
+        inputs.files(rootProject.fileTree('assets-gen') {
+            include '*.py', '*.json', '*.tsv'
+        })
+    }
+    outputs.dir(generatedEcc2Resources)
+    commandLine providers.gradleProperty('ecc2.python').getOrElse('python3'),
+            dataGeneratorScript,
+            '--target', "neoforge-$minecraftVersion",
+            '--output', generatedEcc2Resources.get().asFile
+}
+
+tasks.named('processResources') {
+    dependsOn generateEcc2Resources
+    filteringCharset = 'UTF-8'
+    inputs.properties(
+            version: project.version,
+            neoForgeVersion: neoForgeVersion,
+            minecraftVersion: minecraftVersion,
+            loaderMetadata: loaderMetadata
+    )
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    includeEmptyDirs = false
+    doFirst { delete destinationDir }
+    if (rootProject.file('assets').isDirectory()) {
+        from(rootProject.file('assets')) {
+            exclude 'qa/**', 'brand/**'
+            into 'assets'
+            exclude '**/*.md', '**/*.csv', '**/.git*', '**/.DS_Store'
+        }
+    }
+    from(generatedEcc2Resources) {
+        exclude '.ecc2-generated-output'
+    }
+    from('../metadata') {
+        expand version: project.version,
+                neoForgeVersion: neoForgeVersion,
+                minecraftVersion: minecraftVersion,
+                loaderMetadata: loaderMetadata
+    }
+}
+
+tasks.named('jar') {
+    from project(':common').sourceSets.main.output
+    from(rootProject.file('LICENSE'))
+    from(rootProject.file('COPYING'))
+    from(rootProject.file('LICENSE-ASSETS'))
+    inputs.file(rootProject.file('NOTICE.md'))
+    from(rootProject.file('NOTICE.md'))
+}
