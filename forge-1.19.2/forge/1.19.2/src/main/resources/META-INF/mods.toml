@@ -1,0 +1,31 @@
+modLoader="javafml"
+loaderVersion="[43,44)"
+license="LGPL-3.0-only"
+
+[[mods]]
+modId="ecc2"
+version="${version}"
+displayName="EcoCraft 2: The New Era"
+displayURL="https://github.com/Alexme9125/EcoCraft2-The-New-Era"
+description="Clean-room addon for IndustrialCraft 2: The New Era adding Advanced Solar Panels 2, Advanced Wind/Water Kinetic Generators with classic rotor wear, 3x3x3 Giant Machines, and Water Gas / Natural Gas / Biogas industry."
+
+[[dependencies.ecc2]]
+modId="forge"
+mandatory=true
+versionRange="[${forgeVersion},44)"
+ordering="NONE"
+side="BOTH"
+
+[[dependencies.ecc2]]
+modId="minecraft"
+mandatory=true
+versionRange="[${minecraftVersion}]"
+ordering="NONE"
+side="BOTH"
+
+[[dependencies.ecc2]]
+modId="ic2"
+mandatory=true
+versionRange="[1.0.6,)"
+ordering="AFTER"
+side="BOTH"

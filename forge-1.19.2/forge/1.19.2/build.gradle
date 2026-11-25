@@ -1,0 +1,171 @@
+plugins {
+    id 'java'
+    id 'net.minecraftforge.gradle'
+}
+
+ext {
+    minecraftVersion = minecraft_version
+}
+
+base.archivesName = "ecc2-forge-${minecraft_version}"
+
+def repoRoot = rootProject.file('..')
+def ic2LibsDir = rootProject.file(providers.gradleProperty('ic2_libs_dir').getOrElse('../../.ic2-libs'))
+def ic2Jar = new File(ic2LibsDir, "ic2-forge-${minecraft_version}-${ic2_version}.jar")
+if (!ic2Jar.isFile()) {
+    throw new GradleException("Required IC2NE ${ic2_version} Forge 1.19.2 JAR not found at ${ic2Jar.absolutePath}")
+}
+
+repositories {
+    flatDir {
+        name = 'LocalIc2Libs'
+        dirs ic2LibsDir
+    }
+    maven {
+        name = 'SpongePowered'
+        url = 'https://repo.spongepowered.org/repository/maven-public/'
+    }
+}
+
+minecraft {
+    mappings channel: 'official', version: minecraft_version
+
+    runs {
+        configureEach {
+            workingDirectory layout.buildDirectory.dir("run/$name").get().asFile
+            property 'forge.logging.console.level', 'info'
+            arg '-mixin.config=ecc2.mixins.json'
+            mods {
+                ecc2 {
+                    source sourceSets.main
+                    source project(':common').sourceSets.main
+                }
+            }
+        }
+        client {}
+        server {
+            args '--nogui'
+        }
+    }
+}
+
+configurations {
+    localRuntime
+    runtimeClasspath.extendsFrom(localRuntime)
+}
+
+dependencies {
+    minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
+
+    implementation project(':common')
+
+    // Compile against deobfuscated IC2NE 1.0.6 and load in dev runs, NEVER bundle inside ecc2 JAR.
+    def ic2Deobf = fg.deobf("com.industrialage:ic2-forge-${minecraft_version}:${ic2_version}")
+    compileOnly ic2Deobf
+    localRuntime ic2Deobf
+
+    // SpongePowered Mixin annotation processor for compile-time validation & refmap generation.
+    annotationProcessor 'org.spongepowered:mixin:0.8.5'
+    annotationProcessor('com.google.guava:guava:31.0.1-jre') { transitive = false }
+    annotationProcessor 'com.google.code.gson:gson:2.8.9'
+    annotationProcessor 'org.ow2.asm:asm:9.7.1'
+    annotationProcessor 'org.ow2.asm:asm-tree:9.7.1'
+    annotationProcessor 'org.ow2.asm:asm-commons:9.7.1'
+    annotationProcessor 'org.ow2.asm:asm-util:9.7.1'
+}
+
+apply from: new File(repoRoot, 'gradle/optional-mods.gradle')
+
+def mixinRefMapFile = layout.buildDirectory.file('mixin/ecc2.refmap.json')
+
+tasks.named('compileJava', JavaCompile) {
+    dependsOn tasks.named('createMcpToSrg')
+    outputs.file(mixinRefMapFile)
+    doFirst {
+        def refmap = mixinRefMapFile.get().asFile
+        refmap.parentFile.mkdirs()
+        def tsrg = tasks.named('createMcpToSrg').get().output.get().asFile
+        options.compilerArgs.addAll([
+                "-AreobfTsrgFile=${tsrg.absolutePath}",
+                "-AoutRefMapFile=${refmap.absolutePath}",
+                '-AdefaultObfuscationEnv=searge'
+        ])
+    }
+    doLast {
+        def refmap = mixinRefMapFile.get().asFile
+        if (!refmap.exists()) {
+            refmap.parentFile.mkdirs()
+            refmap.text = '{"mappings":{},"data":{"searge":{}}}\n'
+        }
+    }
+}
+
+def generatedEcc2Resources = layout.buildDirectory.dir('generated/ecc2-resources')
+def dataGeneratorScript = new File(repoRoot, 'assets-gen/generate_data.py')
+
+def generateEcc2Resources = tasks.register('generateEcc2Resources', Exec) {
+    onlyIf { dataGeneratorScript.isFile() }
+    inputs.property('minecraftTarget', 'forge-1.19.2')
+    if (dataGeneratorScript.isFile()) {
+        inputs.file(dataGeneratorScript)
+        inputs.files(fileTree(new File(repoRoot, 'assets-gen')) {
+            include '*.py', '*.json', '*.tsv'
+        })
+    }
+    outputs.dir(generatedEcc2Resources)
+    commandLine providers.gradleProperty('ecc2.python').getOrElse('python3'),
+            dataGeneratorScript.absolutePath,
+            '--target', 'forge-1.19.2',
+            '--output', generatedEcc2Resources.get().asFile.absolutePath
+}
+
+tasks.named('processResources') {
+    dependsOn generateEcc2Resources
+    filteringCharset = 'UTF-8'
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    includeEmptyDirs = false
+    inputs.properties(
+            version: project.version,
+            minecraftVersion: minecraft_version,
+            forgeVersion: forge_version
+    )
+    doFirst { delete destinationDir }
+    filesMatching('META-INF/mods.toml') {
+        expand version: project.version,
+                minecraftVersion: minecraft_version,
+                forgeVersion: forge_version
+    }
+    def sharedAssets = new File(repoRoot, 'assets')
+    if (sharedAssets.isDirectory()) {
+        from(sharedAssets) {
+            exclude 'qa/**', 'brand/**'
+            into 'assets'
+            exclude '**/*.md', '**/*.csv', '**/.git*', '**/.DS_Store'
+        }
+    }
+    from(generatedEcc2Resources) {
+        exclude '.ecc2-generated-output'
+    }
+}
+
+tasks.named('jar') {
+    dependsOn tasks.named('compileJava')
+    manifest {
+        attributes(
+                'Specification-Title': 'EcoCraft 2: The New Era',
+                'Specification-Vendor': 'EcoCraft 2 Contributors',
+                'Specification-Version': '1',
+                'Implementation-Title': 'ecc2',
+                'Implementation-Version': project.version,
+                'MixinConfigs': 'ecc2.mixins.json'
+        )
+    }
+    from project(':common').sourceSets.main.output
+    from(mixinRefMapFile)
+    from(new File(repoRoot, 'LICENSE'))
+    from(new File(repoRoot, 'COPYING'))
+    from(new File(repoRoot, 'LICENSE-ASSETS'))
+    inputs.file(new File(repoRoot, 'NOTICE.md'))
+    from(new File(repoRoot, 'NOTICE.md'))
+    finalizedBy 'reobfJar'
+}

@@ -1,0 +1,24 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "com.ecocraft2.mixin",
+  "compatibilityLevel": "JAVA_17",
+  "refmap": "ecc2.refmap.json",
+  "mixins": [
+    "ArmorEffectsMixin",
+    "CableBlockMixin",
+    "CellFamilyMixin",
+    "CellItemMixin",
+    "ForgeGearMixin",
+    "ProcessingRecipesMixin",
+    "RotorItemMixin",
+    "TransportPlatformMixin",
+    "WorkshopKineticMixin",
+    "WorkshopNodeAccessor",
+    "WorkshopPlansMixin",
+    "WorkshopRecipesMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

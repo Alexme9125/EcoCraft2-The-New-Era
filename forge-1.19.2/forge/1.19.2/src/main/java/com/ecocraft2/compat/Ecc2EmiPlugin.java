@@ -1,0 +1,202 @@
+package com.ecocraft2.compat;
+
+import com.ecocraft2.bridge.Ecc2BridgePlatform;
+import com.ecocraft2.common.config.Ecc2Ids;
+import com.ecocraft2.common.gas.GasFuelSpec;
+import com.ecocraft2.gas.GasRegistry;
+import com.ecocraft2.solar.MolecularTransformerRecipe;
+import com.ecocraft2.solar.SolarKineticRegistry;
+import dev.emi.emi.api.EmiEntrypoint;
+import dev.emi.emi.api.EmiPlugin;
+import dev.emi.emi.api.EmiRegistry;
+import dev.emi.emi.api.recipe.BasicEmiRecipe;
+import dev.emi.emi.api.recipe.EmiRecipeCategory;
+import dev.emi.emi.api.recipe.VanillaEmiRecipeCategories;
+import dev.emi.emi.api.stack.EmiIngredient;
+import dev.emi.emi.api.stack.EmiStack;
+import dev.emi.emi.api.widget.WidgetHolder;
+import java.util.Locale;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.level.material.Fluid;
+import net.minecraft.world.level.material.Fluids;
+
+/** Optional EMI plugin for EcoCraft 2 (discovered automatically by EMI when present). */
+@EmiEntrypoint
+public final class Ecc2EmiPlugin implements EmiPlugin {
+
+    @Override
+    public void register(EmiRegistry registry) {
+        EmiRecipeCategory mtCategory =
+                new EmiRecipeCategory(
+                        Ecc2BridgePlatform.rl("molecular_transformer"),
+                        EmiStack.of(SolarKineticRegistry.MOLECULAR_TRANSFORMER.get()));
+        EmiRecipeCategory waterGasCategory =
+                new EmiRecipeCategory(
+                        Ecc2BridgePlatform.rl("water_gas"),
+                        EmiStack.of(GasRegistry.WATER_GAS_MACHINE.get()));
+        EmiRecipeCategory gasGenCategory =
+                new EmiRecipeCategory(
+                        Ecc2BridgePlatform.rl("gas_generator"),
+                        EmiStack.of(GasRegistry.GAS_GENERATOR.get()));
+        EmiRecipeCategory cultureCategory =
+                new EmiRecipeCategory(
+                        Ecc2BridgePlatform.rl("culture_incubator"),
+                        EmiStack.of(GasRegistry.CULTURE_INCUBATOR.get()));
+        EmiRecipeCategory fermenterCategory =
+                new EmiRecipeCategory(
+                        Ecc2BridgePlatform.rl("organic_fermenter"),
+                        EmiStack.of(GasRegistry.ORGANIC_FERMENTER.get()));
+
+        registry.addCategory(mtCategory);
+        registry.addWorkstation(
+                mtCategory, EmiStack.of(SolarKineticRegistry.MOLECULAR_TRANSFORMER.get()));
+
+        registry.addCategory(waterGasCategory);
+        registry.addWorkstation(
+                waterGasCategory, EmiStack.of(GasRegistry.WATER_GAS_MACHINE.get()));
+
+        registry.addWorkstation(
+                VanillaEmiRecipeCategories.SMELTING, EmiStack.of(GasRegistry.GAS_FURNACE.get()));
+
+        registry.addCategory(gasGenCategory);
+        registry.addWorkstation(gasGenCategory, EmiStack.of(GasRegistry.GAS_GENERATOR.get()));
+
+        registry.addCategory(cultureCategory);
+        registry.addWorkstation(
+                cultureCategory, EmiStack.of(GasRegistry.CULTURE_INCUBATOR.get()));
+
+        registry.addCategory(fermenterCategory);
+        registry.addWorkstation(
+                fermenterCategory, EmiStack.of(GasRegistry.ORGANIC_FERMENTER.get()));
+
+        for (MolecularTransformerRecipe recipe :
+                registry.getRecipeManager()
+                        .getAllRecipesFor(SolarKineticRegistry.MT_RECIPE_TYPE.get())) {
+            if (recipe.isAvailable()) {
+                registry.addRecipe(new MtEmiRecipe(mtCategory, recipe));
+            }
+        }
+
+        Item coalDust = Ecc2BridgePlatform.findItem("ic2:coal_dust");
+        registry.addRecipe(
+                new ProcessEmiRecipe(
+                        waterGasCategory,
+                        Ecc2BridgePlatform.rl("emi/water_gas/coal_dust"),
+                        EmiStack.of(coalDust != null ? coalDust : Items.COAL),
+                        EmiStack.of(Fluids.WATER, 100),
+                        EmiStack.of(GasRegistry.WATER_GAS.get(), 1000),
+                        1000));
+
+        registry.addRecipe(
+                new ProcessEmiRecipe(
+                        cultureCategory,
+                        Ecc2BridgePlatform.rl("emi/culture_incubator/bonemeal"),
+                        EmiStack.of(Items.BONE_MEAL),
+                        EmiStack.of(Fluids.WATER, 100),
+                        EmiStack.of(GasRegistry.CULTURE_MEDIUM.get(), 100),
+                        200));
+
+        Fluid biogas = Ecc2BridgePlatform.findFluid(Ecc2Ids.IC2_BIOGAS_ID);
+        if (biogas != Fluids.EMPTY) {
+            registry.addRecipe(
+                    new ProcessEmiRecipe(
+                            fermenterCategory,
+                            Ecc2BridgePlatform.rl("emi/organic_fermenter/apple"),
+                            EmiStack.of(Items.APPLE),
+                            EmiStack.of(GasRegistry.CULTURE_MEDIUM.get(), 50),
+                            EmiStack.of(biogas, 80),
+                            200));
+        }
+
+        for (GasFuelSpec spec : GasFuelSpec.values()) {
+            Fluid fluid = Ecc2BridgePlatform.findFluid(spec.fluidId());
+            if (fluid != Fluids.EMPTY) {
+                registry.addRecipe(
+                        new GasGenEmiRecipe(
+                                gasGenCategory,
+                                Ecc2BridgePlatform.rl(
+                                        "emi/gas_generator/" + spec.name().toLowerCase(Locale.ROOT)),
+                                EmiStack.of(fluid, 1000),
+                                spec.euPerBucket(),
+                                spec.euPerTick()));
+            }
+        }
+    }
+
+    private static final class MtEmiRecipe extends BasicEmiRecipe {
+        private final long energy;
+
+        MtEmiRecipe(EmiRecipeCategory category, MolecularTransformerRecipe recipe) {
+            super(category, recipe.getId(), 148, 38);
+            this.energy = recipe.energy();
+            this.inputs.add(EmiIngredient.of(recipe.input(), recipe.inputCount()));
+            this.outputs.add(EmiStack.of(recipe.resolveOutput()));
+        }
+
+        @Override
+        public void addWidgets(WidgetHolder widgets) {
+            widgets.addSlot(inputs.get(0), 8, 10);
+            widgets.addText(
+                    Component.translatable("jei.ecc2.energy_cost", energy), 34, 15, 0xFF334455, false);
+            widgets.addSlot(outputs.get(0), 120, 10).recipeContext(this);
+        }
+    }
+
+    private static final class ProcessEmiRecipe extends BasicEmiRecipe {
+        private final int euCost;
+
+        ProcessEmiRecipe(
+                EmiRecipeCategory cat,
+                ResourceLocation id,
+                EmiStack itemIn,
+                EmiStack fluidIn,
+                EmiStack fluidOut,
+                int euCost) {
+            super(cat, id, 148, 38);
+            this.euCost = euCost;
+            this.inputs.add(itemIn);
+            this.inputs.add(fluidIn);
+            this.outputs.add(fluidOut);
+        }
+
+        @Override
+        public void addWidgets(WidgetHolder widgets) {
+            widgets.addSlot(inputs.get(0), 8, 10);
+            widgets.addSlot(inputs.get(1), 30, 10);
+            widgets.addText(
+                    Component.translatable("jei.ecc2.energy_cost", euCost), 54, 15, 0xFF334455, false);
+            widgets.addSlot(outputs.get(0), 120, 10).recipeContext(this);
+        }
+    }
+
+    private static final class GasGenEmiRecipe extends BasicEmiRecipe {
+        private final int euPerBucket;
+        private final int euPerTick;
+
+        GasGenEmiRecipe(
+                EmiRecipeCategory category,
+                ResourceLocation id,
+                EmiStack fluid,
+                int euPerBucket,
+                int euPerTick) {
+            super(category, id, 160, 34);
+            this.euPerBucket = euPerBucket;
+            this.euPerTick = euPerTick;
+            this.inputs.add(fluid);
+        }
+
+        @Override
+        public void addWidgets(WidgetHolder widgets) {
+            widgets.addSlot(inputs.get(0), 8, 8);
+            widgets.addText(
+                    Component.translatable("jei.ecc2.fuel_output", euPerBucket, euPerTick),
+                    32,
+                    13,
+                    0xFF334455,
+                    false);
+        }
+    }
+}

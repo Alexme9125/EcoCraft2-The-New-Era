@@ -1,0 +1,33 @@
+plugins {
+    id 'base'
+}
+
+allprojects {
+    group = 'com.ecocraft2'
+    version = rootProject.property('mod_version')
+    repositories {
+        mavenCentral()
+    }
+}
+
+project(':common') {
+    // Keep Forge 1.19.2 build outputs isolated from the parent NeoForge Gradle build.
+    layout.buildDirectory.set(rootProject.layout.buildDirectory.dir('common'))
+}
+
+subprojects {
+    plugins.withId('java') {
+        java.toolchain.languageVersion = JavaLanguageVersion.of(17)
+        tasks.withType(JavaCompile).configureEach {
+            options.encoding = 'UTF-8'
+        }
+        tasks.withType(AbstractArchiveTask).configureEach {
+            preserveFileTimestamps = false
+            reproducibleFileOrder = true
+        }
+    }
+}
+
+tasks.named('build') {
+    dependsOn ':common:build', ':forge:1.19.2:build'
+}

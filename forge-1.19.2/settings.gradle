@@ -1,0 +1,15 @@
+pluginManagement {
+    repositories {
+        maven { url = 'https://maven.minecraftforge.net' }
+        gradlePluginPortal()
+    }
+    plugins {
+        id 'net.minecraftforge.gradle' version '6.0.54'
+    }
+}
+
+rootProject.name = 'ecocraft2-forge-1.19.2'
+include 'common', 'forge:1.19.2'
+project(':common').projectDir = file('../src/common')
+project(':forge').projectDir = file('forge')
+project(':forge:1.19.2').projectDir = file('forge/1.19.2')
