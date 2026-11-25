@@ -1,7 +1,6 @@
 package com.ecocraft2.solar;
 
 import com.industrialage.ia2.gui.DeviceAccessMenu;
-import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.world.Container;
@@ -30,19 +29,16 @@ public final class MolecularTransformerMenu extends DeviceAccessMenu {
     /** Client constructor invoked via {@code IMenuTypeExtension}. */
     public MolecularTransformerMenu(
             int containerId, Inventory playerInv, RegistryFriendlyByteBuf buf) {
-        this(containerId, playerInv, resolveClientEntity(playerInv, buf.readBlockPos()));
+        this(containerId, playerInv, readPosAndUseClientSync(buf));
     }
 
-    private static MolecularTransformerBlockEntity resolveClientEntity(
-            Inventory playerInv, BlockPos pos) {
-        if (playerInv.player.level().getBlockEntity(pos)
-                instanceof MolecularTransformerBlockEntity mt) {
-            return mt;
-        }
+    private static MolecularTransformerBlockEntity readPosAndUseClientSync(
+            RegistryFriendlyByteBuf buf) {
+        buf.readBlockPos();
         return null;
     }
 
-    /** Server (and resolved-client) constructor. */
+    /** Server (or null-backed client) constructor. */
     public MolecularTransformerMenu(
             int containerId, Inventory playerInv, MolecularTransformerBlockEntity blockEntity) {
         super(
