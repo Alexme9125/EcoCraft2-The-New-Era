@@ -2,7 +2,11 @@ package com.ecocraft2.common.config;
 
 import org.junit.jupiter.api.Test;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
 
@@ -19,7 +23,7 @@ class Ecc2ConfigAndIdsTest {
         assertEquals("ecc2", Ecc2Ids.MOD_ID);
         assertEquals(23, Ecc2Ids.PLACEABLE_BLOCKS.size());
         assertEquals(3, Ecc2Ids.FLUID_BLOCKS.size());
-        assertEquals(26, Ecc2Ids.STANDALONE_ITEMS.size());
+        assertEquals(24, Ecc2Ids.STANDALONE_ITEMS.size());
 
         Set<String> allBlockPaths = new HashSet<>();
         for (String path : Ecc2Ids.PLACEABLE_BLOCKS) {
@@ -36,6 +40,11 @@ class Ecc2ConfigAndIdsTest {
             assertTrue(LOWERCASE_PATH.matcher(path).matches(), "Invalid item path: " + path);
             assertTrue(allItemPaths.add(path), "Duplicate item path: " + path);
         }
+
+        // Duplicate items removed in favor of IC2NE native items; ecc2:iridium_ingot preserved.
+        assertFalse(allItemPaths.contains("biogas_cell"), "ecc2:biogas_cell must be removed");
+        assertFalse(allItemPaths.contains("uranium_ingot"), "ecc2:uranium_ingot must be removed");
+        assertTrue(allItemPaths.contains(Ecc2Ids.IRIDIUM_INGOT), "ecc2:iridium_ingot must be preserved");
     }
 
     @Test
@@ -44,8 +53,75 @@ class Ecc2ConfigAndIdsTest {
         assertEquals("ecc2:natural_gas", Ecc2Ids.NATURAL_GAS_ID);
         assertEquals("ecc2:culture_medium", Ecc2Ids.CULTURE_MEDIUM_ID);
         assertEquals("ic2:biogas", Ecc2Ids.IC2_BIOGAS_ID);
+        assertEquals("ic2:biogas_cell", Ecc2Ids.IC2_BIOGAS_CELL);
+        assertEquals("ic2:uranium_ingot", Ecc2Ids.IC2_URANIUM_INGOT);
+        assertEquals("ecc2:iridium_ingot", Ecc2Ids.ecc2(Ecc2Ids.IRIDIUM_INGOT));
         assertEquals("ecc2:methane_ice_cluster", Ecc2Ids.ecc2(Ecc2Ids.METHANE_ICE_CLUSTER));
         assertEquals("ic2:carbon_rotor", Ecc2Ids.IC2_CARBON_ROTOR);
+    }
+
+    @Test
+    void mixinConfigsAndSourcesExcludeDuplicateVanillaRotorMixins() throws IOException {
+        Path repoRoot = findRepoRoot();
+        List<Path> mixinConfigs = List.of(
+                repoRoot.resolve("src/neoforge/1.21.1/src/main/resources/ecc2.mixins.json"),
+                repoRoot.resolve("src/neoforge/26.1.2/src/main/resources/ecc2.mixins.json"),
+                repoRoot.resolve("src/neoforge/26.2/src/main/resources/ecc2.mixins.json"),
+                repoRoot.resolve("forge-1.19.2/forge/1.19.2/src/main/resources/ecc2.mixins.json")
+        );
+        for (Path cfg : mixinConfigs) {
+            assertTrue(Files.isRegularFile(cfg), "Missing mixin config: " + cfg);
+            String json = Files.readString(cfg);
+            assertFalse(json.contains("WorkshopNativeMixin"), "WorkshopNativeMixin must be removed from " + cfg);
+            assertFalse(json.contains("RotorItemMixin"), "RotorItemMixin must be removed from " + cfg);
+            assertTrue(json.contains("WorkshopKineticMixin"), "WorkshopKineticMixin must remain registered in " + cfg);
+        }
+
+        assertFalse(Files.exists(repoRoot.resolve(
+                "src/neoforge/shared/src/main/java/com/ecocraft2/mixin/WorkshopNativeMixin.java")));
+        assertFalse(Files.exists(repoRoot.resolve(
+                "forge-1.19.2/forge/1.19.2/src/main/java/com/ecocraft2/mixin/RotorItemMixin.java")));
+
+        for (Path km : List.of(
+                repoRoot.resolve("src/neoforge/shared/src/main/java/com/ecocraft2/mixin/WorkshopKineticMixin.java"),
+                repoRoot.resolve("forge-1.19.2/forge/1.19.2/src/main/java/com/ecocraft2/mixin/WorkshopKineticMixin.java")
+        )) {
+            String src = Files.readString(km);
+            assertTrue(src.contains("ecc2$convertExternalKineticSource"), "Must retain KU bridge in " + km);
+            assertFalse(src.contains("ecc2$tickVanillaRotorWear"), "Must remove duplicate vanilla wear in " + km);
+        }
+
+        // Verify both entry points register ic2:uranium_ingot (and NOT ecc2:biogas_cell or ecc2:uranium_ingot)
+        for (Path entry : List.of(
+                repoRoot.resolve("src/neoforge/shared/src/main/java/com/ecocraft2/EcoCraft2.java"),
+                repoRoot.resolve("forge-1.19.2/forge/1.19.2/src/main/java/com/ecocraft2/EcoCraft2.java")
+        )) {
+            String src = Files.readString(entry);
+            assertFalse(src.contains("ecc2:biogas_cell"), "Must not register ecc2:biogas_cell in " + entry);
+            assertFalse(src.contains("ecc2:uranium_ingot"), "Must not register ecc2:uranium_ingot in " + entry);
+            assertTrue(src.contains("Ecc2Ids.IC2_URANIUM_INGOT"), "Must target ic2:uranium_ingot in " + entry);
+            assertTrue(src.contains("ecc2:iridium_ingot"), "Must preserve ecc2:iridium_ingot in " + entry);
+            assertFalse(src.contains("appendRotorTooltip"), "Must remove duplicate vanilla rotor tooltip in " + entry);
+        }
+
+        // Verify WTHIT metadata and 26.x EMI plugin exist
+        assertTrue(Files.isRegularFile(repoRoot.resolve("src/neoforge/metadata/wthit_plugins.json")));
+        assertTrue(Files.isRegularFile(repoRoot.resolve(
+                "forge-1.19.2/forge/1.19.2/src/main/resources/wthit_plugins.json")));
+        assertTrue(Files.isRegularFile(repoRoot.resolve(
+                "src/neoforge/26.x/src/main/java/com/ecocraft2/compat/Ecc2EmiPlugin.java")));
+    }
+
+    private static Path findRepoRoot() {
+        Path dir = Path.of("").toAbsolutePath();
+        while (dir != null) {
+            if (Files.isRegularFile(dir.resolve("settings.gradle"))
+                    && Files.isDirectory(dir.resolve("forge-1.19.2"))) {
+                return dir;
+            }
+            dir = dir.getParent();
+        }
+        throw new IllegalStateException("Could not locate EcoCraft 2 repository root");
     }
 
     @Test

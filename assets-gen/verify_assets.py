@@ -30,7 +30,7 @@ TEX_ROOT = ASSETS_ROOT / "textures"
 LANG_ROOT = ASSETS_ROOT / "lang"
 GUI_COORDS_PATH = Path(__file__).resolve().parent / "gui_coordinates.json"
 IC2_LIBS_DIR = Path(os.environ.get("ECC2_IC2_LIBS_DIR", str(REPO_ROOT.parent / ".ic2-libs")))
-IC2_REF_JAR = IC2_LIBS_DIR / "ic2-neoforge-1.21.1-1.0.6.jar"
+IC2_REF_JAR = IC2_LIBS_DIR / "ic2-neoforge-1.21.1-1.0.8.jar"
 
 PATH_RE = re.compile(r"^[a-z0-9/._-]+$")
 

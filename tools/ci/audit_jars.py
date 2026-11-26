@@ -19,6 +19,7 @@ FORBIDDEN_CLASS_PREFIXES = (
     "mezz/jei/",
     "dev/emi/emi/",
     "snownee/jade/",
+    "mcp/mobius/waila/",
     "mcjty/theoneprobe/",
     "top/theillusivec4/curios/",
     "com/chocohead/",

@@ -7,9 +7,9 @@ if (file('../../minecraft/shared/src/main/java').isDirectory()) {
 }
 
 def ic2LibsDir = rootProject.file(providers.gradleProperty('ic2_libs_dir').getOrElse('../.ic2-libs'))
-def ic2Jar = new File(ic2LibsDir, "ic2-neoforge-${minecraftVersion}-1.0.6.jar")
+def ic2Jar = new File(ic2LibsDir, "ic2-neoforge-${minecraftVersion}-1.0.8.jar")
 if (!ic2Jar.isFile()) {
-    throw new GradleException("Required IC2NE 1.0.6 JAR not found at ${ic2Jar.absolutePath}")
+    throw new GradleException("Required IC2NE 1.0.8 JAR not found at ${ic2Jar.absolutePath}")
 }
 
 configurations {

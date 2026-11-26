@@ -1,0 +1,10 @@
+{
+  "ecc2:machines": {
+    "entrypoints": {
+      "common": "com.ecocraft2.compat.Ecc2WthitCommonPlugin",
+      "client": "com.ecocraft2.compat.Ecc2WthitClientPlugin"
+    },
+    "side": "*",
+    "required": []
+  }
+}

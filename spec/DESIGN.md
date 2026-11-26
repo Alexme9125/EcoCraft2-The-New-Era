@@ -15,7 +15,7 @@
 | 开源许可 | 代码 `LGPL-3.0-only`；原创重绘游戏美术 `CC BY-SA 4.0` |
 | 依赖宿主 | `ic2`（IC2NE 1.0.6+，**不修改 IC2NE 本体任何文件**） |
 | 同步发行目标（四平台） | **NeoForge 1.21.1**（Java 21）· **NeoForge 26.1.2**（Java 25）· **NeoForge 26.2**（Java 25）· **Forge 1.19.2**（Java 17） |
-| 联动模组 | **JEI** · **EMI** · **Jade** · **The One Probe (TOP)** · 通用标签（`c:` / `forge:`）与 `FoodProperties` 食物自动兼容 |
+| 联动模组 | **JEI** · **EMI** · **Jade** · **WTHIT** · **The One Probe (TOP)** · 通用标签（`c:` / `forge:`）与 `FoodProperties` 食物自动兼容 |
 
 ### 1.1 仓库目录布局
 
@@ -56,11 +56,11 @@ ecocraft2/
 | # | 桥接目标（IC2NE 1.0.6） | 桥接接口 / 注入点 | 达成效果 |
 | --- | --- | --- | --- |
 | M1 | `CableBlock`（NeoForge `gameplay.CableBlock` / Forge `forge.content.CableBlock`） | `Ecc2PowerConnectable` 标记接口注入 `updateConnection` / `connects` | EcoCraft 2 所有发电/用电方块（含巨大机器 3×3×3 外表面）与 IC2 全部线缆视觉+物理无缝连线；BE 直接实现 `WorldPowerPort`、`EuBuffer`、`MachineAccessTarget` 并走 `WorldEnergy.connect/disconnect` |
-| M2 | `WorkshopKinetic` + IC2 转子物品注册/构造 | `Ecc2KineticSource` 接口注入 `WorkshopKinetic.convert`；`RotorDurability` 注入转子最大耐久与原版风/水机磨损 | ① `ic2:kinetic_generator` 原生抽取 6 台高级风/水动能机输出的 KU；② IC2 5 种转子对齐经典耐久度（见 §4.1）；③ 原版风/水机开启 100% 基准磨损，与高级机 50%/200%/50% 形成完整体系 |
-| M3 | `CellFamily` + `TransportPlatform` + `WorkshopCells` | 流体单元扩展表注入 `admits`、`resultingPath`、`readCellFluid`、`withCellContents` | ① `ic2:empty_cell`（基本液体单元）接纳 `ecc2:culture_medium`，满 1000 mB 自动转为 `ecc2:basic_culture_medium_cell`；② `ic2:fluid_cell`（通用流体单元）满 1000 mB 水煤气/天然气/培养液/沼气自动转为对应命名单元，倒空还原为空单元 |
-| M4 | `WorkshopPlans` / `WorkshopRecipes` + `ProcessingRecipes` | 动态配方注入点（装罐机、压缩机、金属成型机挤出模式） | ① `ic2:canner`（装瓶模式）、`ic2:solid_canner`、`ic2:classic_canner` 原生支持 `3×甲烷冰 + 1×通用流体单元 → 1×天然气单元`；② `ic2:compressor` & `ic2:metal_former` 原生支持 ASP 6 条铱/铀锭配方 |
+| M2 | `WorkshopKinetic` | `Ecc2KineticSource` 接口注入 `WorkshopKinetic.convert` | `ic2:kinetic_generator` 原生抽取 6 台高级风/水动能机输出的 KU（IC2NE 本体已原生实现 5 种转子的经典耐久度、原版风/水机磨损与 Tooltip，EcC2 仅维护 6 台高级动能机的倍率磨损） |
+| M3 | `CellFamily` + `TransportPlatform` + `WorkshopCells` | 流体单元扩展表注入 `admits`、`resultingPath`、`readCellFluid`、`withCellContents` | ① `ic2:empty_cell`（基本液体单元）接纳 `ecc2:culture_medium`，满 1000 mB 自动转为 `ecc2:basic_culture_medium_cell`；② `ic2:fluid_cell`（通用流体单元）满 1000 mB 水煤气/天然气/培养液自动转为对应命名单元（沼气直接复用 `ic2:biogas_cell`），倒空还原为空单元 |
+| M4 | `WorkshopPlans` / `WorkshopRecipes` + `ProcessingRecipes` | 动态配方注入点（装罐机、压缩机、金属成型机挤出模式） | ① `ic2:canner`（装瓶模式）、`ic2:solid_canner`、`ic2:classic_canner` 原生支持 `3×甲烷冰 + 1×通用流体单元 → 1×天然气单元`；② `ic2:compressor` & `ic2:metal_former` 原生支持 ASP 铱锭（`ecc2:iridium_ingot`）与铀锭（复用 `ic2:uranium_ingot`）配方 |
 | M5 | `PortableGear` + `ArmorEffects`（及 Forge `ForgeGear`） | `Ecc2ElectricEquipment` + `Ecc2ArmorSuitBridge` | ① 3 顶太阳能头盔可放入 IC2NE MFSU/MFE/CESU/BatBox 充电槽、站上充电座、被充电电池充电；② 高级太阳能头盔视同纳米头盔、混合/终极太阳能头盔视同量子头盔，完整参与 IC2NE 纳米/量子整套减伤判定 |
-| M6 | `TopProbe` / 独立注册 | 注册 `ecc2` 的 TOP Provider + Jade Plugin + JEI Plugin + EMI Plugin | 探针精准显示 EU 储量/发电量、KU 动能/转子余寿、多气体储罐、巨大机器 9 路进度与下角端口权限 |
+| M6 | `TopProbe` / 独立注册 | 注册 `ecc2` 的 TOP Provider + Jade Plugin + WTHIT Plugin + JEI Plugin + EMI Plugin | 探针精准显示 EU 储量/发电量、KU 动能/转子余寿、多气体储罐、巨大机器 9 路进度与下角端口权限 |
 
 ---
 
@@ -79,9 +79,9 @@ ecocraft2/
 
 > **上游 12 项核心缺陷全部在洁净室实现中根治**：`injectEnergy` 精确收 `min(amount, wanted)` 并退回余量、完工清空剩余缓存、输出槽满时暂停结算不吞产物、`wait` 用 `int` 且上限封顶不循环闪烁、面板储能下限钳制 `>= 0`、头盔天气状态按玩家/堆叠隔离、终极头盔无序升级保留染色、`Enriched Sunnarium Alloy` 英文名修正、移除过时的双石台阶。
 
-### 3.2 合成材料（14 项独立物品 ID）
+### 3.2 合成材料（13 项独立物品 ID + 复用 `ic2:uranium_ingot`）
 
-`sunnarium`（阳光化合物）、`sunnarium_part`（小块阳光化合物）、`sunnarium_alloy`（阳光合金）、`irradiant_uranium`（光辉铀锭）、`enriched_sunnarium`（富集阳光化合物）、`enriched_sunnarium_alloy`（富集阳光合金）、`irradiant_glass_pane`（光辉玻璃板）、`iridium_iron_plate`（铱铁合金板）、`reinforced_iridium_iron_plate`（强化铱铁合金板）、`irradiant_reinforced_plate`（光辉铱铁合金板）、`iridium_ingot`（铱锭，Tag `c:ingots/iridium`）、`uranium_ingot`（铀锭，Tag `c:ingots/uranium`）、`mt_core`（分子重组核心）、`quantum_core`（量子核心）。
+`sunnarium`（阳光化合物）、`sunnarium_part`（小块阳光化合物）、`sunnarium_alloy`（阳光合金）、`irradiant_uranium`（光辉铀锭）、`enriched_sunnarium`（富集阳光化合物）、`enriched_sunnarium_alloy`（富集阳光合金）、`irradiant_glass_pane`（光辉玻璃板）、`iridium_iron_plate`（铱铁合金板）、`reinforced_iridium_iron_plate`（强化铱铁合金板）、`irradiant_reinforced_plate`（光辉铱铁合金板）、`iridium_ingot`（铱锭，Tag `c:ingots/iridium`）、`mt_core`（分子重组核心）、`quantum_core`（量子核心）；铀锭直接复用 IC2NE 本体 `ic2:uranium_ingot`（Tag `c:ingots/uranium`）。
 
 ### 3.3 三顶太阳能头盔
 
@@ -179,7 +179,7 @@ ecocraft2/
 | `ecc2:water_gas` | 水煤气 | 淡青灰微光气体（密度 -400、上升扩散感） | `ecc2:water_gas_cell`（水煤气单元） | — | `c:water_gas` / `ecc2:gas_fuel` |
 | `ecc2:natural_gas` | 天然气 | 冰蓝清澈气体（密度 -600） | `ecc2:natural_gas_cell`（天然气单元） | — | `c:natural_gas` / `ecc2:gas_fuel` |
 | `ecc2:culture_medium` | 培养液 | 翠绿生物营养液（密度 1020） | `ecc2:culture_medium_cell`（培养液单元） | `ecc2:basic_culture_medium_cell`（基本培养液单元） | `c:culture_medium` |
-| `ic2:biogas`（复用） | 沼气 | 复用 IC2NE 本体沼气 | `ecc2:biogas_cell`（沼气单元，兼容 `ic2:fluid_cell` 持沼气） | — | `c:biogas` / `ecc2:gas_fuel` |
+| `ic2:biogas`（复用） | 沼气 | 复用 IC2NE 本体沼气 | `ic2:biogas_cell`（直接复用 IC2NE 沼气单元） | — | `c:biogas` / `ecc2:gas_fuel` |
 
 > 所有流体均配齐流体方块与铁桶（除已存在的 `ic2:biogas_bucket`），在装罐机/储罐/管道中与 `ic2:fluid_cell`（及培养液对 `ic2:empty_cell`）100% 互通。
 

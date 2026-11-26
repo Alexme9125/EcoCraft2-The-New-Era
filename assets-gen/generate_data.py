@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import shutil
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -82,7 +83,6 @@ ASP_CRAFTING_ITEMS = [
     "reinforced_iridium_iron_plate",
     "irradiant_reinforced_plate",
     "iridium_ingot",
-    "uranium_ingot",
     "mt_core",
     "quantum_core",
 ]
@@ -103,7 +103,6 @@ NAMED_CELLS = [
     "natural_gas_cell",
     "culture_medium_cell",
     "basic_culture_medium_cell",
-    "biogas_cell",
 ]
 
 BUCKETS = [
@@ -988,7 +987,7 @@ def generate_tags(out_root: Path, cfg: TargetConfig) -> int:
 
     # Common ingot tags (c: for 1.21.1/26.x, forge: for 1.19.2)
     emit_tag(cfg.common_ns, cfg.tag_item_dir, "ingots/iridium", [f"{MOD_ID}:iridium_ingot"])
-    emit_tag(cfg.common_ns, cfg.tag_item_dir, "ingots/uranium", [f"{MOD_ID}:uranium_ingot", {"id": "ic2:uranium_ingot", "required": False}])
+    emit_tag(cfg.common_ns, cfg.tag_item_dir, "ingots/uranium", ["ic2:uranium_ingot"])
 
     # Common fluid tags
     emit_tag(cfg.common_ns, cfg.tag_fluid_dir, "water_gas", [f"{MOD_ID}:water_gas", f"{MOD_ID}:flowing_water_gas"])
@@ -1082,6 +1081,10 @@ def generate_worldgen(out_root: Path, cfg: TargetConfig) -> int:
 
 def generate_target(target: str, output_dir: Path) -> Dict[str, int]:
     cfg = TargetConfig(target)
+    for sub in ("assets", "data"):
+        stale = output_dir / sub
+        if stale.exists():
+            shutil.rmtree(stale)
     output_dir.mkdir(parents=True, exist_ok=True)
     return {
         "assets_json": generate_assets(output_dir, cfg),

@@ -26,7 +26,8 @@ import net.neoforged.neoforge.registries.NeoForgeRegistries;
 /**
  * Registers EcoCraft 2's 3 new fluids ({@code water_gas}, {@code natural_gas}, {@code
  * culture_medium}), their flowing states, liquid blocks, buckets, client fluid appearance, and all
- * 5 named IC2NE-compatible fluid cells ({@link CellItem}).
+ * 4 named IC2NE-compatible fluid cells ({@link CellItem}). Biogas cells reuse {@code
+ * ic2:biogas_cell} directly.
  */
 public final class Ecc2Fluids {
 
@@ -103,7 +104,7 @@ public final class Ecc2Fluids {
     public static final DeferredHolder<Item, BucketItem> CULTURE_MEDIUM_BUCKET =
             registerBucket(Ecc2Ids.CULTURE_MEDIUM_BUCKET, CULTURE_MEDIUM_SOURCE);
 
-    // ---- 5 Named Fluid Cells (IC2NE CellItem::new for full CellFamily / TransportPlatform parity) ----
+    // ---- 4 Named Fluid Cells (IC2NE CellItem::new; Biogas reuses ic2:biogas_cell) ----
     public static final DeferredHolder<Item, CellItem> WATER_GAS_CELL =
             FLUID_ITEMS.registerItem(Ecc2Ids.WATER_GAS_CELL, CellItem::new);
     public static final DeferredHolder<Item, CellItem> NATURAL_GAS_CELL =
@@ -112,8 +113,6 @@ public final class Ecc2Fluids {
             FLUID_ITEMS.registerItem(Ecc2Ids.CULTURE_MEDIUM_CELL, CellItem::new);
     public static final DeferredHolder<Item, CellItem> BASIC_CULTURE_MEDIUM_CELL =
             FLUID_ITEMS.registerItem(Ecc2Ids.BASIC_CULTURE_MEDIUM_CELL, CellItem::new);
-    public static final DeferredHolder<Item, CellItem> BIOGAS_CELL =
-            FLUID_ITEMS.registerItem(Ecc2Ids.BIOGAS_CELL, CellItem::new);
 
     public static final List<Ecc2FluidSpec> ALL_SPECS =
             List.of(

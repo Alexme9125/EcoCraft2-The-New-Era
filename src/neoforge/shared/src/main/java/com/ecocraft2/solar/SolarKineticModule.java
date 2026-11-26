@@ -210,7 +210,7 @@ public final class SolarKineticModule {
     public static final DeferredItem<BlockItem> PRECISION_WATER_KINETIC_GENERATOR_ITEM =
             ITEMS.registerSimpleBlockItem(PRECISION_WATER_KINETIC_GENERATOR);
 
-    // ---- Standalone ASP 2 Crafting Materials (14 exact IDs from spec/CONTRACTS.md) ----
+    // ---- Standalone ASP 2 Crafting Materials (13 exact IDs; Uranium Ingot reuses ic2:uranium_ingot) ----
 
     public static final DeferredItem<Item> SUNNARIUM =
             SolarPlatform.registerSimpleItem(ITEMS, Ecc2Ids.SUNNARIUM);
@@ -234,8 +234,6 @@ public final class SolarKineticModule {
             SolarPlatform.registerSimpleItem(ITEMS, Ecc2Ids.IRRADIANT_REINFORCED_PLATE);
     public static final DeferredItem<Item> IRIDIUM_INGOT =
             SolarPlatform.registerSimpleItem(ITEMS, Ecc2Ids.IRIDIUM_INGOT);
-    public static final DeferredItem<Item> URANIUM_INGOT =
-            SolarPlatform.registerSimpleItem(ITEMS, Ecc2Ids.URANIUM_INGOT);
     public static final DeferredItem<Item> MT_CORE =
             SolarPlatform.registerSimpleItem(ITEMS, Ecc2Ids.MT_CORE);
     public static final DeferredItem<Item> QUANTUM_CORE =
@@ -407,7 +405,7 @@ public final class SolarKineticModule {
                             SolarHelmetLogic.createChargedStack(
                                     ULTIMATE_HYBRID_SOLAR_HELMET.get()));
 
-                    // 14 ASP 2 Crafting Materials
+                    // 13 ASP 2 Crafting Materials
                     output.accept(SUNNARIUM_PART.get());
                     output.accept(SUNNARIUM.get());
                     output.accept(SUNNARIUM_ALLOY.get());
@@ -419,7 +417,6 @@ public final class SolarKineticModule {
                     output.accept(REINFORCED_IRIDIUM_IRON_PLATE.get());
                     output.accept(IRRADIANT_REINFORCED_PLATE.get());
                     output.accept(IRIDIUM_INGOT.get());
-                    output.accept(URANIUM_INGOT.get());
                     output.accept(MT_CORE.get());
                     output.accept(QUANTUM_CORE.get());
                 });

@@ -320,7 +320,6 @@ public final class GiantGasModule {
                     output.accept(Ecc2Fluids.NATURAL_GAS_CELL.get());
                     output.accept(Ecc2Fluids.CULTURE_MEDIUM_CELL.get());
                     output.accept(Ecc2Fluids.BASIC_CULTURE_MEDIUM_CELL.get());
-                    output.accept(Ecc2Fluids.BIOGAS_CELL.get());
                     output.accept(Ecc2Fluids.WATER_GAS_BUCKET.get());
                     output.accept(Ecc2Fluids.NATURAL_GAS_BUCKET.get());
                     output.accept(Ecc2Fluids.CULTURE_MEDIUM_BUCKET.get());

@@ -51,14 +51,14 @@
 | Biogas | `organic_fermenter` | Organic Fermenter (50mB culture_medium+food→20mB×H ic2:biogas) | `facing` (H4), `active` |
 | Fluid Blocks | `water_gas`, `natural_gas`, `culture_medium` | LiquidBlock (no BlockItem) | fluid level |
 
-### 2.2 Standalone Items — 26 Items
+### 2.2 Standalone Items — 24 Items
 
 | Category | Registry Path | Notes |
 | --- | --- | --- |
-| ASP Crafting (14) | `sunnarium`, `sunnarium_part`, `sunnarium_alloy`, `irradiant_uranium`, `enriched_sunnarium`, `enriched_sunnarium_alloy`, `irradiant_glass_pane`, `iridium_iron_plate`, `reinforced_iridium_iron_plate`, `irradiant_reinforced_plate`, `iridium_ingot`, `uranium_ingot`, `mt_core`, `quantum_core` | Independent items; `iridium_ingot` in `#c:ingots/iridium` / `#forge:ingots/iridium`, `uranium_ingot` in `#c:ingots/uranium` / `#forge:ingots/uranium` |
+| ASP Crafting (13) | `sunnarium`, `sunnarium_part`, `sunnarium_alloy`, `irradiant_uranium`, `enriched_sunnarium`, `enriched_sunnarium_alloy`, `irradiant_glass_pane`, `iridium_iron_plate`, `reinforced_iridium_iron_plate`, `irradiant_reinforced_plate`, `iridium_ingot`, `mt_core`, `quantum_core` | Independent items; `iridium_ingot` in `#c:ingots/iridium` / `#forge:ingots/iridium`; uranium ingot reuses `ic2:uranium_ingot` (`#c:ingots/uranium` / `#forge:ingots/uranium`) |
 | ASP Helmets (3) | `advanced_solar_helmet`, `hybrid_solar_helmet`, `ultimate_hybrid_solar_helmet` | Electric helmets; hybrid & ultimate dyeable (vanilla `dyed_color` / `display.color` + upgrade color preservation) + full quantum helmet abilities |
 | Giant Component (1) | `megastructure_component` | Mid-tier crafting item (`orig machine + megastructure_component -> giant_*_unit`) |
-| Named Cells (5) | `water_gas_cell`, `natural_gas_cell`, `culture_medium_cell`, `basic_culture_medium_cell`, `biogas_cell` | Full 1000 mB fluid cells; emptying returns `ic2:fluid_cell` (or `ic2:empty_cell` for `basic_culture_medium_cell`) |
+| Named Cells (4) | `water_gas_cell`, `natural_gas_cell`, `culture_medium_cell`, `basic_culture_medium_cell` | Full 1000 mB fluid cells (biogas reuses `ic2:biogas_cell`); emptying returns `ic2:fluid_cell` (or `ic2:empty_cell` for `basic_culture_medium_cell`) |
 | Buckets (3) | `water_gas_bucket`, `natural_gas_bucket`, `culture_medium_bucket` | Standard fluid buckets (`ic2:biogas_bucket` already exists in IC2NE!) |
 
 ### 2.3 Fluids — 3 New Fluids + 1 Reused IC2NE Fluid

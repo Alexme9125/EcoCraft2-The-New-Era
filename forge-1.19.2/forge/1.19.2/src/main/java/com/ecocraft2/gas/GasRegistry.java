@@ -159,7 +159,7 @@ public final class GasRegistry {
                                             .craftRemainder(Items.BUCKET)
                                             .stacksTo(1)));
 
-    // ---- 5 Named Fluid Cells ----
+    // ---- 4 Named Fluid Cells (Biogas reuses ic2:biogas_cell) ----
     public static final RegistryObject<Item> WATER_GAS_CELL =
             Ecc2Registries.ITEMS.register(
                     Ecc2Ids.WATER_GAS_CELL, () -> new Ecc2NamedCellItem("gui.ecc2.gas.water_gas"));
@@ -175,9 +175,6 @@ public final class GasRegistry {
             Ecc2Registries.ITEMS.register(
                     Ecc2Ids.BASIC_CULTURE_MEDIUM_CELL,
                     () -> new Ecc2NamedCellItem("gui.ecc2.gas.culture_medium"));
-    public static final RegistryObject<Item> BIOGAS_CELL =
-            Ecc2Registries.ITEMS.register(
-                    Ecc2Ids.BIOGAS_CELL, () -> new Ecc2NamedCellItem("gui.ecc2.gas.biogas"));
 
     // ---- Seafloor Methane Ice Cluster ----
     public static final RegistryObject<Block> METHANE_ICE_CLUSTER =
