@@ -1,15 +1,16 @@
 // Compile-only optional compatibility APIs pinned to Modrinth version IDs.
 // None of these third-party JARs are ever bundled in the EcoCraft 2 distribution JAR.
 def optionalModVersions = [
-        '1.19.2': [jei: 'yr59GtS6', emi: 'lvh62wOB', jade: 'kp0HjPre', top: 'KCnKC3d7', curios: 'uUAY30IE'],
-        '1.21.1': [jei: 'lDv3cHMp', emi: '5sIPA1To', jade: 'eYz2YBGT', top: 'kxB9y8zd', curios: 'KJsZIQrT'],
-        '26.1.2': [jei: 'dptdI3yM', emi: null, jade: 'Pr1h4azo', top: 'xD8Yvxod', curios: 'dRnRThvD'],
-        '26.2'  : [jei: 'lU7Sz0zI', emi: null, jade: 'GBES6etT', top: 'igbuHaA1', curios: 'BI7D0sbK']
+        '1.19.2': [jei: 'yr59GtS6', emiSlug: 'emi', emi: 'lvh62wOB', jade: 'kp0HjPre', wthit: 'FuMynGus', top: 'KCnKC3d7', curios: 'uUAY30IE'],
+        '1.21.1': [jei: 'lDv3cHMp', emiSlug: 'emi', emi: '5sIPA1To', jade: 'eYz2YBGT', wthit: 'xmRpwbgr', top: 'kxB9y8zd', curios: 'KJsZIQrT'],
+        '26.1.2': [jei: 'dptdI3yM', emiSlug: 'TfSvU3a3', emi: 'N2tHzL14', jade: 'Pr1h4azo', wthit: '86roxNra', top: 'xD8Yvxod', curios: 'dRnRThvD'],
+        '26.2'  : [jei: 'lU7Sz0zI', emiSlug: 'TfSvU3a3', emi: 'jlaivqox', jade: 'GBES6etT', wthit: '6TB1L4QG', top: 'igbuHaA1', curios: 'BI7D0sbK']
 ][project.ext.has('minecraftVersion') ? minecraftVersion : minecraft_version]
 
 ext.hasJeiCompat = optionalModVersions?.jei != null
 ext.hasEmiCompat = optionalModVersions?.emi != null
 ext.hasJadeCompat = optionalModVersions?.jade != null
+ext.hasWthitCompat = optionalModVersions?.wthit != null
 ext.hasTopCompat = optionalModVersions?.top != null
 ext.hasCuriosCompat = optionalModVersions?.curios != null
 
@@ -40,10 +41,13 @@ dependencies {
             compatTestMods "maven.modrinth:jei:${optionalModVersions.jei}"
         }
         if (optionalModVersions.emi != null) {
-            compatTestMods "maven.modrinth:emi:${optionalModVersions.emi}"
+            compatTestMods "maven.modrinth:${optionalModVersions.emiSlug}:${optionalModVersions.emi}"
         }
         if (optionalModVersions.jade != null) {
             compatTestMods "maven.modrinth:jade:${optionalModVersions.jade}"
+        }
+        if (optionalModVersions.wthit != null) {
+            compatTestMods "maven.modrinth:wthit:${optionalModVersions.wthit}"
         }
         if (optionalModVersions.top != null) {
             compatTestMods "maven.modrinth:the-one-probe:${optionalModVersions.top}"

@@ -67,7 +67,7 @@ public final class SolarKineticRegistry {
                     Ecc2Ids.PRECISION_WATER_KINETIC_GENERATOR,
                     () -> AdvancedKineticBlock.water(KineticMachineTier.PRECISION));
 
-    // ---- 14 ASP Crafting Items ----
+    // ---- 13 ASP Crafting Items (Uranium Ingot reuses ic2:uranium_ingot) ----
     public static final RegistryObject<Item> SUNNARIUM = registerSimpleItem(Ecc2Ids.SUNNARIUM);
     public static final RegistryObject<Item> SUNNARIUM_PART =
             registerSimpleItem(Ecc2Ids.SUNNARIUM_PART);
@@ -89,8 +89,6 @@ public final class SolarKineticRegistry {
             registerSimpleItem(Ecc2Ids.IRRADIANT_REINFORCED_PLATE);
     public static final RegistryObject<Item> IRIDIUM_INGOT =
             registerSimpleItem(Ecc2Ids.IRIDIUM_INGOT);
-    public static final RegistryObject<Item> URANIUM_INGOT =
-            registerSimpleItem(Ecc2Ids.URANIUM_INGOT);
     public static final RegistryObject<Item> MT_CORE = registerSimpleItem(Ecc2Ids.MT_CORE);
     public static final RegistryObject<Item> QUANTUM_CORE =
             registerSimpleItem(Ecc2Ids.QUANTUM_CORE);

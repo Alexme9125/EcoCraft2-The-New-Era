@@ -10,7 +10,6 @@
     "ProcessingRecipesMixin",
     "TransportPlatformMixin",
     "WorkshopKineticMixin",
-    "WorkshopNativeMixin",
     "WorkshopNodeAccessor",
     "WorkshopPlansMixin",
     "WorkshopRecipesMixin"

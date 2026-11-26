@@ -587,8 +587,6 @@ def gen_asp_items_and_armor() -> None:
              TEX_ROOT / "item" / "irradiant_reinforced_plate.png")
     save_png(draw_ingot_sprite((196, 210, 224, 255), (242, 250, 255, 255), (118, 134, 154, 255), glow=(224, 252, 255, 255), seed=307),
              TEX_ROOT / "item" / "iridium_ingot.png")
-    save_png(draw_ingot_sprite((66, 132, 62, 255), (138, 224, 116, 255), (34, 72, 36, 255), glow=(166, 255, 132, 255), seed=308),
-             TEX_ROOT / "item" / "uranium_ingot.png")
 
     # MT Core (octagonal dark-steel cage + glowing cyan plasma sphere)
     mtc = Image.new("RGBA", (16, 16), PAL["transparent"])
@@ -1220,42 +1218,72 @@ def gen_fluid_textures() -> None:
         save_mcmeta(flow_p, frametime=2, interpolate=True)
 
 
-def draw_cell_sprite(fluid_lo: RGBA, fluid_hi: RGBA, basic: bool = False) -> Image.Image:
-    """16x16 universal fluid cell (or basic tin fluid cell) filled with colored fluid."""
+# Exact IC2NE 16x16 cell frame palette & template (matching ic2 fluid_cell.png & empty_cell.png)
+IC2_CELL_PALETTE: Dict[str, RGBA] = {
+    ".": (0, 0, 0, 0),
+    "O": (0x28, 0x30, 0x3B, 255),  # dark slate outline & right-side notch
+    "H": (0xE9, 0xF1, 0xF7, 255),  # bright top/right glass-rim highlight
+    "M": (0xB2, 0xC0, 0xCE, 255),  # upper-right metallic bevel
+    "W": (0xFF, 0xFF, 0xFF, 255),  # left specular streak
+    "L": (0x7E, 0x8E, 0x9F, 255),  # left/bottom casing midtone
+    "D": (0x4E, 0x5B, 0x6B, 255),  # recessed frame & right body
+    "U": (0x26, 0x2D, 0x35, 255),  # universal fluid_cell empty window
+    "E": (0x56, 0x60, 0x6B, 255),  # basic empty_cell tin window backing
+}
+
+IC2_CELL_FRAME = [
+    "....OOOOOOOO....",
+    "...OHHHHHMMMO...",
+    "..OHWDDDDDDHHO..",
+    "..OLWD____HDDO..",
+    "..OLWD____HDDO..",
+    "..OLWD____HDDO..",
+    "..OLWD____HDDO..",
+    "..OLWD____HDOO..",
+    "..OLWD____HDOO..",
+    "..OLWD____HDDO..",
+    "..OLWD____HDDO..",
+    "..OLWD____HDDO..",
+    "..OLWD____HDDO..",
+    "..ODDDDDDDDDDO..",
+    "...OLLLDDDDDO...",
+    "....OOOOOOOO....",
+]
+
+
+def draw_cell_sprite(
+    window_palette: Tuple[RGBA, RGBA, RGBA, RGBA],
+    pattern: List[str],
+    basic: bool = False,
+    basic_glint: RGBA | None = None,
+) -> Image.Image:
+    """16x16 cell drawn pixel-accurately on IC2NE's exact fluid_cell / empty_cell frame.
+
+    Window interior is x=6..9, y=3..12 (4x10).
+    For universal cells (basic=False), all 10 rows of the window are filled using ``pattern``
+    with codes '0' (brightest highlight), '1' (light), '2' (mid), '3' (deep shade).
+    For basic tin cells (basic=True), rows y=3..6 retain IC2's empty_cell tin backing (with an
+    optional tinted glint at (6, 5)) and rows y=7..12 show the filled liquid window, matching
+    IC2NE's basic_water_cell / basic_lava_cell convention.
+    """
     img = Image.new("RGBA", (16, 16), PAL["transparent"])
-    if basic:
-        # Classic sleek cylindrical tin cell (narrower capsule)
-        body_hi, body_lo = (212, 220, 228, 255), (124, 134, 146, 255)
-        fill_rect(img, 6, 2, 4, 2, body_hi)  # cap
-        for y in range(4, 14):
-            for x in range(4, 12):
-                if x in (4, 11) or y in (4, 13):
-                    px(img, x, y, body_hi if x < 8 else body_lo)
+    c0, c1, c2, c3 = window_palette
+    code_map = {"0": c0, "1": c1, "2": c2, "3": c3}
+    for y, row in enumerate(IC2_CELL_FRAME):
+        for x, ch in enumerate(row):
+            if ch == "_":
+                if basic and y < 7:
+                    if basic_glint is not None and x == 6 and y == 5:
+                        px(img, x, y, basic_glint)
+                    else:
+                        px(img, x, y, IC2_CELL_PALETTE["E"])
                 else:
-                    t = (x - 5) / 5.0
-                    px(img, x, y, lerp_color(fluid_hi, fluid_lo, t))
-        # Glass specular highlight
-        for y in range(5, 12):
-            px(img, 6, y, lerp_color(fluid_hi, PAL["bevel_white"], 0.45))
-    else:
-        # Universal IC2NE armored cell (wider flanged steel-slate frame + large liquid window)
-        fill_rect(img, 5, 1, 6, 2, PAL["bevel_hi"])
-        fill_rect(img, 4, 3, 8, 1, PAL["slate_dark"])
-        fill_rect(img, 4, 13, 8, 2, PAL["slate_dark"])
-        for y in range(4, 13):
-            for x in range(3, 13):
-                if x in (3, 12) or y in (4, 12):
-                    c = PAL["bevel_hi"] if x < 7 else PAL["slate_dark"]
-                    px(img, x, y, c)
-                else:
-                    t = ((x - 4) / 7.0) * 0.7 + ((y - 5) / 7.0) * 0.3
-                    px(img, x, y, lerp_color(fluid_hi, fluid_lo, t))
-        # Specular glass sheen + corner clamps
-        for y in range(5, 12):
-            px(img, 5, y, lerp_color(fluid_hi, PAL["bevel_white"], 0.4))
-        for cx, cy in [(3, 4), (12, 4), (3, 12), (12, 12)]:
-            px(img, cx, cy, PAL["slate_light"])
-    return add_item_outline(img)
+                    py = (y - 7) if basic else (y - 3)
+                    px_code = pattern[py][x - 6]
+                    px(img, x, y, code_map[px_code])
+            else:
+                px(img, x, y, IC2_CELL_PALETTE[ch])
+    return img
 
 
 def draw_bucket_sprite(fluid_lo: RGBA, fluid_hi: RGBA) -> Image.Image:
@@ -1284,12 +1312,98 @@ def draw_bucket_sprite(fluid_lo: RGBA, fluid_hi: RGBA) -> Image.Image:
 
 
 def gen_gas_and_bio_items() -> None:
-    # 5 Named Cells
-    save_png(draw_cell_sprite((112, 184, 198, 255), (218, 248, 252, 255), basic=False), TEX_ROOT / "item" / "water_gas_cell.png")
-    save_png(draw_cell_sprite((74, 174, 244, 255), (206, 242, 255, 255), basic=False), TEX_ROOT / "item" / "natural_gas_cell.png")
-    save_png(draw_cell_sprite((46, 176, 98, 255), (146, 252, 182, 255), basic=False), TEX_ROOT / "item" / "culture_medium_cell.png")
-    save_png(draw_cell_sprite((46, 176, 98, 255), (146, 252, 182, 255), basic=True), TEX_ROOT / "item" / "basic_culture_medium_cell.png")
-    save_png(draw_cell_sprite((146, 152, 54, 255), (232, 224, 102, 255), basic=False), TEX_ROOT / "item" / "biogas_cell.png")
+    # 4 Named Cells (reusing IC2NE's exact fluid_cell / empty_cell frame silhouette;
+    # biogas cell is provided directly by ic2:biogas_cell)
+    # 1) Water Gas Cell (pale misty aqua-turquoise syngas wisps)
+    water_gas_pal = (
+        (232, 252, 255, 255),  # 0: luminous vapor highlight
+        (162, 232, 240, 255),  # 1: pale aqua gas
+        (92, 188, 204, 255),   # 2: mid turquoise gas
+        (46, 126, 146, 255),   # 3: shaded depth
+    )
+    water_gas_pat = [
+        "0121",
+        "0012",
+        "1232",
+        "0113",
+        "1022",
+        "1233",
+        "0122",
+        "1102",
+        "2123",
+        "1223",
+    ]
+    save_png(
+        draw_cell_sprite(water_gas_pal, water_gas_pat, basic=False),
+        TEX_ROOT / "item" / "water_gas_cell.png",
+    )
+
+    # 2) Natural Gas Cell (crisp icy methane sky-blue gas bubbles)
+    natural_gas_pal = (
+        (216, 246, 255, 255),  # 0: bright icy specular
+        (114, 208, 255, 255),  # 1: clear sky-blue methane
+        (42, 152, 238, 255),   # 2: rich glacial blue
+        (18, 92, 168, 255),    # 3: deep pressure shade
+    )
+    natural_gas_pat = [
+        "0012",
+        "1213",
+        "0123",
+        "1022",
+        "1233",
+        "0112",
+        "1203",
+        "0123",
+        "1123",
+        "1233",
+    ]
+    save_png(
+        draw_cell_sprite(natural_gas_pal, natural_gas_pat, basic=False),
+        TEX_ROOT / "item" / "natural_gas_cell.png",
+    )
+
+    # 3) Culture Medium Cell (vibrant emerald-mint bio-nutrient liquid)
+    culture_pal = (
+        (198, 255, 222, 255),  # 0: bright nutrient sheen
+        (92, 232, 148, 255),   # 1: lively emerald-mint
+        (34, 174, 94, 255),    # 2: rich bio-green
+        (16, 108, 56, 255),    # 3: deep shaded green
+    )
+    culture_pat = [
+        "0011",
+        "0233",
+        "0123",
+        "1213",
+        "1233",
+        "0123",
+        "1013",
+        "1123",
+        "1223",
+        "1233",
+    ]
+    save_png(
+        draw_cell_sprite(culture_pal, culture_pat, basic=False),
+        TEX_ROOT / "item" / "culture_medium_cell.png",
+    )
+
+    # 4) Basic Culture Medium Cell (IC2NE empty_cell tin frame + lower emerald liquid fill)
+    basic_culture_pat = [
+        "1213",
+        "0123",
+        "1233",
+        "2013",
+        "1223",
+        "2233",
+    ]
+    save_png(
+        draw_cell_sprite(
+            culture_pal,
+            basic_culture_pat,
+            basic=True,
+            basic_glint=(108, 152, 130, 255),
+        ),
+        TEX_ROOT / "item" / "basic_culture_medium_cell.png",
+    )
 
     # 3 Buckets
     save_png(draw_bucket_sprite((112, 184, 198, 255), (218, 248, 252, 255)), TEX_ROOT / "item" / "water_gas_bucket.png")

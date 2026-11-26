@@ -413,14 +413,18 @@ public final class CompatRecipes {
                                 Component.translatable("tooltip.ecc2.giant_unit"),
                                 Component.translatable("tooltip.ecc2.giant_unit.ports"),
                                 Component.translatable("jei.ecc2.info.giant_machines.usage"))));
+        var cultureCells = new ArrayList<ItemStack>();
+        cultureCells.add(new ItemStack(Ecc2Fluids.CULTURE_MEDIUM_CELL.get()));
+        cultureCells.add(new ItemStack(Ecc2Fluids.BASIC_CULTURE_MEDIUM_CELL.get()));
+        cultureCells.add(new ItemStack(Ecc2Fluids.WATER_GAS_CELL.get()));
+        ItemStack ic2BiogasCell = GiantGasPlatform.itemStack(Ecc2Ids.IC2_BIOGAS_CELL, 1);
+        if (!ic2BiogasCell.isEmpty()) {
+            cultureCells.add(ic2BiogasCell);
+        }
         pages.add(
                 new InfoPage(
                         "ecc2:info/culture_cells",
-                        List.of(
-                                new ItemStack(Ecc2Fluids.CULTURE_MEDIUM_CELL.get()),
-                                new ItemStack(Ecc2Fluids.BASIC_CULTURE_MEDIUM_CELL.get()),
-                                new ItemStack(Ecc2Fluids.WATER_GAS_CELL.get()),
-                                new ItemStack(Ecc2Fluids.BIOGAS_CELL.get())),
+                        cultureCells,
                         List.of(
                                 Component.translatable("tooltip.ecc2.water_gas_machine"),
                                 Component.translatable("tooltip.ecc2.culture_incubator"),

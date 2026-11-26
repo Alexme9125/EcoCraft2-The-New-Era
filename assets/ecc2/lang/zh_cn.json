@@ -44,7 +44,6 @@
   "item.ecc2.reinforced_iridium_iron_plate": "强化铱铁合金板",
   "item.ecc2.irradiant_reinforced_plate": "光辉铱铁合金板",
   "item.ecc2.iridium_ingot": "铱锭",
-  "item.ecc2.uranium_ingot": "铀锭",
   "item.ecc2.mt_core": "分子重组核心",
   "item.ecc2.quantum_core": "量子核心",
 
@@ -58,7 +57,6 @@
   "item.ecc2.natural_gas_cell": "天然气单元",
   "item.ecc2.culture_medium_cell": "培养液单元",
   "item.ecc2.basic_culture_medium_cell": "基本培养液单元",
-  "item.ecc2.biogas_cell": "沼气单元",
 
   "item.ecc2.water_gas_bucket": "水煤气桶",
   "item.ecc2.natural_gas_bucket": "天然气桶",
@@ -201,6 +199,7 @@
   "tooltip.ecc2.cell.contents": "内含 1,000 mB %s",
 
   "config.jade.plugin_ecc2.machine_info": "环保时代2 机器信息",
+  "config.waila.plugin_ecc2": "环保时代2",
   "jade.ecc2.eu": "电量：%s / %s EU",
   "jade.ecc2.generating": "发电：%s EU/t",
   "jade.ecc2.kinetic_ku": "动能输出：%s KU/t",

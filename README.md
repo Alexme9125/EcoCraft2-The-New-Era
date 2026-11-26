@@ -1,6 +1,6 @@
 # EcoCraft 2: The New Era（环保时代2：新纪元）
 
-面向 **工业时代 2：新纪元（IndustrialCraft²: The New Era, v1.0.6+）** 的独立开源附属模组（Mod ID: `ecc2`）。
+面向 **工业时代 2：新纪元（IndustrialCraft²: The New Era, v1.0.8+）** 的独立开源附属模组（Mod ID: `ecc2`）。
 
 ## 核心内容
 
@@ -29,14 +29,14 @@
 | 26.2 | NeoForge 26.2.0.95 | 25 | `./gradlew :neoforge:26.2:jar` |
 | 1.19.2 | Forge 43.5.0 | 17 | `cd forge-1.19.2 && ./gradlew :forge:1.19.2:build` |
 
-## 正式发布（v1.0.0）
+## 正式发布（v1.0.1）
 
-前往 [GitHub Releases (`v1.0.0`)](https://github.com/Alexme9125/EcoCraft2-The-New-Era/releases/tag/v1.0.0) 获取对应平台构建产物（需前置 **IC2NE v1.0.6+**，推荐 **v1.0.7**）：
+前往 [GitHub Releases (`v1.0.1`)](https://github.com/Alexme9125/EcoCraft2-The-New-Era/releases/tag/v1.0.1) 获取对应平台构建产物（需前置 **IC2NE v1.0.8+**）：
 
-- `ecc2-neoforge-1.21.1-1.0.0.jar`
-- `ecc2-neoforge-26.1.2-1.0.0.jar`
-- `ecc2-neoforge-26.2-1.0.0.jar`
-- `ecc2-forge-1.19.2-1.0.0.jar`
+- `ecc2-neoforge-1.21.1-1.0.1.jar`
+- `ecc2-neoforge-26.1.2-1.0.1.jar`
+- `ecc2-neoforge-26.2-1.0.1.jar`
+- `ecc2-forge-1.19.2-1.0.1.jar`
 
 ## 授权
 

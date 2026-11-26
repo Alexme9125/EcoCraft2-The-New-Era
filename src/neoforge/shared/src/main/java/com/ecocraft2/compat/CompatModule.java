@@ -12,12 +12,13 @@ import org.slf4j.LoggerFactory;
  * Optional mod compatibility entry point for EcoCraft 2 ({@code ecc2}).
  *
  * <p>Automatically discovered and invoked by {@link com.ecocraft2.EcoCraft2}. This class never
- * imports or directly links any third-party mod API (JEI, EMI, Jade, or The One Probe) so EcoCraft
- * 2 runs cleanly alongside IC2NE with zero optional mods installed.
+ * imports or directly links any third-party mod API (JEI, EMI, Jade, WTHIT, or The One Probe) so
+ * EcoCraft 2 runs cleanly alongside IC2NE with zero optional mods installed.
  *
  * <ul>
- *   <li>JEI ({@code @JeiPlugin}), EMI ({@code @EmiEntrypoint}, 1.21.1 only), and Jade ({@code
- *       @WailaPlugin}) discover their dedicated plugin classes solely when those mods are present.
+ *   <li>JEI ({@code @JeiPlugin}), EMI ({@code @EmiEntrypoint}), Jade ({@code @WailaPlugin}), and
+ *       WTHIT ({@code wthit_plugins.json}) discover their dedicated plugin classes solely when
+ *       those mods are present.
  *   <li>The One Probe is wired via {@link InterModEnqueueEvent} strictly behind a {@link
  *       ModList#isLoaded(String)} guard for {@code "theoneprobe"}.
  * </ul>
@@ -44,12 +45,14 @@ public final class CompatModule {
         boolean jei = mods.isLoaded("jei");
         boolean emi = mods.isLoaded("emi");
         boolean jade = mods.isLoaded("jade");
+        boolean wthit = mods.isLoaded("wthit");
         boolean top = mods.isLoaded("theoneprobe");
         LOG.info(
-                "EcoCraft 2 optional compat detected: jei={}, emi={}, jade={}, theoneprobe={}",
+                "EcoCraft 2 optional compat detected: jei={}, emi={}, jade={}, wthit={}, theoneprobe={}",
                 jei,
                 emi,
                 jade,
+                wthit,
                 top);
     }
 

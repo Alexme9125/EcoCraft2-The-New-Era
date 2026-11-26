@@ -101,7 +101,7 @@ public final class OrganicFermenterBlockEntity extends GasMachineBlockEntityBase
                         OrganicFermenterEngine.CULTURE_TANK_CAPACITY_MB - engine.cultureMb(),
                         (fid, amt) -> engine.fillCulture(amt, false));
 
-        // Fill biogas containers 4 -> 5 (ic2:fluid_cell -> ecc2:biogas_cell, bucket -> ic2:biogas_bucket)
+        // Fill biogas containers 4 -> 5 (ic2:fluid_cell -> ic2:biogas_cell, bucket -> ic2:biogas_bucket)
         changed |=
                 fillContainerSlot(
                         SLOT_BIOGAS_CELL_IN,

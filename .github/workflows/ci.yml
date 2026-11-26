@@ -10,8 +10,8 @@ permissions:
   contents: read
 
 env:
-  IC2_VERSION: "1.0.6"
-  IC2_RELEASE_URL: "https://github.com/spectrum527/IndustrialCraft2-The-New-Era/releases/download/v1.0.6"
+  IC2_VERSION: "1.0.8"
+  IC2_RELEASE_URL: "https://github.com/spectrum527/IndustrialCraft2-The-New-Era/releases/download/v1.0.8"
 
 jobs:
   assets-and-cleanroom:
@@ -27,11 +27,11 @@ jobs:
       - name: Install Pillow
         run: python3 -m pip install --quiet pillow
 
-      - name: Fetch verified IC2NE 1.0.6 reference JAR (external to repo)
+      - name: Fetch verified IC2NE 1.0.8 reference JAR (external to repo)
         run: |
           mkdir -p ../.ic2-libs
           curl -fsSL "$IC2_RELEASE_URL/ic2-neoforge-1.21.1-$IC2_VERSION.jar" -o ../.ic2-libs/ic2-neoforge-1.21.1-$IC2_VERSION.jar
-          echo "34c4702f737540eb8b9ade1d7a7854b51403af1b5fbc018aeeee22188cc741e8  ../.ic2-libs/ic2-neoforge-1.21.1-$IC2_VERSION.jar" | sha256sum -c -
+          echo "03aa47858fdbe1d7be0bc35fef5cf10ec19c65fc81df58729fb08369241113f8  ../.ic2-libs/ic2-neoforge-1.21.1-$IC2_VERSION.jar" | sha256sum -c -
 
       - name: Verify textures, GUI coordinates, lang parity, and 4-target datagen
         run: python3 assets-gen/verify_assets.py
@@ -75,16 +75,16 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v4
 
-      - name: Fetch verified IC2NE 1.0.6 NeoForge JARs (external to repo)
+      - name: Fetch verified IC2NE 1.0.8 NeoForge JARs (external to repo)
         run: |
           mkdir -p ../.ic2-libs
           for ver in 1.21.1 26.1.2 26.2; do
             curl -fsSL "$IC2_RELEASE_URL/ic2-neoforge-${ver}-$IC2_VERSION.jar" -o "../.ic2-libs/ic2-neoforge-${ver}-$IC2_VERSION.jar"
           done
           sha256sum -c - <<'EOF'
-          34c4702f737540eb8b9ade1d7a7854b51403af1b5fbc018aeeee22188cc741e8  ../.ic2-libs/ic2-neoforge-1.21.1-1.0.6.jar
-          1a63b57030582e48384a90d6c7515d8abe885b479519a90853c129be39f94932  ../.ic2-libs/ic2-neoforge-26.1.2-1.0.6.jar
-          59c6097067b03fdd0c45abaff77f29901a15a8c950fd573096c210092df9e709  ../.ic2-libs/ic2-neoforge-26.2-1.0.6.jar
+          03aa47858fdbe1d7be0bc35fef5cf10ec19c65fc81df58729fb08369241113f8  ../.ic2-libs/ic2-neoforge-1.21.1-1.0.8.jar
+          33d47eb9c40d592576c102ac9344e64107f89caddadedc0866fab843f1f65667  ../.ic2-libs/ic2-neoforge-26.1.2-1.0.8.jar
+          908b38cfcd517921e5c385d7e5e564f12a447af8d8f1dbaf9c529984ff291bf2  ../.ic2-libs/ic2-neoforge-26.2-1.0.8.jar
           EOF
 
       - name: Build common, run JUnit 5 suite, and package NeoForge ${{ matrix.target }} JAR
@@ -96,7 +96,7 @@ jobs:
       - name: Audit packaged JAR
         run: |
           python3 tools/ci/audit_jars.py \
-            --jar "src/neoforge/${{ matrix.target }}/build/libs/ecc2-neoforge-${{ matrix.target }}-1.0.0.jar" \
+            --jar "src/neoforge/${{ matrix.target }}/build/libs/ecc2-neoforge-${{ matrix.target }}-1.0.1.jar" \
             --target "neoforge-${{ matrix.target }}"
 
       - uses: actions/upload-artifact@v4
@@ -122,12 +122,12 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v4
 
-      - name: Fetch verified IC2NE 1.0.6 Forge 1.19.2 JAR (external to repo)
+      - name: Fetch verified IC2NE 1.0.8 Forge 1.19.2 JAR (external to repo)
         run: |
           mkdir -p ../.ic2-libs
           JAR="../.ic2-libs/ic2-forge-1.19.2-$IC2_VERSION.jar"
           curl -fsSL "$IC2_RELEASE_URL/ic2-forge-1.19.2-$IC2_VERSION.jar" -o "$JAR"
-          echo "b14c4e4ec2c13d2091625d1d916ac02d54729ef79c88500eab7874ffece0b578  $JAR" | sha256sum -c -
+          echo "888f061b83779ef0afea2fb14b9add201bf44f0d01b975ac09d9624972094543  $JAR" | sha256sum -c -
 
       - name: Build and reobfuscate Forge 1.19.2 JAR
         working-directory: forge-1.19.2
@@ -141,7 +141,7 @@ jobs:
       - name: Audit packaged Forge 1.19.2 JAR
         run: |
           python3 tools/ci/audit_jars.py \
-            --jar "forge-1.19.2/forge/1.19.2/build/libs/ecc2-forge-1.19.2-1.0.0.jar" \
+            --jar "forge-1.19.2/forge/1.19.2/build/libs/ecc2-forge-1.19.2-1.0.1.jar" \
             --target "forge-1.19.2"
 
       - uses: actions/upload-artifact@v4

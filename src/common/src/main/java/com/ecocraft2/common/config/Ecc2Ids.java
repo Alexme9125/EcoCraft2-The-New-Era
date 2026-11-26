@@ -64,9 +64,9 @@ public final class Ecc2Ids {
     public static final String IC2_BIOGAS_ID = ic2("biogas");
     public static final String MINECRAFT_WATER_ID = MINECRAFT_MOD_ID + ":water";
 
-    // --- Standalone Item Paths (26) ---
+    // --- Standalone Item Paths (24) ---
 
-    // ASP Crafting Materials (14)
+    // ASP Crafting Materials (13; Uranium Ingot reuses ic2:uranium_ingot)
     public static final String SUNNARIUM = "sunnarium";
     public static final String SUNNARIUM_PART = "sunnarium_part";
     public static final String SUNNARIUM_ALLOY = "sunnarium_alloy";
@@ -78,7 +78,6 @@ public final class Ecc2Ids {
     public static final String REINFORCED_IRIDIUM_IRON_PLATE = "reinforced_iridium_iron_plate";
     public static final String IRRADIANT_REINFORCED_PLATE = "irradiant_reinforced_plate";
     public static final String IRIDIUM_INGOT = "iridium_ingot";
-    public static final String URANIUM_INGOT = "uranium_ingot";
     public static final String MT_CORE = "mt_core";
     public static final String QUANTUM_CORE = "quantum_core";
 
@@ -90,12 +89,11 @@ public final class Ecc2Ids {
     // Giant Machine Component (1)
     public static final String MEGASTRUCTURE_COMPONENT = "megastructure_component";
 
-    // Named Fluid Cells (5)
+    // Named Fluid Cells (4; Biogas Cell reuses ic2:biogas_cell)
     public static final String WATER_GAS_CELL = "water_gas_cell";
     public static final String NATURAL_GAS_CELL = "natural_gas_cell";
     public static final String CULTURE_MEDIUM_CELL = "culture_medium_cell";
     public static final String BASIC_CULTURE_MEDIUM_CELL = "basic_culture_medium_cell";
-    public static final String BIOGAS_CELL = "biogas_cell";
 
     // Fluid Buckets (3)
     public static final String WATER_GAS_BUCKET = "water_gas_bucket";
@@ -112,7 +110,9 @@ public final class Ecc2Ids {
 
     public static final String IC2_EMPTY_CELL = ic2("empty_cell");
     public static final String IC2_FLUID_CELL = ic2("fluid_cell");
+    public static final String IC2_BIOGAS_CELL = ic2("biogas_cell");
     public static final String IC2_BIOGAS_BUCKET = ic2("biogas_bucket");
+    public static final String IC2_URANIUM_INGOT = ic2("uranium_ingot");
 
     public static final String IC2_MACERATOR = ic2("macerator");
     public static final String IC2_COMPRESSOR = ic2("compressor");
@@ -187,7 +187,7 @@ public final class Ecc2Ids {
             CULTURE_MEDIUM
     );
 
-    /** Immutable list of all 26 standalone item registry paths. */
+    /** Immutable list of all 24 standalone item registry paths. */
     public static final List<String> STANDALONE_ITEMS = List.of(
             SUNNARIUM,
             SUNNARIUM_PART,
@@ -200,7 +200,6 @@ public final class Ecc2Ids {
             REINFORCED_IRIDIUM_IRON_PLATE,
             IRRADIANT_REINFORCED_PLATE,
             IRIDIUM_INGOT,
-            URANIUM_INGOT,
             MT_CORE,
             QUANTUM_CORE,
             ADVANCED_SOLAR_HELMET,
@@ -211,7 +210,6 @@ public final class Ecc2Ids {
             NATURAL_GAS_CELL,
             CULTURE_MEDIUM_CELL,
             BASIC_CULTURE_MEDIUM_CELL,
-            BIOGAS_CELL,
             WATER_GAS_BUCKET,
             NATURAL_GAS_BUCKET,
             CULTURE_MEDIUM_BUCKET

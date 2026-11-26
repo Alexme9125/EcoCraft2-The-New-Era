@@ -44,7 +44,6 @@
   "item.ecc2.reinforced_iridium_iron_plate": "Reinforced Iridium Iron Plate",
   "item.ecc2.irradiant_reinforced_plate": "Irradiant Reinforced Plate",
   "item.ecc2.iridium_ingot": "Iridium Ingot",
-  "item.ecc2.uranium_ingot": "Uranium Ingot",
   "item.ecc2.mt_core": "Molecular Transformer Core",
   "item.ecc2.quantum_core": "Quantum Core",
 
@@ -58,7 +57,6 @@
   "item.ecc2.natural_gas_cell": "Natural Gas Cell",
   "item.ecc2.culture_medium_cell": "Culture Medium Cell",
   "item.ecc2.basic_culture_medium_cell": "Basic Culture Medium Cell",
-  "item.ecc2.biogas_cell": "Biogas Cell",
 
   "item.ecc2.water_gas_bucket": "Water Gas Bucket",
   "item.ecc2.natural_gas_bucket": "Natural Gas Bucket",
@@ -201,6 +199,7 @@
   "tooltip.ecc2.cell.contents": "Contains 1,000 mB %s",
 
   "config.jade.plugin_ecc2.machine_info": "EcoCraft 2 Machine Info",
+  "config.waila.plugin_ecc2": "EcoCraft 2",
   "jade.ecc2.eu": "Energy: %s / %s EU",
   "jade.ecc2.generating": "Generating: %s EU/t",
   "jade.ecc2.kinetic_ku": "Kinetic Output: %s KU/t",

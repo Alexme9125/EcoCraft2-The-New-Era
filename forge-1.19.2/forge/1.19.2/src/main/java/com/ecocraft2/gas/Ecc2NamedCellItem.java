@@ -25,7 +25,8 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * Full 1000 mB named EcoCraft 2 fluid cell item ({@code water_gas_cell}, {@code natural_gas_cell},
- * {@code culture_medium_cell}, {@code basic_culture_medium_cell}, {@code biogas_cell}).
+ * {@code culture_medium_cell}, {@code basic_culture_medium_cell}). Biogas reuses {@code
+ * ic2:biogas_cell} natively.
  *
  * <p>Attaches a Forge {@code IFluidHandlerItem} capability delegating through {@link Ecc2CellHelper}
  * so emptying automatically converts into {@code ic2:fluid_cell} (or {@code ic2:empty_cell} for

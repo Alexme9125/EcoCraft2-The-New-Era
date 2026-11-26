@@ -1,8 +1,8 @@
 package com.ecocraft2;
 
 import com.ecocraft2.bridge.Ecc2ExternalRecipes;
-import com.ecocraft2.bridge.Ecc2RotorHooks;
 import com.ecocraft2.client.Ecc2ClientSetup;
+import com.ecocraft2.common.config.Ecc2Ids;
 import com.ecocraft2.compat.Ecc2TopCompat;
 import com.ecocraft2.config.Ecc2Config;
 import com.ecocraft2.config.SolarConfigRecipeCondition;
@@ -17,7 +17,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.crafting.CraftingHelper;
-import net.minecraftforge.event.entity.player.ItemTooltipEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.DistExecutor;
@@ -65,7 +64,6 @@ public final class EcoCraft2 {
         modBus.addListener(this::onInterModEnqueue);
 
         IEventBus gameBus = MinecraftForge.EVENT_BUS;
-        gameBus.addListener(this::onItemTooltip);
         gameBus.addListener(this::onPlayerLoggedOut);
 
         DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> Ecc2ClientSetup.register(modBus));
@@ -89,39 +87,39 @@ public final class EcoCraft2 {
         }
     }
 
-    private void onItemTooltip(ItemTooltipEvent event) {
-        Ecc2RotorHooks.appendRotorTooltip(event.getItemStack(), event.getToolTip());
-    }
-
     private void onPlayerLoggedOut(PlayerEvent.PlayerLoggedOutEvent event) {
         SolarHelmetItem.clearPlayerEngine(event.getEntity().getUUID());
     }
 
     private static void registerDefaultIc2Bridges() {
         // 1. Named 1000 mB fluid cells bridged into IC2NE CellFamily & CellItem & TransportPlatform.
+        // Biogas cells reuse ic2:biogas_cell natively.
         Ecc2ExternalRecipes.registerNamedCell(
                 true, "ecc2:basic_culture_medium_cell", "ecc2:culture_medium");
         Ecc2ExternalRecipes.registerNamedCell(false, "ecc2:water_gas_cell", "ecc2:water_gas");
         Ecc2ExternalRecipes.registerNamedCell(false, "ecc2:natural_gas_cell", "ecc2:natural_gas");
         Ecc2ExternalRecipes.registerNamedCell(
                 false, "ecc2:culture_medium_cell", "ecc2:culture_medium");
-        Ecc2ExternalRecipes.registerNamedCell(false, "ecc2:biogas_cell", "ic2:biogas");
 
         // 2. Methane ice canning bottle recipe (ic2:canner mode 0 / solid_canner / classic_canner).
         Ecc2ExternalRecipes.registerCanningBottle(
                 "ic2:fluid_cell", 1, "ecc2:methane_ice_cluster", 3, "ecc2:natural_gas_cell", 1);
 
-        // 3. ASP 2 compressor recipes (Iridium Ore -> Iridium Ingot; Uranium ores/dusts/fuel -> Uranium Ingot).
+        // 3. ASP 2 compressor recipes (Iridium Ore -> ecc2:iridium_ingot; Uranium ores/dusts/fuel -> ic2:uranium_ingot).
         Ecc2ExternalRecipes.registerCompressor("ic2:iridium_ore", 1, "ecc2:iridium_ingot", 1);
-        Ecc2ExternalRecipes.registerCompressor("ic2:uranium_ore", 1, "ecc2:uranium_ingot", 1);
         Ecc2ExternalRecipes.registerCompressor(
-                "ic2:deepslate_uranium_ore", 1, "ecc2:uranium_ingot", 1);
-        Ecc2ExternalRecipes.registerCompressor("ic2:raw_uranium", 1, "ecc2:uranium_ingot", 1);
-        Ecc2ExternalRecipes.registerCompressor("ic2:crushed_uranium", 1, "ecc2:uranium_ingot", 1);
-        Ecc2ExternalRecipes.registerCompressor("ic2:purified_uranium", 1, "ecc2:uranium_ingot", 1);
-        Ecc2ExternalRecipes.registerCompressor("ic2:uranium", 1, "ecc2:uranium_ingot", 1);
+                "ic2:uranium_ore", 1, Ecc2Ids.IC2_URANIUM_INGOT, 1);
+        Ecc2ExternalRecipes.registerCompressor(
+                "ic2:deepslate_uranium_ore", 1, Ecc2Ids.IC2_URANIUM_INGOT, 1);
+        Ecc2ExternalRecipes.registerCompressor(
+                "ic2:raw_uranium", 1, Ecc2Ids.IC2_URANIUM_INGOT, 1);
+        Ecc2ExternalRecipes.registerCompressor(
+                "ic2:crushed_uranium", 1, Ecc2Ids.IC2_URANIUM_INGOT, 1);
+        Ecc2ExternalRecipes.registerCompressor(
+                "ic2:purified_uranium", 1, Ecc2Ids.IC2_URANIUM_INGOT, 1);
+        Ecc2ExternalRecipes.registerCompressor("ic2:uranium", 1, Ecc2Ids.IC2_URANIUM_INGOT, 1);
 
-        // 4. ASP 2 metal former extruding recipe (Reinforced Iridium Plate ic2:iridium -> Iridium Ingot).
+        // 4. ASP 2 metal former extruding recipe (Reinforced Iridium Plate ic2:iridium -> ecc2:iridium_ingot).
         Ecc2ExternalRecipes.registerExtruder("ic2:iridium", 1, "ecc2:iridium_ingot", 1);
     }
 }
