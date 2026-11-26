@@ -82,11 +82,15 @@ public final class GiantMultiblockController {
         }
         MultiblockBounds bounds = found.get();
         BlockPos corePos = toBlockPos(bounds.core());
+        BlockPos frontPos = toBlockPos(bounds.frontCenter(toBlockFace(horizontalFacing)));
 
         // Step 1: update all 27 blockstates and bind every BlockEntity to corePos.
         for (BlockPos3 p3 : bounds.allPositions()) {
             BlockPos pos = toBlockPos(p3);
-            GiantBlockRole role = GiantBlockRole.fromBoundsRole(bounds.roleOf(p3));
+            GiantBlockRole role =
+                    pos.equals(frontPos)
+                            ? GiantBlockRole.FRONT
+                            : GiantBlockRole.fromBoundsRole(bounds.roleOf(p3));
             BlockState current = level.getBlockState(pos);
             BlockState formedState =
                     current.setValue(GiantUnitBlock.FACING, horizontalFacing)

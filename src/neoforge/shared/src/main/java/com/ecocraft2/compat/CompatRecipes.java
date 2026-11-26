@@ -197,9 +197,10 @@ public final class CompatRecipes {
         return list;
     }
 
-    /** Builds the canonical Culture Incubator recipe entry. */
+    /** Builds the canonical Culture Incubator recipe entries (Bone Meal and Rotten Flesh). */
     public static List<FluidProcessEntry> cultureIncubatorRecipes() {
         Fluid culture = Ecc2Fluids.CULTURE_MEDIUM_SOURCE.get();
+        Component note = Component.translatable("jei.ecc2.culture_incubator.note");
         return List.of(
                 new FluidProcessEntry(
                         "ecc2:culture_incubator/bone_meal",
@@ -210,12 +211,22 @@ public final class CompatRecipes {
                         CultureIncubatorEngine.CULTURE_OUTPUT_PER_OP_MB,
                         CultureIncubatorEngine.BASE_EU_PER_OP,
                         CultureIncubatorEngine.BASE_TICKS_PER_OP,
-                        Component.translatable("jei.ecc2.culture_incubator.note")));
+                        note),
+                new FluidProcessEntry(
+                        "ecc2:culture_incubator/rotten_flesh",
+                        List.of(new ItemStack(Items.ROTTEN_FLESH)),
+                        Fluids.WATER,
+                        CultureIncubatorEngine.WATER_PER_OP_MB,
+                        culture,
+                        CultureIncubatorEngine.CULTURE_OUTPUT_PER_OP_MB,
+                        CultureIncubatorEngine.BASE_EU_PER_OP,
+                        CultureIncubatorEngine.BASE_TICKS_PER_OP,
+                        note));
     }
 
     /**
      * Scans {@link BuiltInRegistries#ITEM} for edible foods ({@code FoodProperties.nutrition() >
-     * 0}) and produces Organic Fermenter recipes yielding {@code 20 * H mB ic2:biogas}.
+     * 0}) and produces Organic Fermenter recipes yielding {@code 30 * H mB ic2:biogas}.
      */
     public static List<FermenterEntry> organicFermenterRecipes() {
         Fluid culture = Ecc2Fluids.CULTURE_MEDIUM_SOURCE.get();
@@ -429,6 +440,15 @@ public final class CompatRecipes {
                                 Component.translatable("tooltip.ecc2.water_gas_machine"),
                                 Component.translatable("tooltip.ecc2.culture_incubator"),
                                 Component.translatable("tooltip.ecc2.organic_fermenter"))));
+        pages.add(
+                new InfoPage(
+                        "ecc2:info/pv_power_upgrade",
+                        List.of(
+                                new ItemStack(GiantGasModule.PV_POWER_UPGRADE.get()),
+                                new ItemStack(GiantGasModule.WATER_GAS_MACHINE_ITEM.get())),
+                        List.of(
+                                Component.translatable("tooltip.ecc2.pv_power_upgrade"),
+                                Component.translatable("tooltip.ecc2.water_gas_machine"))));
         return pages;
     }
 

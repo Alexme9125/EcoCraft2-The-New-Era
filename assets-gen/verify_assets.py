@@ -18,6 +18,7 @@ from PIL import Image
 from generate_data import (
     ALL_PLACEABLE_BLOCKS,
     FLUID_BLOCKS,
+    GIANT_KINDS,
     STANDALONE_ITEMS,
     TARGETS,
     TargetConfig,
@@ -115,10 +116,7 @@ class Verifier:
             "entity/equipment/humanoid/hybrid_solar_overlay.png",
             "entity/equipment/humanoid/ultimate_hybrid_solar.png",
             "entity/equipment/humanoid/ultimate_hybrid_solar_overlay.png",
-            "block/giant_port_full.png",
-            "block/giant_port_input.png",
-            "block/giant_port_output.png",
-            "block/giant_port_blocked.png",
+            "item/pv_power_upgrade.png",
             "block/methane_ice_cluster.png",
             "block/methane_ice_cluster.png.mcmeta",
             "block/fluid/water_gas_still.png",
@@ -139,6 +137,20 @@ class Verifier:
             "gui/organic_fermenter.png",
             "gui/icons/port_access_gear.png",
         ]
+        for kind in GIANT_KINDS:
+            must_exist.extend([
+                f"block/giant_{kind}_unit.png",
+                f"block/giant_casing_{kind}_top.png",
+                f"block/giant_casing_{kind}_side.png",
+                f"block/giant_casing_{kind}_bottom.png",
+                f"block/giant_core_front_{kind}.png",
+                f"block/giant_core_front_{kind}_active.png",
+                f"block/giant_core_front_{kind}_active.png.mcmeta",
+                f"block/giant_port_{kind}_full.png",
+                f"block/giant_port_{kind}_input.png",
+                f"block/giant_port_{kind}_output.png",
+                f"block/giant_port_{kind}_blocked.png",
+            ])
         for rel in must_exist:
             if not (TEX_ROOT / rel).exists():
                 self.fail(f"Required texture/mcmeta missing: assets/ecc2/textures/{rel}")
@@ -218,7 +230,11 @@ class Verifier:
         # 1. Check all blockstates reference existing block models
         for bs in sorted((assets_dir / "blockstates").glob("*.json")):
             doc = json.loads(bs.read_text(encoding="utf-8"))
-            for state_key, entry in doc.get("variants", {}).items():
+            variants_dict = doc.get("variants", {})
+            if bs.stem.startswith("giant_") and bs.stem.endswith("_unit"):
+                if not any("role=front" in k for k in variants_dict):
+                    self.fail(f"[{target}] Giant blockstate {bs.name} missing role=front variants")
+            for state_key, entry in variants_dict.items():
                 entries = entry if isinstance(entry, list) else [entry]
                 for e in entries:
                     m = e.get("model", "")

@@ -9,7 +9,7 @@ import java.util.Objects;
 /**
  * Pure-Java state machine for the Culture Incubator ({@code ecc2:culture_incubator}).
  *
- * <p>Process: {@code 1 bonemeal + 100 mB water + 200 EU / 100 ticks -> 100 mB ecc2:culture_medium}
+ * <p>Process: {@code 1 bonemeal or rotten flesh + 100 mB water + 200 EU / 100 ticks -> 100 mB ecc2:culture_medium}
  * (LV Tier 1 input, 8,000 mB water & culture medium tanks, standard IC2 upgrades).
  */
 public final class CultureIncubatorEngine {

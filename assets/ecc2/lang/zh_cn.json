@@ -52,6 +52,7 @@
   "item.ecc2.ultimate_hybrid_solar_helmet": "终极混合太阳能头盔",
 
   "item.ecc2.megastructure_component": "巨构组件",
+  "item.ecc2.pv_power_upgrade": "光伏板功率升级",
 
   "item.ecc2.water_gas_cell": "水煤气单元",
   "item.ecc2.natural_gas_cell": "天然气单元",
@@ -154,7 +155,7 @@
   "gui.ecc2.port.right_front": "右前",
   "gui.ecc2.port.right_back": "右后",
 
-  "gui.ecc2.gas.solar_active": "顶部光伏：+2 EU/t",
+  "gui.ecc2.gas.solar_active": "顶部光伏：+%s EU/t",
   "gui.ecc2.gas.solar_inactive": "顶部光伏：未激活",
   "gui.ecc2.gas.fuel": "燃料：%s",
   "gui.ecc2.gas.output": "发电：%s EU/t",
@@ -190,12 +191,13 @@
   "tooltip.ecc2.giant_unit": "堆叠 27 块同类元件构成实心 3×3×3 巨大机器（9 路 × 3 份并行处理）",
   "tooltip.ecc2.giant_unit.ports": "底层 8 个可配置下角接口 · 任意外表面均可接入 EU（基础高压 512 EU/t）",
 
-  "tooltip.ecc2.water_gas_machine": "100 mB 水 + 1 煤粉 → 1,000 mB 水煤气（自带 2 EU/t 光伏 + 低压供电）",
+  "tooltip.ecc2.water_gas_machine": "100 mB 水 + 1 煤粉 → 1,000 mB 水煤气（自带 2 EU/t 顶部光伏，可升级至 5 EU/t + 低压供电）",
+  "tooltip.ecc2.pv_power_upgrade": "水煤气机专用升级：每张提升顶部光伏板 +1.5 EU/t（最多生效 2 张，白昼达 5 EU/t 自给自足）",
   "tooltip.ecc2.gas_furnace": "纯燃气烧炼，每件固定消耗 50 mB 水煤气、天然气或沼气",
   "tooltip.ecc2.gas_generator": "中压发电机（Tier 2）：水煤气 32 EU/t · 天然气 64 EU/t · 沼气 32 EU/t",
   "tooltip.ecc2.methane_ice_cluster": "生成于深海与冻洋海底，3× 甲烷冰 + 通用流体单元装罐可得天然气单元",
-  "tooltip.ecc2.culture_incubator": "1 骨粉 + 100 mB 水 → 100 mB 培养液（低压）",
-  "tooltip.ecc2.organic_fermenter": "50 mB 培养液 + 任意食物（饥饿值 H）→ 20×H mB 沼气（低压）",
+  "tooltip.ecc2.culture_incubator": "1 骨粉或腐肉 + 100 mB 水 → 100 mB 培养液（低压）",
+  "tooltip.ecc2.organic_fermenter": "50 mB 培养液 + 任意食物（饥饿值 H）→ 30×H mB 沼气（低压）",
   "tooltip.ecc2.cell.contents": "内含 1,000 mB %s",
 
   "config.jade.plugin_ecc2.machine_info": "环保时代2 机器信息",

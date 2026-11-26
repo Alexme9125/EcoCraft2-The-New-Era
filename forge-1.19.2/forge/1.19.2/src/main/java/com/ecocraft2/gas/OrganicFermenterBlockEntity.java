@@ -52,7 +52,7 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * Organic Fermenter BlockEntity: {@code 50 mB ecc2:culture_medium + any FoodProperties item (H > 0)
- * + 200 EU / 100t -> 20 * H mB ic2:biogas}, returning food container remainders (bowls, bottles)
+ * + 200 EU / 100t -> 30 * H mB ic2:biogas}, returning food container remainders (bowls, bottles)
  * into the dedicated container return slot.
  */
 public final class OrganicFermenterBlockEntity extends BlockEntity

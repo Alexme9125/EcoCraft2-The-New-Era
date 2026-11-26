@@ -11,7 +11,6 @@ import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.inventory.SimpleContainerData;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.fluids.FluidUtil;
 import net.minecraftforge.items.IItemHandler;
@@ -153,7 +152,8 @@ public final class CultureIncubatorMenu extends DeviceAccessMenu {
             @Override
             public boolean isItemValid(int slot, @NotNull ItemStack stack) {
                 return switch (slot) {
-                    case CultureIncubatorBlockEntity.SLOT_BONEMEAL -> stack.is(Items.BONE_MEAL);
+                    case CultureIncubatorBlockEntity.SLOT_BONEMEAL ->
+                            CultureIncubatorBlockEntity.isNutrientInput(stack);
                     case CultureIncubatorBlockEntity.SLOT_WATER_IN,
                             CultureIncubatorBlockEntity.SLOT_CULTURE_IN ->
                             FluidUtil.getFluidHandler(Ecc2BridgePlatform.copyWithCount(stack, 1))

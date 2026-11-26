@@ -9,7 +9,7 @@ import java.util.Objects;
 /**
  * Pure-Java state machine for the Organic Fermenter ({@code ecc2:organic_fermenter}).
  *
- * <p>Process: {@code 50 mB ecc2:culture_medium + food (nutrition H > 0) + 200 EU / 100 ticks -> 20 * H mB ic2:biogas}
+ * <p>Process: {@code 50 mB ecc2:culture_medium + food (nutrition H > 0) + 200 EU / 100 ticks -> 30 * H mB ic2:biogas}
  * (LV Tier 1 input, 8,000 mB culture medium tank, 16,000 mB biogas tank, standard IC2 upgrades,
  * container-return check for stews/bottles).
  */
@@ -65,7 +65,7 @@ public final class OrganicFermenterEngine {
      * Computes biogas yield in mB for a food item with hunger nutrition value {@code H}.
      *
      * @param foodNutrition hunger points restored by the food ({@code <= 0} yields {@code 0})
-     * @return biogas yield {@code 20 * H} mB (capped at tank capacity to prevent overflow)
+     * @return biogas yield {@code 30 * H} mB (capped at tank capacity to prevent overflow)
      */
     public static int biogasYieldForNutrition(int foodNutrition) {
         if (foodNutrition <= 0) {

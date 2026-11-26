@@ -3,7 +3,6 @@ package com.ecocraft2.gas;
 import com.ecocraft2.common.config.Ecc2Ids;
 import com.ecocraft2.common.gas.WaterGasEngine;
 import com.ecocraft2.giant.Ecc2SyncData;
-import com.ecocraft2.giant.Ecc2UpgradeHelper;
 import com.ecocraft2.giant.GiantGasModule;
 import com.ecocraft2.giant.GiantGasPlatform;
 import com.industrialage.ia2.gameplay.PortableGear;
@@ -22,8 +21,9 @@ import net.minecraft.world.item.Items;
 /** Container menu for {@code ecc2:water_gas_machine} aligned to {@code water_gas_machine.png}. */
 public final class WaterGasMachineMenu extends DeviceAccessMenu {
 
-    // 0: progress (0..1000), 1..2: storedEU, 3..4: maxEU, 5: waterMb, 6: gasMb, 7: solarActive
-    private static final int DATA_COUNT = 8;
+    // 0: progress (0..1000), 1..2: storedEU, 3..4: maxEU, 5: waterMb, 6: gasMb, 7: solarActive,
+    // 8: effectiveSolarDeciEuPerTick (e.g. 20 -> 2.0, 35 -> 3.5, 50 -> 5.0 EU/t)
+    private static final int DATA_COUNT = 9;
 
     private final Container container;
     private final ContainerData data;
@@ -53,7 +53,7 @@ public final class WaterGasMachineMenu extends DeviceAccessMenu {
                                     PortableGear.canDischarge(stack, 14)
                                             || stack.is(Items.REDSTONE);
                             case 6, 7, 8, 9 ->
-                                    Ecc2UpgradeHelper.isAcceptedUpgrade(stack, true, true);
+                                    WaterGasMachineBlockEntity.isAcceptedUpgrade(stack);
                             default -> false;
                         };
                     }
@@ -117,6 +117,7 @@ public final class WaterGasMachineMenu extends DeviceAccessMenu {
                     case 5 -> be.waterMb();
                     case 6 -> be.waterGasMb();
                     case 7 -> be.isSolarActive() ? 1 : 0;
+                    case 8 -> (int) Math.round(be.effectiveSolarEuPerTick() * 10.0);
                     default -> 0;
                 };
             }
@@ -150,7 +151,7 @@ public final class WaterGasMachineMenu extends DeviceAccessMenu {
                 return ItemStack.EMPTY;
             }
         } else {
-            if (Ecc2UpgradeHelper.isAcceptedUpgrade(stack, true, true)) {
+            if (WaterGasMachineBlockEntity.isAcceptedUpgrade(stack)) {
                 moveItemStackTo(stack, 6, 10, false);
             } else if (WaterGasMachineBlockEntity.isCoalDust(stack)) {
                 moveItemStackTo(stack, 0, 1, false);
@@ -197,6 +198,10 @@ public final class WaterGasMachineMenu extends DeviceAccessMenu {
 
     public boolean isSolarActive() {
         return data.get(7) != 0;
+    }
+
+    public int effectiveSolarDeciEuPerTick() {
+        return Math.max(0, data.get(8));
     }
 
     private Slot filteredSlot(Container inv, int slot, int x, int y) {

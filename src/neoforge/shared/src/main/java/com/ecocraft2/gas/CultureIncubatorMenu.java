@@ -42,7 +42,7 @@ public final class CultureIncubatorMenu extends DeviceAccessMenu {
                     public boolean canPlaceItem(int slot, ItemStack stack) {
                         return switch (slot) {
                             case CultureIncubatorBlockEntity.SLOT_BONEMEAL ->
-                                    stack.is(Items.BONE_MEAL);
+                                    CultureIncubatorBlockEntity.isNutrientInput(stack);
                             case CultureIncubatorBlockEntity.SLOT_WATER_CELL_IN ->
                                     GiantGasPlatform.isDrainableContainer(
                                             stack, Ecc2Ids.MINECRAFT_WATER_ID::equals);
@@ -159,7 +159,7 @@ public final class CultureIncubatorMenu extends DeviceAccessMenu {
         } else {
             if (Ecc2UpgradeHelper.isAcceptedUpgrade(stack, true, true)) {
                 moveItemStackTo(stack, 6, 10, false);
-            } else if (stack.is(Items.BONE_MEAL)) {
+            } else if (CultureIncubatorBlockEntity.isNutrientInput(stack)) {
                 moveItemStackTo(stack, 0, 1, false);
             } else if (GiantGasPlatform.isDrainableContainer(
                     stack, Ecc2Ids.MINECRAFT_WATER_ID::equals)) {

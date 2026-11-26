@@ -105,6 +105,30 @@ class GiantDomainTest {
         }
     }
 
+    @Test
+    void multiblockBoundsFrontCenterMatchesMiddleFrontExteriorForAllHorizontals() {
+        BlockPos3 core = new BlockPos3(10, 64, -20);
+        MultiblockBounds bounds = MultiblockGeometry.boundsFromCore(core);
+
+        for (BlockFace facing : BlockFace.horizontals()) {
+            BlockPos3 front = bounds.frontCenter(facing);
+            assertEquals(core.offset(facing).offset(BlockFace.UP), front);
+            assertTrue(bounds.contains(front));
+            assertTrue(bounds.isFrontCenter(front, facing));
+            assertFalse(bounds.isFrontCenter(core, facing));
+            assertEquals(MultiblockBounds.BlockRole.SHELL, bounds.roleOf(front));
+            assertEquals(core.y() + 1, front.y());
+
+            // Front-center block has exactly one exterior face, pointing outward in facing
+            for (BlockFace face : BlockFace.values()) {
+                assertEquals(face == facing, bounds.isExteriorFace(front, face));
+            }
+        }
+
+        assertThrows(IllegalArgumentException.class, () -> bounds.frontCenter(BlockFace.UP));
+        assertThrows(IllegalArgumentException.class, () -> bounds.frontCenter(BlockFace.DOWN));
+    }
+
     // --- GiantCornerPort & 16-bit GiantPortPermissions ---
 
     @Test

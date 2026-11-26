@@ -782,179 +782,580 @@ def gen_kinetic_generators() -> None:
 
 
 # =============================================================================
-# 5. GIANT MACHINES (3x3x3 Multiblock)
+# 5. GIANT MACHINES (3x3x3 Multiblock — 5 Fully Differentiated Industrial Lines)
 # =============================================================================
 
-def draw_giant_emblem(img: Image.Image, kind: str, active: bool, ox: int = 3, oy: int = 3) -> None:
-    """Draw a 10x10 unmistakable machine mechanism emblem inside a viewport."""
-    hi = PAL["cyan_white"] if active else PAL["bevel_hi"]
-    mid = PAL["cyan_glow"] if active else PAL["slate_light"]
+GIANT_THEMES: Dict[str, Dict[str, RGBA]] = {
+    "macerator": {
+        "base": (96, 106, 118, 255),
+        "hi": (216, 224, 232, 255),
+        "lo": (50, 58, 68, 255),
+        "accent": (246, 198, 42, 255),
+        "accent_hi": (255, 238, 126, 255),
+        "accent_dark": (156, 108, 16, 255),
+        "secondary": (28, 33, 40, 255),
+        "led_off": (122, 92, 24, 255),
+    },
+    "compressor": {
+        "base": (58, 66, 80, 255),
+        "hi": (158, 176, 200, 255),
+        "lo": (26, 32, 42, 255),
+        "accent": (46, 132, 248, 255),
+        "accent_hi": (132, 202, 255, 255),
+        "accent_dark": (20, 62, 144, 255),
+        "secondary": (126, 142, 164, 255),
+        "led_off": (24, 62, 122, 255),
+    },
+    "recycler": {
+        "base": (84, 102, 104, 255),
+        "hi": (198, 222, 220, 255),
+        "lo": (40, 56, 58, 255),
+        "accent": (46, 214, 114, 255),
+        "accent_hi": (152, 255, 190, 255),
+        "accent_dark": (18, 110, 58, 255),
+        "secondary": (30, 52, 46, 255),
+        "led_off": (22, 96, 52, 255),
+    },
+    "extractor": {
+        "base": (106, 98, 90, 255),
+        "hi": (226, 212, 192, 255),
+        "lo": (54, 46, 40, 255),
+        "accent": (222, 138, 46, 255),
+        "accent_hi": (255, 212, 104, 255),
+        "accent_dark": (128, 66, 18, 255),
+        "secondary": (224, 178, 76, 255),
+        "led_off": (124, 76, 24, 255),
+    },
+    "ore_washer": {
+        "base": (48, 72, 94, 255),
+        "hi": (156, 204, 232, 255),
+        "lo": (22, 38, 54, 255),
+        "accent": (36, 218, 242, 255),
+        "accent_hi": (176, 250, 255, 255),
+        "accent_dark": (14, 96, 132, 255),
+        "secondary": (34, 146, 230, 255),
+        "led_off": (20, 88, 118, 255),
+    },
+}
+
+
+def draw_giant_emblem(
+    img: Image.Image,
+    kind: str,
+    active: bool,
+    ox: int = 3,
+    oy: int = 3,
+    frame: int = 0,
+) -> None:
+    """Draw a 10x10 unmistakable, optionally animated machine mechanism emblem inside a viewport."""
+    theme = GIANT_THEMES[kind]
+    acc = theme["accent"]
+    acc_hi = theme["accent_hi"]
+    acc_dark = theme["accent_dark"]
+    f = frame % 4
+
     if kind == "macerator":
-        # Dual interlocking crusher gears / teeth
-        for y in range(2, 8):
-            px(img, ox + 2, oy + y, mid)
-            px(img, ox + 7, oy + y, mid)
-        for y in (2, 4, 6):
-            px(img, ox + 3, oy + y, hi)
-            px(img, ox + 4, oy + y, hi)
-        for y in (3, 5, 7):
-            px(img, ox + 5, oy + y, hi)
-            px(img, ox + 6, oy + y, hi)
-    elif kind == "compressor":
-        # Heavy top & bottom hydraulic press pistons
-        fill_rect(img, ox + 1, oy + 1, 8, 2, mid)
-        fill_rect(img, ox + 2, oy + 3, 6, 1, hi)
-        fill_rect(img, ox + 4, oy + 4, 2, 2, PAL["orange_port"] if active else PAL["slate_mid"])
-        fill_rect(img, ox + 2, oy + 6, 6, 1, hi)
-        fill_rect(img, ox + 1, oy + 7, 8, 2, mid)
-    elif kind == "recycler":
-        # Crisp green recycling loop arrows
-        g_hi = PAL["emerald_hi"] if active else PAL["emerald_mid"]
-        g_lo = PAL["emerald_mid"] if active else PAL["emerald_dark"]
-        draw_rect_border(img, ox + 2, oy + 2, 6, 6, g_hi)
-        fill_rect(img, ox + 3, oy + 3, 4, 4, PAL["lcd_bg"])
-        px(img, ox + 5, oy + 1, g_hi)
-        px(img, ox + 8, oy + 5, g_hi)
-        px(img, ox + 1, oy + 4, g_lo)
-        px(img, ox + 4, oy + 8, g_lo)
-    elif kind == "extractor":
-        # Amber rubber-droplet extraction tap
-        amb = (255, 198, 66, 255) if active else (196, 134, 42, 255)
-        fill_rect(img, ox + 2, oy + 1, 6, 2, mid)
-        fill_rect(img, ox + 4, oy + 3, 2, 2, hi)
-        for dx, dy in [(4, 5), (5, 5), (3, 6), (4, 6), (5, 6), (6, 6), (3, 7), (4, 7), (5, 7), (6, 7), (4, 8), (5, 8)]:
-            px(img, ox + dx, oy + dy, amb)
-        px(img, ox + 4, oy + 6, PAL["bevel_white"])
-    elif kind == "ore_washer":
-        # Aqua water-jet swirl chamber
-        w_hi = (104, 236, 255, 255) if active else (64, 168, 224, 255)
-        w_lo = (34, 132, 212, 255)
+        # Bold counter-rotating serrated grinder jaws + glowing amber sparks when active
+        steel_hi = PAL["bevel_white"] if active else PAL["bevel_hi"]
+        steel_mid = PAL["slate_light"]
+        steel_lo = PAL["slate_dark"]
+        # Roller bodies (left x=1..2, right x=7..8)
+        fill_rect(img, ox + 1, oy + 1, 2, 8, steel_mid)
+        fill_rect(img, ox + 7, oy + 1, 2, 8, steel_mid)
         for y in range(1, 9):
-            for x in range(1, 9):
-                d = math.hypot(x - 4.5, y - 4.5)
-                if 1.8 <= d <= 3.6:
-                    px(img, ox + x, oy + y, w_hi if (x + y) % 2 == 0 else w_lo)
-                elif d < 1.8:
-                    px(img, ox + x, oy + y, PAL["cyan_white"] if active else PAL["bevel_hi"])
+            px(img, ox + 1, oy + y, steel_hi)
+            px(img, ox + 8, oy + y, steel_lo)
+        # Rotating interlocking grinder teeth along center bite (x=3..6)
+        left_shift = f % 2 if active else 0
+        right_shift = (f + 1) % 2 if active else 1
+        for y in range(1, 9):
+            if (y + left_shift) % 2 == 0:
+                px(img, ox + 3, oy + y, acc_hi if active else steel_hi)
+                px(img, ox + 4, oy + y, acc if active else steel_mid)
+            if (y + right_shift) % 2 == 0:
+                px(img, ox + 5, oy + y, acc if active else steel_mid)
+                px(img, ox + 6, oy + y, acc_hi if active else steel_hi)
+        if active:
+            # Crushing spark flash traveling down the jaw gap
+            spark_y = 2 + (f * 2) % 6
+            px(img, ox + 4, oy + spark_y, PAL["bevel_white"])
+            px(img, ox + 5, oy + spark_y, acc_hi)
+            px(img, ox + 5, oy + ((spark_y + 3) % 7) + 1, (255, 148, 36, 255))
+        # Amber roller end-caps
+        fill_rect(img, ox + 1, oy + 0, 2, 1, acc)
+        fill_rect(img, ox + 7, oy + 0, 2, 1, acc)
+        fill_rect(img, ox + 1, oy + 9, 2, 1, acc_dark)
+        fill_rect(img, ox + 7, oy + 9, 2, 1, acc_dark)
+
+    elif kind == "compressor":
+        # Heavy forged hydraulic press rams clamping inward on a cobalt-charged core
+        stroke = [0, 1, 2, 1][f] if active else 0
+        steel_hi = PAL["bevel_white"] if active else PAL["bevel_hi"]
+        steel_mid = (116, 132, 152, 255)
+        # Cobalt side hydraulic guide rails
+        fill_rect(img, ox + 0, oy + 1, 1, 8, acc if active else acc_dark)
+        fill_rect(img, ox + 9, oy + 1, 1, 8, acc if active else acc_dark)
+        # Vertical hydraulic piston shafts
+        fill_rect(img, ox + 4, oy + 0, 2, 1 + stroke, steel_mid)
+        fill_rect(img, ox + 4, oy + 9 - stroke, 2, 1 + stroke, steel_mid)
+        # Upper heavy press ram
+        top_y = 1 + stroke
+        fill_rect(img, ox + 1, oy + top_y, 8, 2, steel_mid)
+        fill_rect(img, ox + 2, oy + top_y, 6, 1, steel_hi)
+        fill_rect(img, ox + 2, oy + top_y + 1, 6, 1, acc if active else acc_dark)
+        # Lower heavy anvil ram
+        bot_y = 7 - stroke
+        fill_rect(img, ox + 1, oy + bot_y, 8, 2, steel_mid)
+        fill_rect(img, ox + 2, oy + bot_y, 6, 1, acc if active else acc_dark)
+        fill_rect(img, ox + 2, oy + bot_y + 1, 6, 1, PAL["slate_dark"])
+        # Compressed material / pressure flash in center gap
+        if active:
+            flash = PAL["bevel_white"] if stroke == 2 else acc_hi
+            fill_rect(img, ox + 3, oy + 4, 4, 2, acc)
+            fill_rect(img, ox + 4, oy + 4, 2, 2, flash)
+        else:
+            fill_rect(img, ox + 4, oy + 4, 2, 2, acc_dark)
+
+    elif kind == "recycler":
+        # Glowing emerald-green cyclic 4-arrow recycle loop with clean gaps between segments
+        g_hi = acc_hi if active else acc
+        g_mid = acc if active else acc_dark
+        g_lo = acc_dark
+        # Four separated directional arrows chasing clockwise around the dark chamber
+        arms = [
+            [(2, 2), (3, 2), (4, 2), (5, 2), (6, 2), (5, 1), (5, 3)],  # top ->
+            [(7, 3), (7, 4), (7, 5), (7, 6), (6, 5), (8, 5)],          # right v
+            [(7, 7), (6, 7), (5, 7), (4, 7), (3, 7), (4, 6), (4, 8)],  # bottom <-
+            [(2, 6), (2, 5), (2, 4), (2, 3), (1, 4), (3, 4)],          # left ^
+        ]
+        for a_idx, pts in enumerate(arms):
+            if active:
+                if a_idx == f:
+                    col = PAL["bevel_white"]
+                elif a_idx == (f - 1) % 4:
+                    col = g_hi
+                else:
+                    col = g_mid
+            else:
+                col = g_hi if a_idx in (0, 2) else g_mid
+            for dx, dy in pts:
+                px(img, ox + dx, oy + dy, col)
+        # Inner dark shredder core + emerald status pulse
+        fill_rect(img, ox + 4, oy + 4, 2, 2, PAL["lcd_bg"])
+        if active:
+            px(img, ox + 4 + (f % 2), oy + 4 + ((f // 2) % 2), g_hi)
+        else:
+            px(img, ox + 4, oy + 4, g_lo)
+
+    elif kind == "extractor":
+        # Brass resin tap spout + glowing amber-gold teardrop falling into warm resin basin
+        brass_hi = theme["accent_hi"] if active else theme["secondary"]
+        brass_mid = theme["secondary"]
+        copper_dark = acc_dark
+        # Top brass manifold & tap nozzle (y=0..2)
+        fill_rect(img, ox + 1, oy + 0, 8, 2, brass_mid)
+        fill_rect(img, ox + 2, oy + 0, 6, 1, brass_hi)
+        fill_rect(img, ox + 4, oy + 2, 2, 1, brass_mid)
+        px(img, ox + 4, oy + 2, brass_hi)
+        # Bottom amber resin basin (y=8..9)
+        fill_rect(img, ox + 1, oy + 8, 8, 2, copper_dark)
+        fill_rect(img, ox + 2, oy + 8, 6, 1, acc if active else copper_dark)
+        if active:
+            # Animated plump teardrop detaching from tap (y=3..6) and splashing on frame 3
+            drop_y = [3, 4, 5, 3][f]
+            # Teardrop shape: tip (2px) -> wide belly (4px) -> rounded bottom (2px)
+            for dx in (4, 5):
+                px(img, ox + dx, oy + drop_y, acc_hi if dx == 4 else acc)
+            if drop_y + 1 <= 7:
+                for dx in (3, 4, 5, 6):
+                    px(img, ox + dx, oy + drop_y + 1, PAL["bevel_white"] if dx == 4 else acc)
+            if drop_y + 2 <= 7:
+                for dx in (4, 5):
+                    px(img, ox + dx, oy + drop_y + 2, acc_hi if dx == 4 else acc_dark)
+            if f == 3:
+                # Bright splash ripple in resin basin
+                px(img, ox + 2, oy + 7, acc_hi)
+                px(img, ox + 7, oy + 7, acc_hi)
+                fill_rect(img, ox + 3, oy + 8, 4, 1, acc_hi)
+        else:
+            # Suspended amber resin teardrop (clean dark gap above basin)
+            for dx in (4, 5):
+                px(img, ox + dx, oy + 4, acc_hi if dx == 4 else acc)
+            for dx in (3, 4, 5, 6):
+                px(img, ox + dx, oy + 5, acc_hi if dx == 4 else acc)
+            for dx in (4, 5):
+                px(img, ox + dx, oy + 6, acc)
+
+    elif kind == "ore_washer":
+        # Pressurized circular water-jet wash chamber with 4-vane spinning aqua vortex
+        w_white = PAL["cyan_white"]
+        w_hi = acc_hi if active else acc
+        w_mid = acc if active else theme["secondary"]
+        w_lo = theme["secondary"] if active else acc_dark
+        ang_shift = f * (math.pi / 4.0) if active else 0.0
+        for y in range(0, 10):
+            for x in range(0, 10):
+                dx = x - 4.5
+                dy = y - 4.5
+                r = math.hypot(dx, dy)
+                if r <= 4.7:
+                    ang = math.atan2(dy, dx) + ang_shift
+                    # Concentric wash drum rim + 4-arm swirling water jets
+                    if 3.7 <= r <= 4.7:
+                        px(img, ox + x, oy + y, w_lo if (x + y) % 2 == 0 else (18, 66, 104, 255))
+                    elif r < 1.3:
+                        px(img, ox + x, oy + y, w_white if active else w_hi)
+                    else:
+                        vane = math.sin(4.0 * ang + r * 0.9)
+                        if vane > 0.35:
+                            px(img, ox + x, oy + y, w_hi if active else w_mid)
+                        elif vane > -0.25:
+                            px(img, ox + x, oy + y, w_mid if active else w_lo)
+                        else:
+                            px(img, ox + x, oy + y, (14, 46, 76, 255))
+        # Pressurized corner spray nozzles
+        nozzle = acc_hi if active else PAL["slate_light"]
+        for nx, ny in [(0, 0), (9, 0), (0, 9), (9, 9)]:
+            px(img, ox + nx, oy + ny, nozzle)
+
+
+def draw_giant_casing_set(kind: str, seed: int) -> None:
+    """Generate distinct top, bottom, and side formed casing textures for one giant machine kind."""
+    t = GIANT_THEMES[kind]
+    base, hi, lo = t["base"], t["hi"], t["lo"]
+    acc, acc_hi, acc_dark, sec = t["accent"], t["accent_hi"], t["accent_dark"], t["secondary"]
+
+    top = make_casing_tile(base, hi, lo, seed=seed, rivets=True)
+    side = make_casing_tile(base, hi, lo, seed=seed + 1, rivets=True)
+    bot = make_casing_tile(shade(base, 0.80), shade(hi, 0.82), PAL["shadow_deep"], seed=seed + 2, rivets=True)
+
+    # Bottom structural ribs + machine-colored corner anchor tabs
+    for y in (4, 8, 11):
+        fill_rect(bot, 2, y, 12, 1, PAL["border_dark"])
+    for cx, cy in [(2, 2), (12, 2), (2, 12), (12, 12)]:
+        fill_rect(bot, cx, cy, 2, 2, acc_dark)
+        px(bot, cx, cy, acc)
+
+    if kind == "macerator":
+        # Top: Diagonal amber/black hazard frame + heavy steel crusher hopper grate
+        for x in range(2, 14):
+            c_top = acc if (x % 3 != 0) else sec
+            c_bot = acc if ((x + 1) % 3 != 0) else sec
+            px(top, x, 2, c_top)
+            px(top, x, 13, c_bot)
+        for y in range(3, 13):
+            px(top, 2, y, acc if (y % 3 != 0) else sec)
+            px(top, 13, y, acc if ((y + 1) % 3 != 0) else sec)
+        fill_rect(top, 4, 4, 8, 8, PAL["lcd_bg"])
+        draw_rect_border(top, 4, 4, 8, 8, PAL["border_dark"])
+        for y in (5, 7, 9):
+            fill_rect(top, 5, y, 6, 1, PAL["slate_light"])
+            px(top, 5, y, hi)
+        # Side: Iconic amber/black diagonal hazard bands (top y=2..3 & bottom y=12..13) + crusher jaw vents
+        for y in (2, 3, 12, 13):
+            for x in range(2, 14):
+                stripe = ((x + y) // 2) % 2 == 0
+                px(side, x, y, acc if stripe else sec)
+                if stripe and y in (2, 12):
+                    px(side, x, y, acc_hi)
+        fill_rect(side, 2, 4, 12, 1, PAL["border_dark"])
+        fill_rect(side, 2, 11, 12, 1, PAL["border_dark"])
+        # Recessed jaw vents in center (y=5..10)
+        fill_rect(side, 3, 5, 10, 6, PAL["lcd_bg"])
+        draw_rect_border(side, 3, 5, 10, 6, PAL["border_dark"])
+        for x in range(4, 12):
+            if x % 2 == 0:
+                px(side, x, 6, hi)
+                px(side, x, 7, PAL["slate_light"])
+            else:
+                px(side, x, 8, PAL["slate_light"])
+                px(side, x, 9, hi)
+
+    elif kind == "compressor":
+        # Top: Heavy dark gunmetal forged clamp frame + cobalt hydraulic pressure ring + center piston cap
+        draw_rect_border(top, 2, 2, 12, 12, acc_dark)
+        draw_rect_border(top, 3, 3, 10, 10, acc)
+        fill_rect(top, 5, 5, 6, 6, shade(base, 1.15))
+        draw_rect_border(top, 5, 5, 6, 6, PAL["border_dark"])
+        fill_rect(top, 6, 6, 4, 4, sec)
+        px(top, 6, 6, hi)
+        for cx, cy in [(2, 2), (13, 2), (2, 13), (13, 13)]:
+            px(top, cx, cy, acc_hi)
+        # Side: Thick vertical hydraulic clamp ribs (x=3..4, x=11..12) + cobalt pressure rails & seam
+        fill_rect(side, 2, 2, 12, 1, acc)
+        fill_rect(side, 2, 13, 12, 1, acc_dark)
+        fill_rect(side, 2, 7, 12, 2, PAL["lcd_bg"])
+        fill_rect(side, 5, 7, 6, 1, acc_hi)
+        fill_rect(side, 5, 8, 6, 1, acc_dark)
+        # Heavy vertical clamp columns overlapping the seam
+        for rx in (3, 11):
+            fill_rect(side, rx, 2, 2, 12, sec)
+            fill_rect(side, rx, 2, 1, 12, hi)
+            px(side, rx, 3, acc_hi)
+            px(side, rx, 12, acc)
+            px(side, rx + 1, 7, PAL["border_dark"])
+            px(side, rx + 1, 8, PAL["border_dark"])
+
+    elif kind == "recycler":
+        # Top: Emerald perimeter trim + dark shredder intake chute with diagonal blades
+        draw_rect_border(top, 2, 2, 12, 12, acc)
+        px(top, 2, 2, acc_hi)
+        fill_rect(top, 4, 4, 8, 8, PAL["lcd_bg"])
+        draw_rect_border(top, 4, 4, 8, 8, acc_dark)
+        for i in range(4, 11):
+            px(top, i, i, PAL["slate_light"])
+            if i + 2 < 12:
+                px(top, i + 2, i, acc_dark)
+            if i - 2 >= 4:
+                px(top, i - 2, i, acc_dark)
+        # Side: Twin bright emerald-green recycle trim bands + staggered shredder louver slats
+        fill_rect(side, 2, 2, 12, 2, acc)
+        fill_rect(side, 2, 2, 12, 1, acc_hi)
+        fill_rect(side, 2, 12, 12, 2, acc_dark)
+        fill_rect(side, 2, 12, 12, 1, acc)
+        # Shredder louvers (y=5..10)
+        for y in (5, 7, 9):
+            fill_rect(side, 3, y, 10, 1, PAL["lcd_bg"])
+            fill_rect(side, 3, y + 1, 10, 1, hi)
+            px(side, 3 if (y == 7) else 12, y, acc)
+
+    elif kind == "extractor":
+        # Top: Brass central valve cap + 4 radial cylindrical copper resin manifolds
+        for x in range(2, 14):
+            px(top, x, 6, acc_hi)
+            px(top, x, 7, acc)
+            px(top, x, 8, acc)
+            px(top, x, 9, acc_dark)
+        for y in range(2, 14):
+            px(top, 6, y, acc_hi)
+            px(top, 7, y, acc)
+            px(top, 8, y, acc)
+            px(top, 9, y, acc_dark)
+        draw_rect_border(top, 5, 5, 6, 6, PAL["border_dark"])
+        fill_rect(top, 6, 6, 4, 4, sec)
+        fill_rect(top, 7, 7, 2, 2, acc_hi)
+        # Side: Brass top/bottom trim collars + horizontal copper resin pipe + glowing amber sight window
+        fill_rect(side, 2, 2, 12, 1, acc_hi)
+        fill_rect(side, 2, 3, 12, 1, sec)
+        fill_rect(side, 2, 12, 12, 1, sec)
+        fill_rect(side, 2, 13, 12, 1, acc_dark)
+        # Horizontal cylindrical copper resin manifold pipe (y=6..9)
+        fill_rect(side, 2, 6, 12, 1, acc_hi)
+        fill_rect(side, 2, 7, 12, 2, acc)
+        fill_rect(side, 2, 9, 12, 1, acc_dark)
+        # Brass pipe coupling collars at x=4 and x=11
+        for cx in (4, 11):
+            fill_rect(side, cx, 5, 1, 6, sec)
+            px(side, cx, 5, acc_hi)
+            px(side, cx, 10, acc_dark)
+        # Central glowing amber resin sight-glass window
+        fill_rect(side, 6, 6, 4, 4, PAL["border_dark"])
+        fill_rect(side, 7, 7, 2, 2, (255, 198, 48, 255))
+        px(side, 7, 7, PAL["bevel_white"])
+
+    elif kind == "ore_washer":
+        # Top: Deep marine-slate basin grate + crossing aqua-cyan hydro-manifolds
+        draw_rect_border(top, 2, 2, 12, 12, acc_dark)
+        fill_rect(top, 3, 3, 10, 10, (16, 44, 68, 255))
+        # Crossing hydro pipes
+        fill_rect(top, 7, 2, 2, 12, acc)
+        fill_rect(top, 2, 7, 12, 2, acc)
+        fill_rect(top, 7, 2, 1, 12, acc_hi)
+        fill_rect(top, 2, 7, 12, 1, acc_hi)
+        fill_rect(top, 6, 6, 4, 4, acc_dark)
+        fill_rect(top, 7, 7, 2, 2, PAL["cyan_white"])
+        # Side: Twin vertical aqua water-gauge side strips + center pressurized hydro-manifold pipe
+        for gx in (2, 12):
+            fill_rect(side, gx, 2, 2, 12, PAL["lcd_bg"])
+            for gy in range(3, 13):
+                c = acc_hi if gy % 3 == 0 else (acc if gy > 4 else sec)
+                px(side, gx, gy, c)
+                px(side, gx + 1, gy, sec if gy % 2 == 0 else acc_dark)
+        # Horizontal pressurized aqua-cyan hydro-manifold across center (x=4..11, y=6..9)
+        fill_rect(side, 4, 6, 8, 1, acc_hi)
+        fill_rect(side, 4, 7, 8, 2, sec)
+        fill_rect(side, 4, 9, 8, 1, acc_dark)
+        for rx in (6, 9):
+            fill_rect(side, rx, 5, 1, 6, hi)
+            px(side, rx, 10, lo)
+
+    save_png(top, TEX_ROOT / "block" / f"giant_casing_{kind}_top.png")
+    save_png(side, TEX_ROOT / "block" / f"giant_casing_{kind}_side.png")
+    save_png(bot, TEX_ROOT / "block" / f"giant_casing_{kind}_bottom.png")
+
+
+def draw_giant_port_tile(kind: str, mode_name: str, bezel: RGBA, dark: RGBA, mode: str, seed: int) -> Image.Image:
+    """Draw a corner port block combining the machine's color-coded casing frame with crisp I/O port indicators."""
+    t = GIANT_THEMES[kind]
+    img = make_casing_tile(t["base"], t["hi"], t["lo"], seed=seed, rivets=False)
+    acc, acc_hi, acc_dark = t["accent"], t["accent_hi"], t["accent_dark"]
+
+    # Machine-themed outer frame accent strip along edge y=1, y=14, x=1, x=14 + bold corners
+    for i in range(2, 14):
+        if kind == "macerator":
+            c_top = acc if ((i // 2) % 2 == 0) else t["secondary"]
+            c_bot = acc if (((i + 1) // 2) % 2 == 0) else t["secondary"]
+        else:
+            c_top = acc_hi if i in (2, 3, 12, 13) else acc
+            c_bot = acc if i in (2, 3, 12, 13) else acc_dark
+        px(img, i, 1, c_top)
+        px(img, i, 14, c_bot)
+        px(img, 1, i, c_top)
+        px(img, 14, i, c_bot)
+    for cx, cy in [(1, 1), (14, 1), (1, 14), (14, 14)]:
+        px(img, cx, cy, acc_hi if (cx == 1 and cy == 1) else acc)
+
+    # Dark isolation border + unmistakable glowing port mode bezel
+    draw_rect_border(img, 2, 2, 12, 12, PAL["outline"])
+    draw_rect_border(img, 3, 3, 10, 10, bezel)
+    draw_rect_border(img, 4, 4, 8, 8, dark)
+    fill_rect(img, 5, 5, 6, 6, PAL["lcd_bg"])
+
+    if mode == "both":
+        # Full (In+Out): crisp symmetric bidirectional cyan diamond/arrows
+        for x in (7, 8):
+            px(img, x, 5, PAL["cyan_white"])
+            px(img, x, 10, PAL["cyan_white"])
+        for x in (6, 7, 8, 9):
+            px(img, x, 6, PAL["cyan_glow"])
+            px(img, x, 9, PAL["cyan_glow"])
+        px(img, 5, 7, PAL["cyan_mid"])
+        px(img, 10, 7, PAL["cyan_mid"])
+        px(img, 5, 8, PAL["cyan_mid"])
+        px(img, 10, 8, PAL["cyan_mid"])
+        fill_rect(img, 7, 7, 2, 2, PAL["cyan_white"])
+    elif mode == "in":
+        # Input Only: unmistakable bright blue inward funnel arrow
+        fill_rect(img, 6, 5, 4, 2, bezel)
+        fill_rect(img, 5, 7, 6, 2, PAL["cyan_white"])
+        fill_rect(img, 7, 9, 2, 2, bezel)
+    elif mode == "out":
+        # Output Only: unmistakable bright orange outward eject arrow
+        fill_rect(img, 7, 5, 2, 2, bezel)
+        fill_rect(img, 5, 7, 6, 2, PAL["gold_hi"])
+        fill_rect(img, 6, 9, 4, 2, bezel)
+    else:
+        # Blocked: sealed dark-gray shutter + muted red X
+        for y in range(5, 11, 2):
+            fill_rect(img, 5, y, 6, 1, PAL["slot_dark"])
+        for i in range(4):
+            px(img, 6 + i, 6 + i, (172, 70, 74, 255))
+            px(img, 9 - i, 6 + i, (172, 70, 74, 255))
+    return img
 
 
 def gen_giant_machines() -> None:
+    # Remove obsolete un-differentiated legacy giant textures if present
+    for obsolete in (
+        "giant_casing_top.png",
+        "giant_casing_bottom.png",
+        "giant_casing_side.png",
+        "giant_port_full.png",
+        "giant_port_input.png",
+        "giant_port_output.png",
+        "giant_port_blocked.png",
+    ):
+        (TEX_ROOT / "block" / obsolete).unlink(missing_ok=True)
+
     # Megastructure Component item (16x16 heavy interlocking truss + glowing cyan core)
     mc = Image.new("RGBA", (16, 16), PAL["transparent"])
     draw_rect_border(mc, 1, 1, 14, 14, PAL["slate_light"])
     draw_rect_border(mc, 2, 2, 12, 12, PAL["slate_dark"])
-    # Diagonal steel trusses
     for i in range(2, 14):
         px(mc, i, i, PAL["bevel_hi"])
         px(mc, 15 - i, i, PAL["slate_mid"])
-    # Central cyan core hub
     fill_rect(mc, 5, 5, 6, 6, PAL["lcd_bg"])
     draw_rect_border(mc, 5, 5, 6, 6, PAL["cyan_mid"])
     fill_rect(mc, 6, 6, 4, 4, PAL["cyan_glow"])
     px(mc, 7, 7, PAL["cyan_white"])
-    # Heavy corner locking bolts
     for cx, cy in [(2, 2), (13, 2), (2, 13), (13, 13)]:
         px(mc, cx, cy, PAL["gold_mid"])
     save_png(add_item_outline(mc), TEX_ROOT / "item" / "megastructure_component.png")
 
-    # Formed Giant Casing (top, bottom, side)
-    top = make_casing_tile((86, 98, 112, 255), PAL["bevel_hi"], PAL["slot_dark"], seed=501, rivets=True)
-    draw_rect_border(top, 3, 3, 10, 10, PAL["border_dark"])
-    draw_rect_border(top, 4, 4, 8, 8, PAL["cyan_dark"])
-    fill_rect(top, 7, 4, 2, 8, PAL["cyan_mid"])
-    fill_rect(top, 4, 7, 8, 2, PAL["cyan_mid"])
-    save_png(top, TEX_ROOT / "block" / "giant_casing_top.png")
+    port_styles = {
+        "full": (PAL["cyan_glow"], PAL["cyan_dark"], "both"),
+        "input": (PAL["blue_port"], PAL["blue_dark"], "in"),
+        "output": (PAL["orange_port"], PAL["orange_dark"], "out"),
+        "blocked": (PAL["slate_dark"], PAL["border_dark"], "blocked"),
+    }
 
-    bot = make_casing_tile((68, 78, 92, 255), PAL["slate_light"], PAL["shadow_deep"], seed=502, rivets=True)
-    for i in (4, 8, 11):
-        fill_rect(bot, 2, i, 12, 1, PAL["border_dark"])
-    save_png(bot, TEX_ROOT / "block" / "giant_casing_bottom.png")
-
-    side = make_casing_tile((82, 94, 108, 255), PAL["bevel_hi"], PAL["slot_dark"], seed=503, rivets=True)
-    # Multi-rib armored plates + cyan tech groove
-    fill_rect(side, 2, 7, 12, 2, PAL["lcd_bg"])
-    fill_rect(side, 3, 7, 10, 1, PAL["cyan_mid"])
-    for x in (4, 11):
-        fill_rect(side, x, 3, 1, 3, PAL["slot_dark"])
-        fill_rect(side, x, 10, 1, 3, PAL["slot_dark"])
-    save_png(side, TEX_ROOT / "block" / "giant_casing_side.png")
-
-    # 5 Unformed units + 5 Core fronts (inactive & animated active)
     kinds = ["macerator", "compressor", "recycler", "extractor", "ore_washer"]
     for idx, kind in enumerate(kinds):
-        # Unformed unit block
-        unit = make_casing_tile((98, 110, 124, 255), PAL["bevel_hi"], PAL["slot_dark"], seed=510 + idx, rivets=True)
+        t = GIANT_THEMES[kind]
+        base, hi, lo = t["base"], t["hi"], t["lo"]
+        acc, acc_hi, acc_dark = t["accent"], t["accent_hi"], t["accent_dark"]
+
+        # 1. Per-kind formed casing faces (top / side / bottom)
+        draw_giant_casing_set(kind, seed=500 + idx * 10)
+
+        # 2. Per-kind unformed unit block (distinct casing palette + accent trim + emblem)
+        unit = make_casing_tile(shade(base, 1.08), hi, lo, seed=510 + idx, rivets=False)
+        for i in range(2, 14):
+            if kind == "macerator":
+                c = acc if ((i // 2) % 2 == 0) else t["secondary"]
+                px(unit, i, 2, c)
+                px(unit, i, 13, c)
+            elif kind == "compressor":
+                px(unit, 2, i, acc if i % 2 == 0 else acc_dark)
+                px(unit, 13, i, acc if i % 2 == 0 else acc_dark)
+            elif kind == "recycler":
+                px(unit, i, 2, acc)
+                px(unit, i, 13, acc_dark)
+            elif kind == "extractor":
+                px(unit, i, 2, t["secondary"])
+                px(unit, i, 13, acc)
+            elif kind == "ore_washer":
+                px(unit, 2, i, acc if i % 2 == 0 else t["secondary"])
+                px(unit, 13, i, acc if i % 2 == 0 else t["secondary"])
         fill_rect(unit, 3, 3, 10, 10, PAL["lcd_bg"])
-        draw_rect_border(unit, 3, 3, 10, 10, PAL["slate_dark"])
-        draw_giant_emblem(unit, kind, active=False, ox=3, oy=3)
-        # Subtle corner caution notches showing it's a modular multiblock unit
-        for cx, cy in [(2, 7), (13, 7), (7, 2), (7, 13)]:
-            px(unit, cx, cy, PAL["cyan_mid"])
+        draw_rect_border(unit, 2, 2, 12, 12, acc_dark)
+        # Re-apply bold corner modular lock tabs in machine accent color
+        for cx, cy in [(2, 2), (13, 2), (2, 13), (13, 13)]:
+            px(unit, cx, cy, acc_hi)
+        for cx, cy in [(1, 7), (1, 8), (14, 7), (14, 8), (7, 1), (8, 1), (7, 14), (8, 14)]:
+            px(unit, cx, cy, acc)
+        draw_giant_emblem(unit, kind, active=False, ox=3, oy=3, frame=0)
         save_png(unit, TEX_ROOT / "block" / f"giant_{kind}_unit.png")
 
-        # Formed Core Front (inactive)
-        core_off = make_casing_tile((72, 84, 98, 255), PAL["bevel_hi"], PAL["slot_dark"], seed=520 + idx, rivets=True)
+        # 3. Per-kind formed Front-Center / Core display (inactive)
+        core_off = make_casing_tile(base, hi, lo, seed=520 + idx, rivets=False)
+        for i in range(1, 15):
+            if kind == "macerator" and (i <= 3 or i >= 12):
+                px(core_off, i, 1, acc if i % 2 == 0 else t["secondary"])
+                px(core_off, i, 14, acc if i % 2 == 0 else t["secondary"])
+            elif i in (1, 2, 13, 14):
+                px(core_off, i, 1, acc)
+                px(core_off, i, 14, acc_dark)
         fill_rect(core_off, 2, 2, 12, 12, PAL["lcd_bg"])
-        draw_rect_border(core_off, 2, 2, 12, 12, PAL["cyan_dark"])
-        draw_giant_emblem(core_off, kind, active=False, ox=3, oy=3)
+        draw_rect_border(core_off, 2, 2, 12, 12, acc_dark)
+        for lx, ly in [(1, 1), (14, 1), (1, 14), (14, 14)]:
+            px(core_off, lx, ly, t["led_off"])
+        draw_giant_emblem(core_off, kind, active=False, ox=3, oy=3, frame=0)
         save_png(core_off, TEX_ROOT / "block" / f"giant_core_front_{kind}.png")
 
-        # Formed Core Front (animated 4-frame active)
+        # 4. Per-kind formed Front-Center / Core display (4-frame animated active)
         strip = Image.new("RGBA", (16, 64), PAL["transparent"])
         for f in range(4):
             pulse = 0.5 + 0.5 * math.sin((f / 4.0) * 2 * math.pi)
-            core_on = make_casing_tile((72, 84, 98, 255), PAL["bevel_hi"], PAL["slot_dark"], seed=520 + idx, rivets=True)
-            fill_rect(core_on, 2, 2, 12, 12, PAL["lcd_bg2"])
-            draw_rect_border(core_on, 2, 2, 12, 12, lerp_color(PAL["cyan_mid"], PAL["cyan_white"], pulse))
-            draw_giant_emblem(core_on, kind, active=True, ox=3, oy=3)
-            # Corner active LEDs
-            led = lerp_color(PAL["cyan_glow"], PAL["cyan_white"], pulse)
+            core_on = make_casing_tile(base, hi, lo, seed=520 + idx, rivets=False)
+            fill_rect(core_on, 2, 2, 12, 12, lerp_color(PAL["lcd_bg"], acc_dark, 0.28))
+            draw_rect_border(core_on, 2, 2, 12, 12, lerp_color(acc, acc_hi, pulse))
+            draw_giant_emblem(core_on, kind, active=True, ox=3, oy=3, frame=f)
+            # Machine-tinted glowing corner LEDs + side accent pulses
+            led = lerp_color(acc_hi, PAL["bevel_white"], pulse)
             for lx, ly in [(1, 1), (14, 1), (1, 14), (14, 14)]:
                 px(core_on, lx, ly, led)
+            for mx, my in [(7, 1), (8, 1), (7, 14), (8, 14)]:
+                px(core_on, mx, my, lerp_color(acc, acc_hi, pulse))
             strip.paste(core_on, (0, f * 16))
         act_path = TEX_ROOT / "block" / f"giant_core_front_{kind}_active.png"
         save_png(strip, act_path)
-        save_mcmeta(act_path, frametime=4, interpolate=True)
+        save_mcmeta(act_path, frametime=4, interpolate=False)
 
-    # 4 Distinct Corner Port Blocks (cyan=FULL, blue=INPUT, orange=OUTPUT, gray=BLOCKED)
-    port_styles = {
-        "giant_port_full": (PAL["cyan_glow"], PAL["cyan_dark"], "both"),
-        "giant_port_input": (PAL["blue_port"], PAL["blue_dark"], "in"),
-        "giant_port_output": (PAL["orange_port"], PAL["orange_dark"], "out"),
-        "giant_port_blocked": (PAL["slate_dark"], PAL["border_dark"], "blocked"),
-    }
-    for pname, (bezel, dark, mode) in port_styles.items():
-        img = make_casing_tile((76, 86, 100, 255), PAL["bevel_hi"], PAL["slot_dark"], seed=540, rivets=True)
-        # Prominent glowing port bezel frame
-        draw_rect_border(img, 2, 2, 12, 12, dark)
-        draw_rect_border(img, 3, 3, 10, 10, bezel)
-        fill_rect(img, 4, 4, 8, 8, PAL["lcd_bg"])
-        if mode == "both":
-            # In+Out dual chevrons
-            for i in range(4):
-                px(img, 5 + i, 6, PAL["cyan_white"])
-                px(img, 6 + i, 9, PAL["cyan_glow"])
-            px(img, 5, 7, PAL["cyan_glow"])
-            px(img, 10, 8, PAL["cyan_glow"])
-            draw_rect_border(img, 6, 6, 4, 4, PAL["cyan_mid"])
-        elif mode == "in":
-            # Inward blue funnel arrow
-            fill_rect(img, 6, 5, 4, 2, bezel)
-            fill_rect(img, 5, 7, 6, 2, PAL["cyan_white"])
-            fill_rect(img, 7, 9, 2, 2, bezel)
-        elif mode == "out":
-            # Outward orange eject arrow
-            fill_rect(img, 7, 5, 2, 2, bezel)
-            fill_rect(img, 5, 7, 6, 2, PAL["gold_hi"])
-            fill_rect(img, 6, 9, 4, 2, bezel)
-        else:
-            # Sealed industrial shutter + muted X
-            for y in range(4, 12, 2):
-                fill_rect(img, 4, y, 8, 1, PAL["slot_dark"])
-            for i in range(4):
-                px(img, 6 + i, 6 + i, (162, 68, 72, 255))
-                px(img, 9 - i, 6 + i, (162, 68, 72, 255))
-        save_png(img, TEX_ROOT / "block" / f"{pname}.png")
+        # 5. Per-kind 4 Corner Port Blocks (machine-colored outer frame + crisp port mode bezel)
+        for mode_name, (bezel, dark, mode) in port_styles.items():
+            port_img = draw_giant_port_tile(kind, mode_name, bezel, dark, mode, seed=540 + idx)
+            save_png(port_img, TEX_ROOT / "block" / f"giant_port_{kind}_{mode_name}.png")
 
 
 # =============================================================================
@@ -1409,6 +1810,110 @@ def gen_gas_and_bio_items() -> None:
     save_png(draw_bucket_sprite((112, 184, 198, 255), (218, 248, 252, 255)), TEX_ROOT / "item" / "water_gas_bucket.png")
     save_png(draw_bucket_sprite((74, 174, 244, 255), (206, 242, 255, 255)), TEX_ROOT / "item" / "natural_gas_bucket.png")
     save_png(draw_bucket_sprite((46, 176, 98, 255), (146, 252, 182, 255)), TEX_ROOT / "item" / "culture_medium_bucket.png")
+
+    # PV Panel Power Upgrade (IC2NE-aligned 16x16 upgrade cartridge: metallic bevel casing,
+    # 2 solar-gold top corner LEDs, 3 bottom gold pins, blue PV cell grid + gold sun/boost motif)
+    save_png(draw_pv_power_upgrade(), TEX_ROOT / "item" / "pv_power_upgrade.png")
+
+
+def draw_pv_power_upgrade() -> Image.Image:
+    """Procedurally generate a 16x16 IC2NE-aligned upgrade cartridge for PV Panel Power Upgrade."""
+    img = Image.new("RGBA", (16, 16), PAL["transparent"])
+
+    outline = (0x18, 0x1E, 0x26, 255)
+    top_bevel = (0xDC, 0xE6, 0xF0, 255)
+    left_bevel = (0xB3, 0xC0, 0xCF, 255)
+    right_bevel = (0x83, 0x91, 0xA1, 255)
+    bot_bevel = (0x4E, 0x5A, 0x69, 255)
+    screen_shadow = (0x0C, 0x10, 0x17, 255)
+    screen_bg = (0x12, 0x17, 0x20, 255)
+    recess_bar = (0x1A, 0x1F, 0x28, 255)
+    pin_root = (0xB2, 0x72, 0x14, 255)
+    pin_hi = (0xFF, 0xF8, 0xCC, 255)
+    pin_gold = (0xE6, 0xA8, 0x22, 255)
+    led_gold = (0xFF, 0xD8, 0x38, 255)
+
+    # Outer cartridge silhouette outline
+    fill_rect(img, 2, 0, 12, 1, outline)
+    fill_rect(img, 1, 1, 1, 13, outline)
+    fill_rect(img, 14, 1, 1, 13, outline)
+    fill_rect(img, 2, 15, 12, 1, outline)
+
+    # Top metallic bevel + 2 glowing solar-gold corner LEDs
+    fill_rect(img, 3, 1, 10, 1, top_bevel)
+    px(img, 2, 1, led_gold)
+    px(img, 13, 1, led_gold)
+
+    # Left & right metallic bevels + bottom bevel
+    fill_rect(img, 2, 2, 1, 10, left_bevel)
+    fill_rect(img, 13, 2, 1, 10, right_bevel)
+    fill_rect(img, 2, 12, 11, 1, bot_bevel)
+    px(img, 13, 12, outline)
+
+    # Bottom connector recess & 3 gold contact pins (identical pitch to IC2NE upgrades)
+    fill_rect(img, 2, 13, 12, 1, recess_bar)
+    fill_rect(img, 2, 14, 12, 1, outline)
+    for pin_x in (3, 7, 11):
+        px(img, pin_x, 13, pin_root)
+        px(img, pin_x, 14, pin_hi)
+        px(img, pin_x + 1, 14, pin_gold)
+
+    # Dark recessed display viewport (x=3..12, y=2..11)
+    fill_rect(img, 3, 2, 10, 10, screen_bg)
+    fill_rect(img, 3, 2, 10, 1, screen_shadow)
+    fill_rect(img, 3, 2, 1, 10, screen_shadow)
+
+    # Upper-left radiant golden sun motif (x=4..7, y=2..5)
+    sun_white = (255, 252, 224, 255)
+    sun_gold = (255, 226, 56, 255)
+    sun_amber = (255, 158, 34, 255)
+    px(img, 5, 3, sun_white)
+    px(img, 6, 3, sun_gold)
+    px(img, 5, 4, sun_gold)
+    px(img, 6, 4, sun_gold)
+    for rx, ry in [(5, 2), (6, 2), (4, 3), (7, 3), (4, 4), (7, 4), (5, 5), (6, 5)]:
+        px(img, rx, ry, sun_amber)
+
+    # Upper-right crisp gold double up-chevron ^^ (power-up motif echoing IC2 overclocker)
+    px(img, 10, 2, sun_white)
+    px(img, 9, 3, sun_gold)
+    px(img, 11, 3, sun_gold)
+    px(img, 10, 4, sun_gold)
+    px(img, 9, 5, sun_amber)
+    px(img, 11, 5, sun_amber)
+
+    # Lower crisp blue 3x2 solar photovoltaic cell grid (x=4..11, y=7..11)
+    pv_hi = (98, 186, 255, 255)
+    pv_mid = (42, 116, 232, 255)
+    pv_deep = (22, 62, 154, 255)
+    bus_hi = (232, 246, 255, 255)
+    bus_mid = (168, 210, 248, 255)
+    bus_lo = (116, 158, 206, 255)
+
+    for y in range(7, 12):
+        for x in range(4, 12):
+            is_vbus = x in (6, 9)
+            is_hbus = y == 9
+            if is_vbus and is_hbus:
+                c = bus_hi
+            elif is_hbus:
+                c = bus_mid
+            elif is_vbus:
+                c = bus_hi if y == 7 else (bus_mid if y < 11 else bus_lo)
+            else:
+                if y == 7:
+                    c = pv_hi if x in (4, 7, 10) else pv_mid
+                elif y == 8:
+                    c = pv_mid if x in (4, 7, 10) else pv_deep
+                elif y == 10:
+                    c = pv_mid if x in (4, 7, 10) else pv_deep
+                else:
+                    c = pv_deep
+            px(img, x, y, c)
+    # Specular solar glint on top-left PV silicon cell
+    px(img, 4, 7, (166, 224, 255, 255))
+
+    return img
 
 
 # =============================================================================

@@ -95,14 +95,14 @@ public final class WaterGasMachineScreen extends Ecc2ScreenBase<WaterGasMachineM
                     screenX,
                     screenY);
         } else if (inside(relMouseX, relMouseY, 84, 22, 14, 14)) {
-            c.renderTooltip(
-                    List.of(
-                            Component.translatable(
-                                    menu.isSolarActive()
-                                            ? "gui.ecc2.gas.solar_active"
-                                            : "gui.ecc2.gas.solar_inactive")),
-                    screenX,
-                    screenY);
+            Component solarTip =
+                    menu.isSolarActive()
+                            ? Component.translatable(
+                                    "gui.ecc2.gas.solar_active",
+                                    WaterGasEngine.formatSolarRateDeci(
+                                            menu.effectiveSolarDeciEuPerTick()))
+                            : Component.translatable("gui.ecc2.gas.solar_inactive");
+            c.renderTooltip(List.of(solarTip), screenX, screenY);
         } else if (inside(relMouseX, relMouseY, 62, 65, 14, 14)) {
             c.renderTooltip(
                     List.of(

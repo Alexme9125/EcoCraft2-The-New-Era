@@ -5,12 +5,13 @@ import net.minecraft.util.StringRepresentable;
 
 /**
  * Blockstate {@code role} property values matching {@code assets-gen/generate_data.py} verbatim:
- * {@code unformed}, {@code core}, {@code corner}, {@code shell}.
+ * {@code unformed}, {@code core}, {@code corner}, {@code front}, {@code shell}.
  */
 public enum GiantBlockRole implements StringRepresentable {
     UNFORMED("unformed"),
     CORE("core"),
     CORNER("corner"),
+    FRONT("front"),
     SHELL("shell");
 
     private final String serializedName;

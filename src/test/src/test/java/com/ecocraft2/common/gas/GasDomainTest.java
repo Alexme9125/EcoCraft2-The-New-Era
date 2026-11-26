@@ -80,6 +80,64 @@ class GasDomainTest {
         assertEquals(7_500, gridPowered.waterGasMb());
     }
 
+    @Test
+    void waterGasEnginePvPowerUpgradeScalesAndCapsAtTwoForDaytimeSelfSufficiency() {
+        WaterGasEngine engine = new WaterGasEngine();
+        assertEquals(0, engine.solarPowerUpgrades());
+        assertEquals(2.0, engine.effectiveSolarEuPerTick(), 1e-12);
+        assertEquals("2", WaterGasEngine.formatSolarRate(engine.effectiveSolarEuPerTick()));
+        assertEquals("2", WaterGasEngine.formatSolarRateDeci(20));
+
+        // Negative values clamp to 0
+        engine.setSolarPowerUpgrades(-5);
+        assertEquals(0, engine.solarPowerUpgrades());
+        assertEquals(2.0, engine.effectiveSolarEuPerTick(), 1e-12);
+
+        // 1 upgrade -> 3.5 EU/t (fractional output)
+        engine.setSolarPowerUpgrades(1);
+        assertEquals(1, engine.solarPowerUpgrades());
+        assertEquals(3.5, engine.effectiveSolarEuPerTick(), 1e-12);
+        assertEquals("3.5", WaterGasEngine.formatSolarRate(engine.effectiveSolarEuPerTick()));
+        assertEquals("3.5", WaterGasEngine.formatSolarRateDeci(35));
+        assertEquals(GasMachineOutcome.IDLE, engine.tick(false, true, true, true, false, true));
+        assertTrue(engine.isSolarActive());
+        assertEquals(3.5, engine.storedEu(), 1e-12);
+
+        // 2, 3, and 10 upgrades all strictly cap at 5.0 EU/t (effective max = 2)
+        for (int installed : new int[]{2, 3, 10}) {
+            engine.setSolarPowerUpgrades(installed);
+            assertEquals(installed, engine.solarPowerUpgrades());
+            assertEquals(5.0, engine.effectiveSolarEuPerTick(), 1e-12);
+            assertEquals("5", WaterGasEngine.formatSolarRate(engine.effectiveSolarEuPerTick()));
+        }
+        assertEquals("5", WaterGasEngine.formatSolarRateDeci(50));
+
+        // With 2 PV upgrades and 0 grid EU, a full 200-tick clear daytime cycle completes cleanly with 0 net EU loss
+        WaterGasEngine selfSufficient = new WaterGasEngine();
+        selfSufficient.setSolarPowerUpgrades(2);
+        assertEquals(8_000, selfSufficient.fillWater(8_000, false));
+        assertEquals(0.0, selfSufficient.storedEu(), 1e-12);
+        for (int t = 1; t <= 199; t++) {
+            assertEquals(GasMachineOutcome.WORKING, selfSufficient.tick(true, true, true, true, false, true));
+            assertTrue(selfSufficient.isSolarActive());
+            assertEquals(0.0, selfSufficient.storedEu(), 1e-12);
+        }
+        assertEquals(GasMachineOutcome.COMPLETED, selfSufficient.tick(true, true, true, true, false, true));
+        assertEquals(7_900, selfSufficient.waterMb());
+        assertEquals(1_000, selfSufficient.waterGasMb());
+        assertEquals(0.0, selfSufficient.storedEu(), 1e-12);
+
+        // Installing 3+ PV upgrades must NOT generate extra surplus EU above the 2-upgrade cap
+        WaterGasEngine overCapped = new WaterGasEngine();
+        overCapped.setSolarPowerUpgrades(10);
+        overCapped.fillWater(8_000, false);
+        for (int t = 1; t <= 200; t++) {
+            overCapped.tick(true, true, true, true, false, true);
+        }
+        assertEquals(1_000, overCapped.waterGasMb());
+        assertEquals(0.0, overCapped.storedEu(), 1e-12);
+    }
+
     // --- GasFurnaceEngine ---
 
     @Test
@@ -236,9 +294,11 @@ class GasDomainTest {
     // --- OrganicFermenterEngine ---
 
     @Test
-    void organicFermenterProduces20MbPerNutritionPointAndChecksContainerReturn() {
+    void organicFermenterProduces30MbPerNutritionPointAndChecksContainerReturn() {
         OrganicFermenterEngine ferm = new OrganicFermenterEngine();
         assertEquals(1, ferm.inputTier());
+        assertEquals(30, ferm.biogasPerNutritionMb());
+        assertEquals(30, OrganicFermenterEngine.biogasYieldForNutrition(1));
         assertEquals(8_000, ferm.fillCulture(10_000, false));
         ferm.injectEu(2_000.0);
 
@@ -247,13 +307,13 @@ class GasDomainTest {
         assertEquals(GasMachineOutcome.IDLE, ferm.tick(-5));
         assertEquals(8_000, ferm.cultureMb());
 
-        // Ferment steak (H = 8) -> 160 mB ic2:biogas, 50 mB culture, 200 EU / 100 ticks
+        // Ferment steak (H = 8) -> 240 mB ic2:biogas, 50 mB culture, 200 EU / 100 ticks
         for (int t = 1; t <= 99; t++) {
             assertEquals(GasMachineOutcome.WORKING, ferm.tick(8));
         }
         assertEquals(GasMachineOutcome.COMPLETED, ferm.tick(8));
-        assertEquals(160, ferm.lastCompletedBiogasMb());
-        assertEquals(160, ferm.biogasMb());
+        assertEquals(240, ferm.lastCompletedBiogasMb());
+        assertEquals(240, ferm.biogasMb());
         assertEquals(7_950, ferm.cultureMb());
         assertEquals(1_800.0, ferm.storedEu(), 1e-12);
 
@@ -269,18 +329,80 @@ class GasDomainTest {
         assertEquals(GasMachineOutcome.WORKING, ferm.tick(10, true));
         assertEquals(1, ferm.progress(), "Food swap mid-cycle must reset progress to prevent exploit");
 
-        // Complete the 10-hunger food (99 more ticks -> +200 mB biogas)
+        // Complete the 10-hunger food (99 more ticks -> +300 mB biogas)
         for (int t = 2; t <= 99; t++) {
             assertEquals(GasMachineOutcome.WORKING, ferm.tick(10, true));
         }
         assertEquals(GasMachineOutcome.COMPLETED, ferm.tick(10, true));
-        assertEquals(200, ferm.lastCompletedBiogasMb());
-        assertEquals(360, ferm.biogasMb());
+        assertEquals(300, ferm.lastCompletedBiogasMb());
+        assertEquals(540, ferm.biogasMb());
 
         // Upgrades accelerate ticks and scale tier/storage
         ferm.setUpgrades(new GiantUpgradeProfile(2, 1, 1));
         assertEquals(49, ferm.operationTicks());
         assertEquals(2, ferm.inputTier());
         assertEquals(14_000.0, ferm.energyCapacity(), 1e-9);
+    }
+
+    @Test
+    void biogasH1FoodYields480EuAndRemainsNetPositiveWithFourOverclockers() {
+        // 1 food (H = 1) -> 30 mB biogas -> 480 EU in Gas Generator
+        OrganicFermenterEngine baseFerm = new OrganicFermenterEngine();
+        baseFerm.fillCulture(1_000, false);
+        baseFerm.injectEu(1_000.0);
+        for (int t = 1; t < baseFerm.operationTicks(); t++) {
+            assertEquals(GasMachineOutcome.WORKING, baseFerm.tick(1, true));
+        }
+        assertEquals(GasMachineOutcome.COMPLETED, baseFerm.tick(1, true));
+        assertEquals(30, baseFerm.lastCompletedBiogasMb());
+
+        GasGeneratorEngine gen = new GasGeneratorEngine();
+        assertEquals(30, gen.fillGas(GasFuelSpec.BIOGAS, baseFerm.biogasMb(), false));
+        double totalEuGenerated = 0.0;
+        while (gen.gasMb() > 0 || gen.pendingEu() > 0.0) {
+            gen.tick();
+            totalEuGenerated += gen.drawEnergy(gen.offeredEnergy());
+        }
+        totalEuGenerated += gen.drawEnergy(gen.storedEu());
+        assertEquals(480.0, totalEuGenerated, 1e-9);
+
+        // Base total energy cost: 0.5 * 200 EU (incubator) + 200 EU (fermenter) = 300 EU < 480 EU
+        double baseCostPerFood = 0.5 * CultureIncubatorEngine.BASE_EU_PER_OP
+                + OrganicFermenterEngine.BASE_EU_PER_OP;
+        assertEquals(300.0, baseCostPerFood, 1e-9);
+        assertTrue(totalEuGenerated > baseCostPerFood);
+
+        // With 4 Overclockers on BOTH Culture Incubator and Organic Fermenter:
+        GiantUpgradeProfile fourOc = new GiantUpgradeProfile(4, 0, 0);
+        CultureIncubatorEngine ocInc = new CultureIncubatorEngine();
+        ocInc.setUpgrades(fourOc);
+        ocInc.fillWater(1_000, false);
+        ocInc.injectEu(1_000.0);
+        double incStartEu = ocInc.storedEu();
+        for (int t = 0; t < ocInc.operationTicks(); t++) {
+            ocInc.tick(true);
+        }
+        double incEuPer100Mb = incStartEu - ocInc.storedEu();
+        assertEquals(100, ocInc.cultureMb());
+
+        OrganicFermenterEngine ocFerm = new OrganicFermenterEngine();
+        ocFerm.setUpgrades(fourOc);
+        ocFerm.fillCulture(100, false); // enough for 2 H=1 food cycles
+        ocFerm.injectEu(1_000.0);
+        double fermStartEu = ocFerm.storedEu();
+        for (int cycle = 0; cycle < 2; cycle++) {
+            for (int t = 0; t < ocFerm.operationTicks(); t++) {
+                ocFerm.tick(1, true);
+            }
+        }
+        double fermEuForTwoFoods = fermStartEu - ocFerm.storedEu();
+        assertEquals(60, ocFerm.biogasMb());
+
+        double ocCostPerFood = (incEuPer100Mb + fermEuForTwoFoods) / 2.0;
+        double continuousFourOcCost = 300.0 * Math.pow(
+                GiantUpgradeProfile.OVERCLOCKER_TIME_FACTOR * GiantUpgradeProfile.OVERCLOCKER_ENERGY_FACTOR, 4);
+        assertEquals(472.06, continuousFourOcCost, 0.01);
+        assertTrue(totalEuGenerated > ocCostPerFood, "480 EU must beat actual 4-OC cost " + ocCostPerFood);
+        assertTrue(totalEuGenerated > 472.06, "480 EU must beat theoretical 4-OC cost 472.06 EU");
     }
 }

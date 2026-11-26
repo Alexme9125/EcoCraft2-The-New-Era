@@ -24,7 +24,7 @@ public final class AdvancedRotorRenderer
         implements BlockEntityRenderer<AdvancedKineticBlockEntity> {
 
     private static final ResourceLocation WHITE_TEX =
-            Ecc2BridgePlatform.rl("textures/block/giant_casing_side.png");
+            Ecc2BridgePlatform.rl("textures/block/giant_casing_macerator_side.png");
 
     public AdvancedRotorRenderer(BlockEntityRendererProvider.Context ctx) {}
 

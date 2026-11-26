@@ -520,7 +520,7 @@ public final class Ecc2Config {
             gasFurnaceBaseTicks =
                     builder.defineInRange("gasFurnaceBaseTicks", 100, 1, 10_000);
             organicFermenterBiogasPerHunger =
-                    builder.defineInRange("organicFermenterBiogasPerHunger", 20, 1, 1_000);
+                    builder.defineInRange("organicFermenterBiogasPerHunger", 30, 1, 1_000);
             organicFermenterCulturePerOp =
                     builder.defineInRange("organicFermenterCulturePerOp", 50, 1, 8_000);
             builder.pop();

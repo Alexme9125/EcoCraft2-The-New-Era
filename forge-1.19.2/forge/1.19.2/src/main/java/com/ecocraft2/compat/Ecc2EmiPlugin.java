@@ -3,6 +3,7 @@ package com.ecocraft2.compat;
 import com.ecocraft2.bridge.Ecc2BridgePlatform;
 import com.ecocraft2.common.config.Ecc2Ids;
 import com.ecocraft2.common.gas.GasFuelSpec;
+import com.ecocraft2.config.Ecc2Config;
 import com.ecocraft2.gas.GasRegistry;
 import com.ecocraft2.solar.MolecularTransformerRecipe;
 import com.ecocraft2.solar.SolarKineticRegistry;
@@ -98,30 +99,68 @@ public final class Ecc2EmiPlugin implements EmiPlugin {
                         EmiStack.of(Fluids.WATER, 100),
                         EmiStack.of(GasRegistry.CULTURE_MEDIUM.get(), 100),
                         200));
+        registry.addRecipe(
+                new ProcessEmiRecipe(
+                        cultureCategory,
+                        Ecc2BridgePlatform.rl("emi/culture_incubator/rotten_flesh"),
+                        EmiStack.of(Items.ROTTEN_FLESH),
+                        EmiStack.of(Fluids.WATER, 100),
+                        EmiStack.of(GasRegistry.CULTURE_MEDIUM.get(), 100),
+                        200));
 
         Fluid biogas = Ecc2BridgePlatform.findFluid(Ecc2Ids.IC2_BIOGAS_ID);
         if (biogas != Fluids.EMPTY) {
+            int cultureCost = Ecc2Config.organicFermenterCulturePerOp();
+            int perHunger = Ecc2Config.organicFermenterBiogasPerHunger();
             registry.addRecipe(
                     new ProcessEmiRecipe(
                             fermenterCategory,
                             Ecc2BridgePlatform.rl("emi/organic_fermenter/apple"),
                             EmiStack.of(Items.APPLE),
-                            EmiStack.of(GasRegistry.CULTURE_MEDIUM.get(), 50),
-                            EmiStack.of(biogas, 80),
+                            EmiStack.of(GasRegistry.CULTURE_MEDIUM.get(), cultureCost),
+                            EmiStack.of(biogas, 4 * perHunger),
+                            200));
+            registry.addRecipe(
+                    new ProcessEmiRecipe(
+                            fermenterCategory,
+                            Ecc2BridgePlatform.rl("emi/organic_fermenter/bread"),
+                            EmiStack.of(Items.BREAD),
+                            EmiStack.of(GasRegistry.CULTURE_MEDIUM.get(), cultureCost),
+                            EmiStack.of(biogas, 5 * perHunger),
+                            200));
+            registry.addRecipe(
+                    new ProcessEmiRecipe(
+                            fermenterCategory,
+                            Ecc2BridgePlatform.rl("emi/organic_fermenter/cooked_beef"),
+                            EmiStack.of(Items.COOKED_BEEF),
+                            EmiStack.of(GasRegistry.CULTURE_MEDIUM.get(), cultureCost),
+                            EmiStack.of(biogas, 8 * perHunger),
                             200));
         }
 
         for (GasFuelSpec spec : GasFuelSpec.values()) {
             Fluid fluid = Ecc2BridgePlatform.findFluid(spec.fluidId());
             if (fluid != Fluids.EMPTY) {
+                int euPerBucket =
+                        switch (spec) {
+                            case WATER_GAS -> Ecc2Config.waterGasEnergyPerBucket();
+                            case NATURAL_GAS -> Ecc2Config.naturalGasEnergyPerBucket();
+                            case BIOGAS -> Ecc2Config.biogasEnergyPerBucket();
+                        };
+                int euPerTick =
+                        switch (spec) {
+                            case WATER_GAS -> Ecc2Config.waterGasOutputEuPerTick();
+                            case NATURAL_GAS -> Ecc2Config.naturalGasOutputEuPerTick();
+                            case BIOGAS -> Ecc2Config.biogasOutputEuPerTick();
+                        };
                 registry.addRecipe(
                         new GasGenEmiRecipe(
                                 gasGenCategory,
                                 Ecc2BridgePlatform.rl(
                                         "emi/gas_generator/" + spec.name().toLowerCase(Locale.ROOT)),
                                 EmiStack.of(fluid, 1000),
-                                spec.euPerBucket(),
-                                spec.euPerTick()));
+                                euPerBucket,
+                                euPerTick));
             }
         }
     }

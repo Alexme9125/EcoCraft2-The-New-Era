@@ -23,7 +23,7 @@ class Ecc2ConfigAndIdsTest {
         assertEquals("ecc2", Ecc2Ids.MOD_ID);
         assertEquals(23, Ecc2Ids.PLACEABLE_BLOCKS.size());
         assertEquals(3, Ecc2Ids.FLUID_BLOCKS.size());
-        assertEquals(24, Ecc2Ids.STANDALONE_ITEMS.size());
+        assertEquals(25, Ecc2Ids.STANDALONE_ITEMS.size());
 
         Set<String> allBlockPaths = new HashSet<>();
         for (String path : Ecc2Ids.PLACEABLE_BLOCKS) {
@@ -45,6 +45,7 @@ class Ecc2ConfigAndIdsTest {
         assertFalse(allItemPaths.contains("biogas_cell"), "ecc2:biogas_cell must be removed");
         assertFalse(allItemPaths.contains("uranium_ingot"), "ecc2:uranium_ingot must be removed");
         assertTrue(allItemPaths.contains(Ecc2Ids.IRIDIUM_INGOT), "ecc2:iridium_ingot must be preserved");
+        assertTrue(allItemPaths.contains(Ecc2Ids.PV_POWER_UPGRADE_PATH), "ecc2:pv_power_upgrade must be registered");
     }
 
     @Test
@@ -57,6 +58,8 @@ class Ecc2ConfigAndIdsTest {
         assertEquals("ic2:uranium_ingot", Ecc2Ids.IC2_URANIUM_INGOT);
         assertEquals("ecc2:iridium_ingot", Ecc2Ids.ecc2(Ecc2Ids.IRIDIUM_INGOT));
         assertEquals("ecc2:methane_ice_cluster", Ecc2Ids.ecc2(Ecc2Ids.METHANE_ICE_CLUSTER));
+        assertEquals("pv_power_upgrade", Ecc2Ids.PV_POWER_UPGRADE_PATH);
+        assertEquals("ecc2:pv_power_upgrade", Ecc2Ids.PV_POWER_UPGRADE_ID);
         assertEquals("ic2:carbon_rotor", Ecc2Ids.IC2_CARBON_ROTOR);
     }
 
@@ -161,7 +164,11 @@ class Ecc2ConfigAndIdsTest {
         assertEquals(3, Ecc2ConfigDefaults.GIANT_MAX_BATCH_PER_LANE);
         assertEquals(3, Ecc2ConfigDefaults.GIANT_BASE_TIER);
         assertEquals(64_000, Ecc2ConfigDefaults.GIANT_ORE_WASHER_TANK_CAPACITY_MB);
+        assertEquals(2, Ecc2ConfigDefaults.WATER_GAS_SOLAR_EU_PER_TICK);
+        assertEquals(1.5, Ecc2ConfigDefaults.WATER_GAS_SOLAR_UPGRADE_BONUS_EU_PER_TICK, 1e-12);
+        assertEquals(2, Ecc2ConfigDefaults.WATER_GAS_SOLAR_UPGRADE_MAX_EFFECTIVE);
         assertEquals(50, Ecc2ConfigDefaults.GAS_FURNACE_MB_PER_ITEM);
         assertEquals(16_000, Ecc2ConfigDefaults.GAS_GENERATOR_EU_CAPACITY);
+        assertEquals(30, Ecc2ConfigDefaults.ORGANIC_FERMENTER_BIOGAS_PER_NUTRITION_MB);
     }
 }
