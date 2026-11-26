@@ -64,7 +64,7 @@ public final class Ecc2Ids {
     public static final String IC2_BIOGAS_ID = ic2("biogas");
     public static final String MINECRAFT_WATER_ID = MINECRAFT_MOD_ID + ":water";
 
-    // --- Standalone Item Paths (24) ---
+    // --- Standalone Item Paths (25) ---
 
     // ASP Crafting Materials (13; Uranium Ingot reuses ic2:uranium_ingot)
     public static final String SUNNARIUM = "sunnarium";
@@ -88,6 +88,10 @@ public final class Ecc2Ids {
 
     // Giant Machine Component (1)
     public static final String MEGASTRUCTURE_COMPONENT = "megastructure_component";
+
+    // Water Gas Machine Upgrade (1)
+    public static final String PV_POWER_UPGRADE_PATH = "pv_power_upgrade";
+    public static final String PV_POWER_UPGRADE_ID = MOD_ID + ":" + PV_POWER_UPGRADE_PATH;
 
     // Named Fluid Cells (4; Biogas Cell reuses ic2:biogas_cell)
     public static final String WATER_GAS_CELL = "water_gas_cell";
@@ -187,7 +191,7 @@ public final class Ecc2Ids {
             CULTURE_MEDIUM
     );
 
-    /** Immutable list of all 24 standalone item registry paths. */
+    /** Immutable list of all 25 standalone item registry paths. */
     public static final List<String> STANDALONE_ITEMS = List.of(
             SUNNARIUM,
             SUNNARIUM_PART,
@@ -206,6 +210,7 @@ public final class Ecc2Ids {
             HYBRID_SOLAR_HELMET,
             ULTIMATE_HYBRID_SOLAR_HELMET,
             MEGASTRUCTURE_COMPONENT,
+            PV_POWER_UPGRADE_PATH,
             WATER_GAS_CELL,
             NATURAL_GAS_CELL,
             CULTURE_MEDIUM_CELL,

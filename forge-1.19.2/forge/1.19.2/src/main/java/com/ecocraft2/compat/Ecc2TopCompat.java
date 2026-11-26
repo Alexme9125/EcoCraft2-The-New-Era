@@ -24,6 +24,7 @@ import mcjty.theoneprobe.api.IProbeInfo;
 import mcjty.theoneprobe.api.IProbeInfoProvider;
 import mcjty.theoneprobe.api.ITheOneProbe;
 import mcjty.theoneprobe.api.ProbeMode;
+import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
@@ -136,6 +137,16 @@ public final class Ecc2TopCompat {
                                 "top.ecc2.eu",
                                 (long) Math.floor(e.storedEu()),
                                 (long) Math.floor(e.energyCapacity())));
+                boolean solarActive = e.isSolarActive();
+                info.mcText(
+                        (solarActive
+                                        ? Component.translatable(
+                                                "gui.ecc2.gas.solar_active",
+                                                WaterGasEngine.formatSolarRate(
+                                                        e.effectiveSolarEuPerTick()))
+                                        : Component.translatable("gui.ecc2.gas.solar_inactive"))
+                                .withStyle(
+                                        solarActive ? ChatFormatting.YELLOW : ChatFormatting.GRAY));
                 info.mcText(
                         Component.translatable(
                                 "top.ecc2.fluid",

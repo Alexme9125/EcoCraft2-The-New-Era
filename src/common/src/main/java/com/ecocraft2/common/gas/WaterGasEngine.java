@@ -11,12 +11,18 @@ import java.util.Objects;
  * Pure-Java state machine for the Water Gas Machine ({@code ecc2:water_gas_machine}).
  *
  * <p>Process: {@code 100 mB water + 1 coal_dust + 1,000 EU / 200 ticks -> 1,000 mB ecc2:water_gas}.
- * Powered by a built-in top solar panel generating {@value #SOLAR_EU_PER_TICK} EU/t during clear daytime
- * and/or an LV (Tier 1) grid connection, with 8,000 mB water and water gas tanks and standard IC2 upgrades.
+ * Powered by a built-in top solar panel generating {@value #SOLAR_EU_PER_TICK} EU/t base during
+ * clear daytime (upgradable by up to {@value #SOLAR_UPGRADE_MAX_EFFECTIVE} PV Power Upgrades at
+ * {@code +1.5 EU/t} each for up to {@code 5.0 EU/t} daytime self-sufficiency) and/or an LV (Tier 1)
+ * grid connection, with 8,000 mB water and water gas tanks and standard IC2 upgrades.
  */
 public final class WaterGasEngine {
 
     public static final int SOLAR_EU_PER_TICK = Ecc2ConfigDefaults.WATER_GAS_SOLAR_EU_PER_TICK;
+    public static final double SOLAR_UPGRADE_BONUS_EU_PER_TICK =
+            Ecc2ConfigDefaults.WATER_GAS_SOLAR_UPGRADE_BONUS_EU_PER_TICK;
+    public static final int SOLAR_UPGRADE_MAX_EFFECTIVE =
+            Ecc2ConfigDefaults.WATER_GAS_SOLAR_UPGRADE_MAX_EFFECTIVE;
     public static final int BASE_EU_PER_OP = Ecc2ConfigDefaults.WATER_GAS_EU_PER_OP;
     public static final int BASE_TICKS_PER_OP = Ecc2ConfigDefaults.WATER_GAS_TICKS_PER_OP;
     public static final int BASE_EU_PER_TICK = BASE_EU_PER_OP / BASE_TICKS_PER_OP; // 5 EU/t
@@ -28,7 +34,8 @@ public final class WaterGasEngine {
     public static final int BASE_EU_CAPACITY = Ecc2ConfigDefaults.WATER_GAS_BASE_EU_CAPACITY;
 
     private GiantUpgradeProfile upgrades = GiantUpgradeProfile.NONE;
-    private int solarEuPerTick = SOLAR_EU_PER_TICK;
+    private double baseSolarEuPerTick = SOLAR_EU_PER_TICK;
+    private int solarPowerUpgrades;
     private double storedEu;
     private int waterMb;
     private int waterGasMb;
@@ -37,14 +44,67 @@ public final class WaterGasEngine {
     private boolean solarActive;
     private boolean active;
 
-    /** Returns the configured built-in top solar EU/t output. */
+    /** Returns the configured base built-in top solar EU/t output rounded to an integer. */
     public int solarEuPerTick() {
-        return solarEuPerTick;
+        return (int) Math.round(baseSolarEuPerTick);
     }
 
-    /** Configures the built-in top solar EU/t output ({@code >= 0}). */
+    /** Configures the base built-in top solar EU/t output ({@code >= 0}). */
     public void setSolarEuPerTick(int solarEuPerTick) {
-        this.solarEuPerTick = Math.max(0, solarEuPerTick);
+        this.baseSolarEuPerTick = Math.max(0, solarEuPerTick);
+    }
+
+    /** Returns the base built-in top solar EU/t output before PV Power Upgrades. */
+    public double baseSolarEuPerTick() {
+        return baseSolarEuPerTick;
+    }
+
+    /** Configures the base built-in top solar EU/t output ({@code >= 0.0}). */
+    public void setBaseSolarEuPerTick(double baseSolarEuPerTick) {
+        if (!Double.isFinite(baseSolarEuPerTick) || baseSolarEuPerTick <= 0.0) {
+            this.baseSolarEuPerTick = 0.0;
+        } else {
+            this.baseSolarEuPerTick = baseSolarEuPerTick;
+        }
+    }
+
+    /** Returns the installed count of PV Power Upgrades ({@code >= 0}). */
+    public int solarPowerUpgrades() {
+        return solarPowerUpgrades;
+    }
+
+    /** Sets the installed count of PV Power Upgrades ({@code >= 0}). */
+    public void setSolarPowerUpgrades(int solarPowerUpgrades) {
+        this.solarPowerUpgrades = Math.max(0, solarPowerUpgrades);
+    }
+
+    /**
+     * Returns effective daytime top PV output in EU/t:
+     * {@code baseSolarEuPerTick + 1.5 * min(2, solarPowerUpgrades)}.
+     */
+    public double effectiveSolarEuPerTick() {
+        int effectiveUpgrades = Math.min(SOLAR_UPGRADE_MAX_EFFECTIVE, solarPowerUpgrades);
+        return baseSolarEuPerTick + SOLAR_UPGRADE_BONUS_EU_PER_TICK * effectiveUpgrades;
+    }
+
+    /**
+     * Formats a deci-EU/t solar rate for display ({@code 20 -> "2"}, {@code 35 -> "3.5"},
+     * {@code 50 -> "5"}).
+     */
+    public static String formatSolarRateDeci(int deciEuPerTick) {
+        int clamped = Math.max(0, deciEuPerTick);
+        if (clamped % 10 == 0) {
+            return Integer.toString(clamped / 10);
+        }
+        return (clamped / 10) + "." + (clamped % 10);
+    }
+
+    /** Formats a solar EU/t rate for display ({@code 2.0 -> "2"}, {@code 3.5 -> "3.5"}). */
+    public static String formatSolarRate(double euPerTick) {
+        if (!Double.isFinite(euPerTick) || euPerTick <= 0.0) {
+            return "0";
+        }
+        return formatSolarRateDeci((int) Math.round(euPerTick * 10.0));
     }
 
     /**
@@ -68,9 +128,10 @@ public final class WaterGasEngine {
             boolean canRain
     ) {
         this.skyCondition = SkyCondition.evaluate(hasSky, seesSky, isDay, isRaining, canRain);
-        this.solarActive = this.skyCondition.isFullSun() && this.solarEuPerTick > 0;
+        double solarOutput = effectiveSolarEuPerTick();
+        this.solarActive = this.skyCondition.isFullSun() && solarOutput > 0.0;
         if (this.solarActive) {
-            this.storedEu = Math.min(energyCapacity(), this.storedEu + this.solarEuPerTick);
+            this.storedEu = Math.min(energyCapacity(), this.storedEu + solarOutput);
         }
 
         if (!hasCoalDust || waterMb < WATER_PER_OP_MB) {
@@ -249,7 +310,7 @@ public final class WaterGasEngine {
         return skyCondition;
     }
 
-    /** Returns {@code true} if the integrated top solar panel generated 2 EU/t on the last tick. */
+    /** Returns {@code true} if the integrated top solar panel generated EU on the last tick. */
     public boolean isSolarActive() {
         return solarActive;
     }

@@ -38,26 +38,27 @@
 | Adv Water | `durable_water_kinetic_generator` | Water Kinetic (0.80× KU, 0.50× wear) | `facing` (6-dir), `active` |
 | Adv Water | `overclocked_water_kinetic_generator` | Water Kinetic (2.20× KU, 2.00× wear) | `facing` (6-dir), `active` |
 | Adv Water | `precision_water_kinetic_generator` | Water Kinetic (2.40× KU, 0.50× wear) | `facing` (6-dir), `active` |
-| Giant Machine | `giant_macerator_unit` | 3×3×3 Giant Macerator Unit | `facing` (H4), `formed`, `active`, `role` (0..26 or enum `UNFORMED/CORE/CORNER/SHELL`) |
+| Giant Machine | `giant_macerator_unit` | 3×3×3 Giant Macerator Unit | `facing` (H4), `formed`, `active`, `role` (`UNFORMED/CORE/CORNER/FRONT/SHELL`) |
 | Giant Machine | `giant_compressor_unit` | 3×3×3 Giant Compressor Unit | same |
 | Giant Machine | `giant_recycler_unit` | 3×3×3 Giant Recycler Unit | same |
 | Giant Machine | `giant_extractor_unit` | 3×3×3 Giant Extractor Unit | same |
 | Giant Machine | `giant_ore_washer_unit` | 3×3×3 Giant Ore Washing Plant Unit | same |
-| Water Gas | `water_gas_machine` | Water Gas Machine (solar 2 EU/t + LV) | `facing` (H4), `active` |
+| Water Gas | `water_gas_machine` | Water Gas Machine (solar 2 EU/t, up to 5 EU/t w/ 2× PV upgrades + LV) | `facing` (H4), `active` |
 | Gas Industry | `gas_furnace` | Gas Furnace (50 mB gas/item, 100t) | `facing` (H4), `active` |
 | Gas Industry | `gas_generator` | Gas Generator (MV Tier 2, 16k EU/gas) | `facing` (H4), `active` |
 | Natural Gas | `methane_ice_cluster` | Methane Ice Cluster (seafloor ore, iron pickaxe+, light 4) | default |
-| Biogas | `culture_incubator` | Culture Incubator (bonemeal+100mB water→100mB culture_medium) | `facing` (H4), `active` |
-| Biogas | `organic_fermenter` | Organic Fermenter (50mB culture_medium+food→20mB×H ic2:biogas) | `facing` (H4), `active` |
+| Biogas | `culture_incubator` | Culture Incubator (bonemeal/rotten_flesh+100mB water→100mB culture_medium) | `facing` (H4), `active` |
+| Biogas | `organic_fermenter` | Organic Fermenter (50mB culture_medium+food→30mB×H ic2:biogas) | `facing` (H4), `active` |
 | Fluid Blocks | `water_gas`, `natural_gas`, `culture_medium` | LiquidBlock (no BlockItem) | fluid level |
 
-### 2.2 Standalone Items — 24 Items
+### 2.2 Standalone Items — 25 Items
 
 | Category | Registry Path | Notes |
 | --- | --- | --- |
 | ASP Crafting (13) | `sunnarium`, `sunnarium_part`, `sunnarium_alloy`, `irradiant_uranium`, `enriched_sunnarium`, `enriched_sunnarium_alloy`, `irradiant_glass_pane`, `iridium_iron_plate`, `reinforced_iridium_iron_plate`, `irradiant_reinforced_plate`, `iridium_ingot`, `mt_core`, `quantum_core` | Independent items; `iridium_ingot` in `#c:ingots/iridium` / `#forge:ingots/iridium`; uranium ingot reuses `ic2:uranium_ingot` (`#c:ingots/uranium` / `#forge:ingots/uranium`) |
 | ASP Helmets (3) | `advanced_solar_helmet`, `hybrid_solar_helmet`, `ultimate_hybrid_solar_helmet` | Electric helmets; hybrid & ultimate dyeable (vanilla `dyed_color` / `display.color` + upgrade color preservation) + full quantum helmet abilities |
 | Giant Component (1) | `megastructure_component` | Mid-tier crafting item (`orig machine + megastructure_component -> giant_*_unit`) |
+| Gas Upgrade (1) | `pv_power_upgrade` | Water Gas Machine upgrade (`stacksTo(2)`, +1.5 EU/t top PV each, max 2 effective → 5 EU/t daytime self-sufficiency) |
 | Named Cells (4) | `water_gas_cell`, `natural_gas_cell`, `culture_medium_cell`, `basic_culture_medium_cell` | Full 1000 mB fluid cells (biogas reuses `ic2:biogas_cell`); emptying returns `ic2:fluid_cell` (or `ic2:empty_cell` for `basic_culture_medium_cell`) |
 | Buckets (3) | `water_gas_bucket`, `natural_gas_bucket`, `culture_medium_bucket` | Standard fluid buckets (`ic2:biogas_bucket` already exists in IC2NE!) |
 
@@ -95,11 +96,11 @@ Package root: `com.ecocraft2.common` (MUST compile with Java 17 and have ZERO Mi
    - `MultiblockGeometry` — pure coordinate math finding 3×3×3 bounding box & bottom-center core position from any unit block.
 4. `com.ecocraft2.common.gas`:
    - `GasFuelSpec` (enum: `WATER_GAS("ecc2:water_gas", 10_000, 32)`, `NATURAL_GAS("ecc2:natural_gas", 10_000, 64)`, `BIOGAS("ic2:biogas", 16_000, 32)`).
-   - `WaterGasEngine` — solar 2 EU/t daytime (when sky visible & not raining) + LV grid input; recipe: `100 mB water + 1 coal_dust + 1000 EU / 200t -> 1000 mB water_gas`; tank capacities 8,000 mB each.
+   - `WaterGasEngine` — solar 2.0 EU/t daytime base (+1.5 EU/t per `pv_power_upgrade`, max 2 effective → 5.0 EU/t daytime self-sufficiency when sky visible & not raining) + LV grid input; recipe: `100 mB water + 1 coal_dust + 1000 EU / 200t -> 1000 mB water_gas`; tank capacities 8,000 mB each.
    - `GasFurnaceEngine` — `50 mB` of any `GasFuelSpec` per smelted item; base `100 tick/item`; overclocker accelerates ticks while preserving exact `50 mB/item` total gas cost.
    - `GasGeneratorEngine` — burns `GasFuelSpec` from 16,000 mB tank into 16,000 EU buffer (Tier 2 MV, 128 EU/t output packet limit), exact fractional EU/mB accounting (10 EU/mB for water_gas & natural_gas, 16 EU/mB for biogas).
-   - `CultureIncubatorEngine` — `1 bonemeal + 100 mB water + 200 EU / 100t -> 100 mB culture_medium` (LV Tier 1, 8,000 mB water & culture tanks).
-   - `OrganicFermenterEngine` — `50 mB culture_medium + any food with nutrition H > 0 + 200 EU / 100t -> 20 * H mB ic2:biogas` (LV Tier 1, 8,000 mB culture tank, 16,000 mB biogas tank).
+   - `CultureIncubatorEngine` — `1 bonemeal or rotten_flesh + 100 mB water + 200 EU / 100t -> 100 mB culture_medium` (LV Tier 1, 8,000 mB water & culture tanks).
+   - `OrganicFermenterEngine` — `50 mB culture_medium + any food with nutrition H > 0 + 200 EU / 100t -> 30 * H mB ic2:biogas` (LV Tier 1, 8,000 mB culture tank, 16,000 mB biogas tank).
 5. `com.ecocraft2.common.config`:
    - `Ecc2ConfigDefaults` — all 31+ ASP config defaults + EcoCraft 2 kinetic/giant/gas balance defaults.
 

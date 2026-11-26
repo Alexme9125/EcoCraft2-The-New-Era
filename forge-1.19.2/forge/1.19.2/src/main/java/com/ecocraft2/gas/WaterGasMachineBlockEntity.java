@@ -2,6 +2,7 @@ package com.ecocraft2.gas;
 
 import com.ecocraft2.bridge.Ecc2BridgePlatform;
 import com.ecocraft2.bridge.Ecc2EnergyHelper;
+import com.ecocraft2.common.config.Ecc2Ids;
 import com.ecocraft2.common.gas.GasMachineOutcome;
 import com.ecocraft2.common.gas.WaterGasEngine;
 import com.ecocraft2.config.Ecc2Config;
@@ -85,7 +86,7 @@ public final class WaterGasMachineBlockEntity extends BlockEntity
                                 FluidUtil.getFluidHandler(Ecc2BridgePlatform.copyWithCount(stack, 1))
                                         .isPresent();
                         case SLOT_BATTERY -> Ecc2EnergyHelper.canDischarge(stack, engine.inputTier());
-                        case 6, 7, 8, 9 -> Ecc2EnergyHelper.isUpgradeItem(stack);
+                        case 6, 7, 8, 9 -> isAcceptedUpgrade(stack);
                         default -> false;
                     };
                 }
@@ -219,6 +220,7 @@ public final class WaterGasMachineBlockEntity extends BlockEntity
                         case 5 -> engine.waterGasMb();
                         case 6 -> engine.scaledProgress(24);
                         case 7 -> (engine.isSolarActive() ? 1 : 0) | (engine.isActive() ? 2 : 0);
+                        case 8 -> (int) Math.round(engine.effectiveSolarEuPerTick() * 10.0);
                         default -> 0;
                     };
                 }
@@ -228,7 +230,7 @@ public final class WaterGasMachineBlockEntity extends BlockEntity
 
                 @Override
                 public int getCount() {
-                    return 8;
+                    return 9;
                 }
             };
 
@@ -246,6 +248,29 @@ public final class WaterGasMachineBlockEntity extends BlockEntity
         }
         String id = Ecc2BridgePlatform.itemId(stack);
         return "ic2:coal_dust".equals(id) || stack.is(COAL_DUST_TAG);
+    }
+
+    /** Returns {@code true} if {@code stack} is a Water Gas Machine PV Power Upgrade. */
+    public static boolean isPvPowerUpgrade(ItemStack stack) {
+        return stack != null
+                && !stack.isEmpty()
+                && Ecc2Ids.PV_POWER_UPGRADE_ID.equals(Ecc2BridgePlatform.itemId(stack));
+    }
+
+    /** Returns {@code true} if {@code stack} is an accepted upgrade for the Water Gas Machine. */
+    public static boolean isAcceptedUpgrade(ItemStack stack) {
+        return Ecc2EnergyHelper.isUpgradeItem(stack) || isPvPowerUpgrade(stack);
+    }
+
+    /** Counts installed PV Power Upgrades across {@code upgrades}. */
+    public static int countPvPowerUpgrades(List<ItemStack> upgrades) {
+        int total = 0;
+        for (ItemStack stack : upgrades) {
+            if (isPvPowerUpgrade(stack)) {
+                total += stack.getCount();
+            }
+        }
+        return total;
     }
 
     public WaterGasEngine engine() {
@@ -274,6 +299,7 @@ public final class WaterGasMachineBlockEntity extends BlockEntity
         engine.setSolarEuPerTick(Ecc2Config.waterGasSolarEuPerTick());
         List<ItemStack> upgrades = collectUpgrades();
         engine.setUpgrades(Ecc2EnergyHelper.readUpgradeProfile(upgrades));
+        engine.setSolarPowerUpgrades(countPvPowerUpgrades(upgrades));
 
         // Discharge battery
         ItemStack battery = inventory.getStackInSlot(SLOT_BATTERY);
@@ -381,7 +407,9 @@ public final class WaterGasMachineBlockEntity extends BlockEntity
     }
 
     private void refreshUpgrades() {
-        engine.setUpgrades(Ecc2EnergyHelper.readUpgradeProfile(collectUpgrades()));
+        List<ItemStack> upgrades = collectUpgrades();
+        engine.setUpgrades(Ecc2EnergyHelper.readUpgradeProfile(upgrades));
+        engine.setSolarPowerUpgrades(countPvPowerUpgrades(upgrades));
     }
 
     @Override

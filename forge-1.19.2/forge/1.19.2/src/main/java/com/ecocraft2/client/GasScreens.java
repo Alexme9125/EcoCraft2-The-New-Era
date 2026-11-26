@@ -94,14 +94,14 @@ public final class GasScreens {
                         mouseX,
                         mouseY);
             } else if (isHovering(84, 22, 14, 14, mouseX, mouseY)) {
-                renderTooltip(
-                        poseStack,
-                        Component.translatable(
-                                menu.isSolarActive()
-                                        ? "gui.ecc2.gas.solar_active"
-                                        : "gui.ecc2.gas.solar_inactive"),
-                        mouseX,
-                        mouseY);
+                Component solarTip =
+                        menu.isSolarActive()
+                                ? Component.translatable(
+                                        "gui.ecc2.gas.solar_active",
+                                        WaterGasEngine.formatSolarRateDeci(
+                                                menu.effectiveSolarDeciEuPerTick()))
+                                : Component.translatable("gui.ecc2.gas.solar_inactive");
+                renderTooltip(poseStack, solarTip, mouseX, mouseY);
             }
         }
 

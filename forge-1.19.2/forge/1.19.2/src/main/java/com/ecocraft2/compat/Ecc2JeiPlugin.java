@@ -140,6 +140,11 @@ public final class Ecc2JeiPlugin implements IModPlugin {
                                 new ItemStack(Items.BONE_MEAL),
                                 new FluidStack(Fluids.WATER, 100),
                                 new FluidStack(GasRegistry.CULTURE_MEDIUM.get(), 100),
+                                200),
+                        new SimpleProcessEntry(
+                                new ItemStack(Items.ROTTEN_FLESH),
+                                new FluidStack(Fluids.WATER, 100),
+                                new FluidStack(GasRegistry.CULTURE_MEDIUM.get(), 100),
                                 200)));
 
         Fluid biogas = Ecc2BridgePlatform.findFluid(Ecc2Ids.IC2_BIOGAS_ID);

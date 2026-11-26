@@ -74,6 +74,36 @@ public record MultiblockBounds(BlockPos3 min, BlockPos3 max, BlockPos3 core) {
     }
 
     /**
+     * Returns the world coordinate of the front-center exterior display block (the center of the
+     * 3x3 front face at {@code y = core.y + 1}), which displays the machine's front panel and
+     * active animation while keeping the logical {@link #core()} at bottom-center {@code (0,0,0)}.
+     *
+     * @param horizontalFacing horizontal facing of the formed multiblock
+     * @return front-center exterior block coordinate
+     */
+    public BlockPos3 frontCenter(BlockFace horizontalFacing) {
+        Objects.requireNonNull(horizontalFacing, "horizontalFacing");
+        if (!horizontalFacing.isHorizontal()) {
+            throw new IllegalArgumentException(
+                    "horizontalFacing must be horizontal: " + horizontalFacing);
+        }
+        return core.offset(horizontalFacing).offset(BlockFace.UP);
+    }
+
+    /**
+     * Returns {@code true} if {@code worldPos} is the front-center exterior display block for the
+     * given {@code horizontalFacing}.
+     *
+     * @param worldPos         world block coordinate
+     * @param horizontalFacing horizontal facing of the formed multiblock
+     * @return {@code true} iff {@code worldPos} equals {@link #frontCenter(BlockFace)}
+     */
+    public boolean isFrontCenter(BlockPos3 worldPos, BlockFace horizontalFacing) {
+        Objects.requireNonNull(worldPos, "worldPos");
+        return frontCenter(horizontalFacing).equals(worldPos);
+    }
+
+    /**
      * Returns {@code true} if {@code face} of {@code worldPos} lies on the outer surface of the 3x3x3 cube.
      * Used for EU cable attachment across all exterior faces of the giant machine.
      *

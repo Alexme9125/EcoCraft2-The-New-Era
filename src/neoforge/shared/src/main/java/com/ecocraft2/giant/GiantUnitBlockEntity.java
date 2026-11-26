@@ -138,6 +138,14 @@ public final class GiantUnitBlockEntity extends Ecc2BlockEntityBase
         setChanged();
     }
 
+    void upgradeRoleToFront(Direction structureFacing) {
+        if (this.formed && this.role == GiantBlockRole.SHELL) {
+            this.role = GiantBlockRole.FRONT;
+            this.structureFacing = structureFacing;
+            setChanged();
+        }
+    }
+
     boolean markDissolvedOnce() {
         if (dissolved) {
             return false;
@@ -190,6 +198,7 @@ public final class GiantUnitBlockEntity extends Ecc2BlockEntityBase
         if (pendingPortVisualSync) {
             pendingPortVisualSync = false;
             refreshAllCorners(level);
+            syncFrontDisplay(level, state.getValue(GiantUnitBlock.ACTIVE));
         }
         if (Math.floorMod(tickCount + worldPosition.hashCode(), 20) == 0) {
             BlockPos brokenPos = findBrokenMember(level);
@@ -255,7 +264,7 @@ public final class GiantUnitBlockEntity extends Ecc2BlockEntityBase
         // 6. Execute IC2 item & fluid ejector/pulling upgrades via enabled lower-corner ports.
         changed |= executeCornerUpgrades(level, upgradeList);
 
-        // 7. Sync active blockstate on core.
+        // 7. Sync active blockstate on core and front-center exterior display block (with legacy heal).
         boolean nowActive = canRun && engine.isActive();
         if (!isRemoved() && state.getValue(GiantUnitBlock.ACTIVE) != nowActive) {
             level.setBlock(
@@ -263,8 +272,48 @@ public final class GiantUnitBlockEntity extends Ecc2BlockEntityBase
                     state.setValue(GiantUnitBlock.ACTIVE, nowActive),
                     Block.UPDATE_CLIENTS);
         }
+        if (!isRemoved()) {
+            syncFrontDisplay(level, nowActive);
+        }
         if (changed) {
             setChanged();
+        }
+    }
+
+    /**
+     * Syncs {@link GiantUnitBlock#ACTIVE} onto the front-center exterior display block at
+     * {@code corePos.relative(structureFacing).above()}, and auto-heals legacy formed saves where
+     * that block still holds {@link GiantBlockRole#SHELL}.
+     */
+    private void syncFrontDisplay(ServerLevel level, boolean nowActive) {
+        BlockPos frontPos = worldPosition.relative(structureFacing).above();
+        if (!level.hasChunkAt(frontPos)) {
+            return;
+        }
+        BlockState frontState = level.getBlockState(frontPos);
+        if (!(frontState.getBlock() instanceof GiantUnitBlock unit)
+                || unit.machineType() != machineType
+                || !frontState.getValue(GiantUnitBlock.FORMED)) {
+            return;
+        }
+        GiantBlockRole frontRole = frontState.getValue(GiantUnitBlock.ROLE);
+        boolean needsRoleUpgrade = frontRole == GiantBlockRole.SHELL;
+        if (!needsRoleUpgrade && frontRole != GiantBlockRole.FRONT) {
+            return;
+        }
+        boolean needsFacingSync = frontState.getValue(GiantUnitBlock.FACING) != structureFacing;
+        boolean needsActiveSync = frontState.getValue(GiantUnitBlock.ACTIVE) != nowActive;
+        if (needsRoleUpgrade || needsFacingSync || needsActiveSync) {
+            BlockState updated =
+                    frontState
+                            .setValue(GiantUnitBlock.ROLE, GiantBlockRole.FRONT)
+                            .setValue(GiantUnitBlock.FACING, structureFacing)
+                            .setValue(GiantUnitBlock.ACTIVE, nowActive);
+            level.setBlock(frontPos, updated, Block.UPDATE_CLIENTS);
+        }
+        if (level.getBlockEntity(frontPos) instanceof GiantUnitBlockEntity frontBe
+                && frontBe.role() == GiantBlockRole.SHELL) {
+            frontBe.upgradeRoleToFront(structureFacing);
         }
     }
 

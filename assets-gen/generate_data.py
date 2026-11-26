@@ -114,7 +114,7 @@ BUCKETS = [
 STANDALONE_ITEMS = (
     ASP_CRAFTING_ITEMS
     + SOLAR_HELMETS
-    + ["megastructure_component"]
+    + ["megastructure_component", "pv_power_upgrade"]
     + NAMED_CELLS
     + BUCKETS
 )
@@ -349,58 +349,57 @@ def generate_assets(out_root: Path, cfg: TargetConfig) -> int:
         )
         emit(f"models/item/{bid}.json", {"parent": f"{MOD_ID}:block/{bid}"})
 
-    # --- 1.5 Giant Machines (5 unit blocks + shared casing & 4 port block models) ---
-    emit(
-        "models/block/giant_casing.json",
-        cube_model(
-            up=f"{MOD_ID}:block/giant_casing_top",
-            down=f"{MOD_ID}:block/giant_casing_bottom",
-            north=f"{MOD_ID}:block/giant_casing_side",
-            south=f"{MOD_ID}:block/giant_casing_side",
-            east=f"{MOD_ID}:block/giant_casing_side",
-            west=f"{MOD_ID}:block/giant_casing_side",
-            particle=f"{MOD_ID}:block/giant_casing_side",
-        ),
-    )
-    for mode in ("full", "input", "output", "blocked"):
-        emit(
-            f"models/block/giant_port_{mode}.json",
-            cube_model(
-                up=f"{MOD_ID}:block/giant_casing_top",
-                down=f"{MOD_ID}:block/giant_casing_bottom",
-                north=f"{MOD_ID}:block/giant_port_{mode}",
-                south=f"{MOD_ID}:block/giant_port_{mode}",
-                east=f"{MOD_ID}:block/giant_port_{mode}",
-                west=f"{MOD_ID}:block/giant_port_{mode}",
-                particle=f"{MOD_ID}:block/giant_port_{mode}",
-            ),
-        )
-
+    # --- 1.5 Giant Machines (5 unit blocks + per-kind casings, 4 corner ports, and front/core displays) ---
     for kind in GIANT_KINDS:
         unit_id = f"giant_{kind}_unit"
         emit(f"models/block/{unit_id}.json", {"parent": "minecraft:block/cube_all", "textures": {"all": f"{MOD_ID}:block/{unit_id}"}})
         emit(
+            f"models/block/giant_casing_{kind}.json",
+            cube_model(
+                up=f"{MOD_ID}:block/giant_casing_{kind}_top",
+                down=f"{MOD_ID}:block/giant_casing_{kind}_bottom",
+                north=f"{MOD_ID}:block/giant_casing_{kind}_side",
+                south=f"{MOD_ID}:block/giant_casing_{kind}_side",
+                east=f"{MOD_ID}:block/giant_casing_{kind}_side",
+                west=f"{MOD_ID}:block/giant_casing_{kind}_side",
+                particle=f"{MOD_ID}:block/giant_casing_{kind}_side",
+            ),
+        )
+        for mode in ("full", "input", "output", "blocked"):
+            emit(
+                f"models/block/giant_port_{kind}_{mode}.json",
+                cube_model(
+                    up=f"{MOD_ID}:block/giant_casing_{kind}_top",
+                    down=f"{MOD_ID}:block/giant_casing_{kind}_bottom",
+                    north=f"{MOD_ID}:block/giant_port_{kind}_{mode}",
+                    south=f"{MOD_ID}:block/giant_port_{kind}_{mode}",
+                    east=f"{MOD_ID}:block/giant_port_{kind}_{mode}",
+                    west=f"{MOD_ID}:block/giant_port_{kind}_{mode}",
+                    particle=f"{MOD_ID}:block/giant_port_{kind}_{mode}",
+                ),
+            )
+        emit(
             f"models/block/giant_core_{kind}.json",
             cube_model(
-                up=f"{MOD_ID}:block/giant_casing_top",
-                down=f"{MOD_ID}:block/giant_casing_bottom",
+                up=f"{MOD_ID}:block/giant_casing_{kind}_top",
+                down=f"{MOD_ID}:block/giant_casing_{kind}_bottom",
                 north=f"{MOD_ID}:block/giant_core_front_{kind}",
-                south=f"{MOD_ID}:block/giant_casing_side",
-                east=f"{MOD_ID}:block/giant_casing_side",
-                west=f"{MOD_ID}:block/giant_casing_side",
-                particle=f"{MOD_ID}:block/giant_casing_side",
+                south=f"{MOD_ID}:block/giant_casing_{kind}_side",
+                east=f"{MOD_ID}:block/giant_casing_{kind}_side",
+                west=f"{MOD_ID}:block/giant_casing_{kind}_side",
+                particle=f"{MOD_ID}:block/giant_casing_{kind}_side",
             ),
         )
         emit(
             f"models/block/giant_core_{kind}_active.json",
             cube_model(
-                up=f"{MOD_ID}:block/giant_casing_top",
-                down=f"{MOD_ID}:block/giant_casing_bottom",
+                up=f"{MOD_ID}:block/giant_casing_{kind}_top",
+                down=f"{MOD_ID}:block/giant_casing_{kind}_bottom",
                 north=f"{MOD_ID}:block/giant_core_front_{kind}_active",
-                south=f"{MOD_ID}:block/giant_casing_side",
-                east=f"{MOD_ID}:block/giant_casing_side",
-                west=f"{MOD_ID}:block/giant_casing_side",
-                particle=f"{MOD_ID}:block/giant_casing_side",
+                south=f"{MOD_ID}:block/giant_casing_{kind}_side",
+                east=f"{MOD_ID}:block/giant_casing_{kind}_side",
+                west=f"{MOD_ID}:block/giant_casing_{kind}_side",
+                particle=f"{MOD_ID}:block/giant_casing_{kind}_side",
             ),
         )
         # Complete state matrix for facing (H4) x formed x active x role x port_mode
@@ -408,18 +407,18 @@ def generate_assets(out_root: Path, cfg: TargetConfig) -> int:
         for d, rot in [("north", 0), ("east", 90), ("south", 180), ("west", 270)]:
             for formed in ("false", "true"):
                 for active in ("false", "true"):
-                    for role in ("unformed", "core", "corner", "shell"):
+                    for role in ("unformed", "core", "corner", "front", "shell"):
                         for port_mode in ("full", "input", "output", "blocked"):
                             if formed == "false" or role == "unformed":
                                 m = f"{MOD_ID}:block/{unit_id}"
-                            elif role == "core":
+                            elif role in ("front", "core"):
                                 m = f"{MOD_ID}:block/giant_core_{kind}_active" if active == "true" else f"{MOD_ID}:block/giant_core_{kind}"
                             elif role == "corner":
-                                m = f"{MOD_ID}:block/giant_port_{port_mode}"
+                                m = f"{MOD_ID}:block/giant_port_{kind}_{port_mode}"
                             else:
-                                m = f"{MOD_ID}:block/giant_casing"
+                                m = f"{MOD_ID}:block/giant_casing_{kind}"
                             entry: Dict[str, Any] = {"model": m}
-                            if rot and role == "core" and formed == "true":
+                            if rot and role in ("front", "core") and formed == "true":
                                 entry["y"] = rot
                             variants[
                                 f"facing={d},formed={formed},active={active},role={role},port_mode={port_mode}"
@@ -822,7 +821,7 @@ def generate_crafting_recipes(out_root: Path, cfg: TargetConfig) -> int:
             cfg, [src_machine, "ecc2:megastructure_component"], f"ecc2:giant_{kind}_unit",
         ))
 
-    # --- Water Gas / Gas Furnace / Gas Generator / Culture Incubator / Organic Fermenter (5) ---
+    # --- Water Gas / PV Power Upgrade / Gas Furnace / Gas Generator / Culture Incubator / Organic Fermenter ---
     emit("water_gas_machine", shaped(
         cfg, ["ISI", "UMU", "EIE"],
         {
@@ -833,6 +832,16 @@ def generate_crafting_recipes(out_root: Path, cfg: TargetConfig) -> int:
             "E": "ic2:circuit",
         },
         "ecc2:water_gas_machine",
+    ))
+    emit("pv_power_upgrade", shaped(
+        cfg, ["TST", "CEC", "TCT"],
+        {
+            "T": "ic2:tin_plate",
+            "S": "ic2:solar_generator",
+            "C": "ic2:insulated_copper_cable",
+            "E": "ic2:circuit",
+        },
+        "ecc2:pv_power_upgrade",
     ))
     emit("gas_furnace", shaped(
         cfg, ["IFI", "UMU", "IEI"],
@@ -1098,13 +1107,20 @@ def generate_target(target: str, output_dir: Path) -> Dict[str, int]:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Generate EcoCraft 2 multi-version resource & data JSONs.")
-    parser.add_argument("--target", required=True, choices=TARGETS, help="Target platform version")
-    parser.add_argument("--output", required=True, type=Path, help="Output resource/data root directory")
+    parser.add_argument("--target", choices=TARGETS, default=None, help="Target platform version (omit to generate all 4 targets)")
+    parser.add_argument("--output", type=Path, default=Path("/tmp/ecc2-data-check"), help="Output resource/data root directory")
     args = parser.parse_args()
 
-    stats = generate_target(args.target, args.output)
-    total = sum(stats.values())
-    print(f"[{args.target}] Generated {total} JSON files into {args.output}: {stats}")
+    if args.target is None:
+        for t in TARGETS:
+            out_dir = args.output / t
+            stats = generate_target(t, out_dir)
+            total = sum(stats.values())
+            print(f"[{t}] Generated {total} JSON files into {out_dir}: {stats}")
+    else:
+        stats = generate_target(args.target, args.output)
+        total = sum(stats.values())
+        print(f"[{args.target}] Generated {total} JSON files into {args.output}: {stats}")
 
 
 if __name__ == "__main__":

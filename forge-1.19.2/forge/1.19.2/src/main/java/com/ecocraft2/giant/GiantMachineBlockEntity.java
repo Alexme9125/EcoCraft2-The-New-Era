@@ -360,10 +360,15 @@ public final class GiantMachineBlockEntity extends BlockEntity
                 new BlockPos(bounds.core().x(), bounds.core().y(), bounds.core().z());
         Direction horizontalFacing =
                 facing.getAxis().isHorizontal() ? facing : Direction.NORTH;
+        BlockPos3 frontPos3 = bounds.frontCenter(toBlockFace(horizontalFacing));
+        BlockPos frontWorldPos = new BlockPos(frontPos3.x(), frontPos3.y(), frontPos3.z());
 
         for (BlockPos3 p : bounds.allPositions()) {
             BlockPos bp = new BlockPos(p.x(), p.y(), p.z());
-            GiantUnitRole role = GiantUnitRole.fromBoundsRole(bounds.roleOf(p));
+            GiantUnitRole role =
+                    bp.equals(frontWorldPos)
+                            ? GiantUnitRole.FRONT
+                            : GiantUnitRole.fromBoundsRole(bounds.roleOf(p));
             BlockState current = level.getBlockState(bp);
             BlockState updated =
                     current.setValue(GiantMachineBlock.FACING, horizontalFacing)
@@ -462,6 +467,11 @@ public final class GiantMachineBlockEntity extends BlockEntity
         if (pendingPortVisualSync) {
             pendingPortVisualSync = false;
             refreshAllCorners(serverLevel);
+            BlockState curState = getBlockState();
+            boolean curActive =
+                    curState.hasProperty(GiantMachineBlock.ACTIVE)
+                            && curState.getValue(GiantMachineBlock.ACTIVE);
+            syncFrontDisplay(serverLevel, curActive);
         }
         if ((now % 20L) == 0L && !verifyStructureIntegrity(serverLevel)) {
             dissolveOnBreak(serverLevel);
@@ -526,7 +536,7 @@ public final class GiantMachineBlockEntity extends BlockEntity
             serviceCornerUpgradeAutomation(serverLevel, upgrades);
         }
 
-        // Sync active visual state on core block
+        // Sync active visual state on core block and front-center exterior display block (with legacy heal)
         BlockState state = getBlockState();
         if (state.hasProperty(GiantMachineBlock.ACTIVE)
                 && state.getValue(GiantMachineBlock.ACTIVE) != nowActive) {
@@ -534,6 +544,40 @@ public final class GiantMachineBlockEntity extends BlockEntity
                     worldPosition,
                     state.setValue(GiantMachineBlock.ACTIVE, nowActive),
                     Block.UPDATE_CLIENTS);
+        }
+        syncFrontDisplay(serverLevel, nowActive);
+    }
+
+    /**
+     * Syncs {@link GiantMachineBlock#ACTIVE} onto the front-center exterior display block at
+     * {@code corePos.relative(structureFacing).above()}, and auto-heals legacy formed saves where
+     * that block still holds {@link GiantUnitRole#SHELL}.
+     */
+    private void syncFrontDisplay(ServerLevel serverLevel, boolean nowActive) {
+        BlockPos frontPos = worldPosition.relative(structureFacing).above();
+        if (!serverLevel.hasChunkAt(frontPos)) {
+            return;
+        }
+        BlockState frontState = serverLevel.getBlockState(frontPos);
+        if (!(frontState.getBlock() instanceof GiantMachineBlock gb)
+                || gb.kind() != kind
+                || !frontState.getValue(GiantMachineBlock.FORMED)) {
+            return;
+        }
+        GiantUnitRole frontRole = frontState.getValue(GiantMachineBlock.ROLE);
+        boolean needsRoleUpgrade = frontRole == GiantUnitRole.SHELL;
+        if (!needsRoleUpgrade && frontRole != GiantUnitRole.FRONT) {
+            return;
+        }
+        boolean needsFacingSync = frontState.getValue(GiantMachineBlock.FACING) != structureFacing;
+        boolean needsActiveSync = frontState.getValue(GiantMachineBlock.ACTIVE) != nowActive;
+        if (needsRoleUpgrade || needsFacingSync || needsActiveSync) {
+            BlockState updated =
+                    frontState
+                            .setValue(GiantMachineBlock.ROLE, GiantUnitRole.FRONT)
+                            .setValue(GiantMachineBlock.FACING, structureFacing)
+                            .setValue(GiantMachineBlock.ACTIVE, nowActive);
+            serverLevel.setBlock(frontPos, updated, Block.UPDATE_CLIENTS);
         }
     }
 

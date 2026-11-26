@@ -30,10 +30,10 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.state.BlockState;
 
 /**
- * Culture Incubator ({@code ecc2:culture_incubator}): LV Tier 1; converts {@code 1 bone_meal + 100
- * mB water + 200 EU / 100t -> 100 mB ecc2:culture_medium}, filling both universal ({@code
- * ic2:fluid_cell -> ecc2:culture_medium_cell}) and basic ({@code ic2:empty_cell ->
- * ecc2:basic_culture_medium_cell}) fluid cells.
+ * Culture Incubator ({@code ecc2:culture_incubator}): LV Tier 1; converts {@code 1 bone_meal or
+ * rotten_flesh + 100 mB water + 200 EU / 100t -> 100 mB ecc2:culture_medium}, filling both
+ * universal ({@code ic2:fluid_cell -> ecc2:culture_medium_cell}) and basic ({@code ic2:empty_cell
+ * -> ecc2:basic_culture_medium_cell}) fluid cells.
  */
 public final class CultureIncubatorBlockEntity extends GasMachineBlockEntityBase
         implements WorldPowerPort, EuBuffer {
@@ -107,12 +107,12 @@ public final class CultureIncubatorBlockEntity extends GasMachineBlockEntityBase
                         engine.cultureMb(),
                         amt -> engine.drainCulture(amt, false));
 
-        // Process bonemeal + water -> culture_medium
+        // Process bone meal / rotten flesh + water -> culture_medium
         boolean redstoneBlocked =
                 Ecc2UpgradeHelper.hasRedstoneInverter(upgrades)
                         && !level.hasNeighborSignal(worldPosition);
-        boolean hasBonemeal = !redstoneBlocked && items.get(SLOT_BONEMEAL).is(Items.BONE_MEAL);
-        GasMachineOutcome outcome = engine.tick(hasBonemeal);
+        boolean hasNutrient = !redstoneBlocked && isNutrientInput(items.get(SLOT_BONEMEAL));
+        GasMachineOutcome outcome = engine.tick(hasNutrient);
         if (outcome == GasMachineOutcome.COMPLETED) {
             items.get(SLOT_BONEMEAL).shrink(1);
             changed = true;
@@ -130,7 +130,7 @@ public final class CultureIncubatorBlockEntity extends GasMachineBlockEntityBase
                         this,
                         INPUT_SLOTS,
                         OUTPUT_SLOTS,
-                        stack -> stack.is(Items.BONE_MEAL));
+                        CultureIncubatorBlockEntity::isNutrientInput);
         changed |=
                 Ecc2UpgradeHelper.executeFluidUpgrades(
                         level,
@@ -147,6 +147,13 @@ public final class CultureIncubatorBlockEntity extends GasMachineBlockEntityBase
         if (changed) {
             setChanged();
         }
+    }
+
+    /** Returns {@code true} if {@code stack} is an accepted nutrient input (Bone Meal or Rotten Flesh). */
+    public static boolean isNutrientInput(ItemStack stack) {
+        return stack != null
+                && !stack.isEmpty()
+                && (stack.is(Items.BONE_MEAL) || stack.is(Items.ROTTEN_FLESH));
     }
 
     // ---- WorldPowerPort & EuBuffer ----
@@ -284,7 +291,7 @@ public final class CultureIncubatorBlockEntity extends GasMachineBlockEntityBase
     @Override
     public boolean canPlaceItem(int slot, ItemStack stack) {
         return switch (slot) {
-            case SLOT_BONEMEAL -> stack.is(Items.BONE_MEAL);
+            case SLOT_BONEMEAL -> isNutrientInput(stack);
             case SLOT_WATER_CELL_IN ->
                     GiantGasPlatform.isDrainableContainer(stack, Ecc2Ids.MINECRAFT_WATER_ID::equals);
             case SLOT_CULTURE_CELL_IN ->

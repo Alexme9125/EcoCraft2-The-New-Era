@@ -9,6 +9,7 @@ public enum GiantUnitRole implements StringRepresentable {
     UNFORMED,
     CORE,
     CORNER,
+    FRONT,
     SHELL;
 
     @Override

@@ -1,6 +1,7 @@
 package com.ecocraft2.giant;
 
 import com.ecocraft2.EcoCraft2;
+import com.ecocraft2.common.config.Ecc2ConfigDefaults;
 import com.ecocraft2.common.config.Ecc2Ids;
 import com.ecocraft2.gas.CultureIncubatorBlockEntity;
 import com.ecocraft2.gas.CultureIncubatorMenu;
@@ -62,6 +63,15 @@ public final class GiantGasModule {
 
     public static final DeferredHolder<Item, Item> MEGASTRUCTURE_COMPONENT =
             GiantGasPlatform.registerSimpleItem(ITEMS, Ecc2Ids.MEGASTRUCTURE_COMPONENT);
+
+    public static final DeferredHolder<Item, Item> PV_POWER_UPGRADE =
+            ITEMS.registerItem(
+                    Ecc2Ids.PV_POWER_UPGRADE_PATH,
+                    props ->
+                            new Item(
+                                    props.stacksTo(
+                                            Ecc2ConfigDefaults
+                                                    .WATER_GAS_SOLAR_UPGRADE_MAX_EFFECTIVE)));
 
     private static final Map<GiantMachineType, DeferredBlock<GiantUnitBlock>> GIANT_BLOCKS_MAP =
             new LinkedHashMap<>();
@@ -311,6 +321,7 @@ public final class GiantGasModule {
                         output.accept(item.get());
                     }
                     output.accept(WATER_GAS_MACHINE_ITEM.get());
+                    output.accept(PV_POWER_UPGRADE.get());
                     output.accept(GAS_FURNACE_ITEM.get());
                     output.accept(GAS_GENERATOR_ITEM.get());
                     output.accept(METHANE_ICE_CLUSTER_ITEM.get());
@@ -381,6 +392,11 @@ public final class GiantGasModule {
             event.getToolTip()
                     .add(
                             Component.translatable("tooltip.ecc2.water_gas_machine")
+                                    .withStyle(ChatFormatting.GRAY));
+        } else if (item == PV_POWER_UPGRADE.get()) {
+            event.getToolTip()
+                    .add(
+                            Component.translatable("tooltip.ecc2.pv_power_upgrade")
                                     .withStyle(ChatFormatting.GRAY));
         } else if (item == GAS_FURNACE_ITEM.get()) {
             event.getToolTip()

@@ -32,7 +32,7 @@ import net.minecraft.world.level.block.state.BlockState;
 
 /**
  * Organic Fermenter ({@code ecc2:organic_fermenter}): LV Tier 1; ferments {@code 50 mB
- * ecc2:culture_medium + any edible item (nutrition H > 0) + 200 EU / 100t -> 20 * H mB ic2:biogas},
+ * ecc2:culture_medium + any edible item (nutrition H > 0) + 200 EU / 100t -> 30 * H mB ic2:biogas},
  * automatically returning food containers (bowls, glass bottles, etc.) to the return slot.
  */
 public final class OrganicFermenterBlockEntity extends GasMachineBlockEntityBase

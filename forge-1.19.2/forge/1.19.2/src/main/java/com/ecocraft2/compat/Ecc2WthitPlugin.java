@@ -38,6 +38,7 @@ import mcp.mobius.waila.api.IServerAccessor;
 import mcp.mobius.waila.api.ITooltip;
 import mcp.mobius.waila.api.IWailaClientPlugin;
 import mcp.mobius.waila.api.IWailaCommonPlugin;
+import net.minecraft.ChatFormatting;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
@@ -121,6 +122,8 @@ public final class Ecc2WthitPlugin implements IWailaCommonPlugin, IWailaClientPl
             } else if (be instanceof WaterGasMachineBlockEntity wg) {
                 tag.putLong("Eu", (long) Math.floor(wg.engine().storedEu()));
                 tag.putLong("EuMax", (long) Math.floor(wg.engine().energyCapacity()));
+                tag.putBoolean("Solar", wg.engine().isSolarActive());
+                tag.putInt("SolarDeci", (int) Math.round(wg.engine().effectiveSolarEuPerTick() * 10.0));
                 tag.putString("F1Key", "gui.ecc2.gas.water");
                 tag.putInt("F1Amt", wg.engine().waterMb());
                 tag.putInt("F1Cap", WaterGasEngine.WATER_TANK_CAPACITY_MB);
@@ -184,6 +187,21 @@ public final class Ecc2WthitPlugin implements IWailaCommonPlugin, IWailaClientPl
                 tooltip.addLine(
                         Component.translatable(
                                 "jade.ecc2.eu", tag.getLong("Eu"), tag.getLong("EuMax")));
+            }
+            if (tag.contains("Solar")) {
+                boolean solarActive = tag.getBoolean("Solar");
+                int solarDeci =
+                        tag.contains("SolarDeci")
+                                ? tag.getInt("SolarDeci")
+                                : WaterGasEngine.SOLAR_EU_PER_TICK * 10;
+                tooltip.addLine(
+                        (solarActive
+                                        ? Component.translatable(
+                                                "gui.ecc2.gas.solar_active",
+                                                WaterGasEngine.formatSolarRateDeci(solarDeci))
+                                        : Component.translatable("gui.ecc2.gas.solar_inactive"))
+                                .withStyle(
+                                        solarActive ? ChatFormatting.YELLOW : ChatFormatting.GRAY));
             }
             if (tag.contains("Gen")) {
                 tooltip.addLine(Component.translatable("jade.ecc2.generating", tag.getInt("Gen")));

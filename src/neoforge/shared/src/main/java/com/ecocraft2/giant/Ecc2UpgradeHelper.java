@@ -1,5 +1,6 @@
 package com.ecocraft2.giant;
 
+import com.ecocraft2.common.config.Ecc2Ids;
 import com.ecocraft2.common.giant.GiantUpgradeProfile;
 import com.industrialage.ia2.access.MachineAccess;
 import com.industrialage.ia2.content.ProcessingUpgrades;
@@ -34,6 +35,7 @@ public final class Ecc2UpgradeHelper {
     public static final String FLUID_EJECTOR = "ic2:fluid_ejector_upgrade";
     public static final String FLUID_PULLING = "ic2:fluid_pulling_upgrade";
     public static final String REDSTONE_INVERTER = "ic2:redstone_inverter_upgrade";
+    public static final String PV_POWER = Ecc2Ids.PV_POWER_UPGRADE_ID;
 
     /** Represents one physical world port face through which upgrades may push/pull. */
     public record PortEndpoint(
@@ -82,6 +84,24 @@ public final class Ecc2UpgradeHelper {
             }
         }
         return new GiantUpgradeProfile(oc, tf, es);
+    }
+
+    /** Returns {@code true} if {@code stack} is a Water Gas Machine PV Power Upgrade. */
+    public static boolean isPvPowerUpgrade(ItemStack stack) {
+        return stack != null
+                && !stack.isEmpty()
+                && PV_POWER.equals(GiantGasPlatform.itemId(stack));
+    }
+
+    /** Counts installed PV Power Upgrades across {@code upgradeSlots}. */
+    public static int countPvPowerUpgrades(List<ItemStack> upgradeSlots) {
+        int total = 0;
+        for (ItemStack stack : upgradeSlots) {
+            if (isPvPowerUpgrade(stack)) {
+                total += stack.getCount();
+            }
+        }
+        return total;
     }
 
     /** Returns {@code true} if at least one Redstone Inverter Upgrade is installed. */

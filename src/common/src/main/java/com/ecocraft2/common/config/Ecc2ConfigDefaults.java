@@ -98,6 +98,8 @@ public final class Ecc2ConfigDefaults {
     // --- Gas & Biogas Industry Defaults ---
 
     public static final int WATER_GAS_SOLAR_EU_PER_TICK = 2;
+    public static final double WATER_GAS_SOLAR_UPGRADE_BONUS_EU_PER_TICK = 1.5;
+    public static final int WATER_GAS_SOLAR_UPGRADE_MAX_EFFECTIVE = 2;
     public static final int WATER_GAS_EU_PER_OP = 1_000;
     public static final int WATER_GAS_TICKS_PER_OP = 200;
     public static final int WATER_GAS_WATER_PER_OP_MB = 100;
@@ -132,7 +134,7 @@ public final class Ecc2ConfigDefaults {
     public static final int ORGANIC_FERMENTER_EU_PER_OP = 200;
     public static final int ORGANIC_FERMENTER_TICKS_PER_OP = 100;
     public static final int ORGANIC_FERMENTER_CULTURE_PER_OP_MB = 50;
-    public static final int ORGANIC_FERMENTER_BIOGAS_PER_NUTRITION_MB = 20;
+    public static final int ORGANIC_FERMENTER_BIOGAS_PER_NUTRITION_MB = 30;
     public static final int ORGANIC_FERMENTER_CULTURE_TANK_MB = 8_000;
     public static final int ORGANIC_FERMENTER_BIOGAS_TANK_MB = 16_000;
     public static final int ORGANIC_FERMENTER_INPUT_TIER = 1;

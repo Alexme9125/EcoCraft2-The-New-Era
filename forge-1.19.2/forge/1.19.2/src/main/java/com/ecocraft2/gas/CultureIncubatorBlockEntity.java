@@ -44,9 +44,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Culture Incubator BlockEntity: {@code 1 bone meal + 100 mB water + 200 EU / 100t -> 100 mB
- * ecc2:culture_medium} (LV Tier 1, 8,000 mB water & culture tanks, fills both universal and basic
- * IC2 cells into {@code culture_medium_cell} / {@code basic_culture_medium_cell}).
+ * Culture Incubator BlockEntity: {@code 1 bone meal or rotten flesh + 100 mB water + 200 EU / 100t
+ * -> 100 mB ecc2:culture_medium} (LV Tier 1, 8,000 mB water & culture tanks, fills both universal
+ * and basic IC2 cells into {@code culture_medium_cell} / {@code basic_culture_medium_cell}).
  */
 public final class CultureIncubatorBlockEntity extends BlockEntity
         implements GasMachineBlock.TickableMachine,
@@ -73,7 +73,7 @@ public final class CultureIncubatorBlockEntity extends BlockEntity
                 @Override
                 public boolean isItemValid(int slot, @NotNull ItemStack stack) {
                     return switch (slot) {
-                        case SLOT_BONEMEAL -> stack.is(Items.BONE_MEAL);
+                        case SLOT_BONEMEAL -> isNutrientInput(stack);
                         case SLOT_WATER_IN, SLOT_CULTURE_IN ->
                                 FluidUtil.getFluidHandler(Ecc2BridgePlatform.copyWithCount(stack, 1))
                                         .isPresent();
@@ -236,6 +236,13 @@ public final class CultureIncubatorBlockEntity extends BlockEntity
         super(GasRegistry.CULTURE_INCUBATOR_BE.get(), pos, state);
     }
 
+    /** Returns {@code true} if {@code stack} is an accepted nutrient input (Bone Meal or Rotten Flesh). */
+    public static boolean isNutrientInput(ItemStack stack) {
+        return stack != null
+                && !stack.isEmpty()
+                && (stack.is(Items.BONE_MEAL) || stack.is(Items.ROTTEN_FLESH));
+    }
+
     public CultureIncubatorEngine engine() {
         return engine;
     }
@@ -295,10 +302,10 @@ public final class CultureIncubatorBlockEntity extends BlockEntity
             setChanged();
         }
 
-        boolean hasBonemeal =
+        boolean hasNutrient =
                 GasUpgradeAutomation.isRunAllowed(serverLevel, worldPosition, upgrades)
-                        && inventory.getStackInSlot(SLOT_BONEMEAL).is(Items.BONE_MEAL);
-        var outcome = engine.tick(hasBonemeal);
+                        && isNutrientInput(inventory.getStackInSlot(SLOT_BONEMEAL));
+        var outcome = engine.tick(hasNutrient);
         if (outcome == GasMachineOutcome.COMPLETED) {
             inventory.extractItem(SLOT_BONEMEAL, 1, false);
             setChanged();
@@ -315,7 +322,7 @@ public final class CultureIncubatorBlockEntity extends BlockEntity
                             upgrades,
                             UPGRADE_IN_SLOTS,
                             UPGRADE_OUT_SLOTS,
-                            s -> s.is(Items.BONE_MEAL));
+                            CultureIncubatorBlockEntity::isNutrientInput);
             moved |=
                     GasUpgradeAutomation.executeFluidUpgrades(
                             serverLevel,

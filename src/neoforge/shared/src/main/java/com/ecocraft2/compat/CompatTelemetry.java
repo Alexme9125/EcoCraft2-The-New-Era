@@ -145,6 +145,7 @@ public final class CompatTelemetry {
             tag.putLong("Eu", Math.round(wg.storedEu()));
             tag.putLong("EuMax", Math.round(wg.energyCapacity()));
             tag.putBoolean("Solar", wg.isSolarActive());
+            tag.putInt("SolarDeci", (int) Math.round(wg.effectiveSolarEuPerTick() * 10.0));
             tag.putInt("F1Amt", wg.waterMb());
             tag.putInt("F1Cap", WaterGasEngine.WATER_TANK_CAPACITY_MB);
             tag.putInt("F2Amt", wg.waterGasMb());
@@ -261,6 +262,7 @@ public final class CompatTelemetry {
                             tag.getLong("Eu", 0L),
                             tag.getLong("EuMax", 0L),
                             tag.getBoolean("Solar", false),
+                            tag.getInt("SolarDeci", WaterGasEngine.SOLAR_EU_PER_TICK * 10),
                             tag.getInt("F1Amt", 0),
                             tag.getInt("F1Cap", WaterGasEngine.WATER_TANK_CAPACITY_MB),
                             tag.getInt("F2Amt", 0),
@@ -390,6 +392,7 @@ public final class CompatTelemetry {
                     Math.round(wg.storedEu()),
                     Math.round(wg.energyCapacity()),
                     wg.isSolarActive(),
+                    (int) Math.round(wg.effectiveSolarEuPerTick() * 10.0),
                     wg.waterMb(),
                     WaterGasEngine.WATER_TANK_CAPACITY_MB,
                     wg.waterGasMb(),
@@ -653,6 +656,7 @@ public final class CompatTelemetry {
             long eu,
             long euMax,
             boolean solarActive,
+            int solarDeciEuPerTick,
             int waterMb,
             int waterCap,
             int gasMb,
@@ -664,10 +668,11 @@ public final class CompatTelemetry {
                         Ecc2DataSync.formatInt(eu),
                         Ecc2DataSync.formatInt(euMax)));
         out.accept(
-                Component.translatable(
-                                solarActive
-                                        ? "gui.ecc2.gas.solar_active"
-                                        : "gui.ecc2.gas.solar_inactive")
+                (solarActive
+                                ? Component.translatable(
+                                        "gui.ecc2.gas.solar_active",
+                                        WaterGasEngine.formatSolarRateDeci(solarDeciEuPerTick))
+                                : Component.translatable("gui.ecc2.gas.solar_inactive"))
                         .withStyle(solarActive ? ChatFormatting.YELLOW : ChatFormatting.GRAY));
         out.accept(
                 Component.translatable(

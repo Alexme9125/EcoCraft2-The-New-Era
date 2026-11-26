@@ -52,6 +52,7 @@
   "item.ecc2.ultimate_hybrid_solar_helmet": "Ultimate Hybrid Solar Helmet",
 
   "item.ecc2.megastructure_component": "Megastructure Component",
+  "item.ecc2.pv_power_upgrade": "PV Panel Power Upgrade",
 
   "item.ecc2.water_gas_cell": "Water Gas Cell",
   "item.ecc2.natural_gas_cell": "Natural Gas Cell",
@@ -154,8 +155,8 @@
   "gui.ecc2.port.right_front": "Right-Front",
   "gui.ecc2.port.right_back": "Right-Back",
 
-  "gui.ecc2.gas.solar_active": "Solar Boost: +2 EU/t",
-  "gui.ecc2.gas.solar_inactive": "Solar Boost: Inactive",
+  "gui.ecc2.gas.solar_active": "Top PV: +%s EU/t",
+  "gui.ecc2.gas.solar_inactive": "Top PV: Inactive",
   "gui.ecc2.gas.fuel": "Fuel: %s",
   "gui.ecc2.gas.output": "Generating: %s EU/t",
   "gui.ecc2.gas.empty": "Empty",
@@ -190,12 +191,13 @@
   "tooltip.ecc2.giant_unit": "Assemble a solid 3×3×3 cube (27 units) to form a 9-lane × 3-batch Giant Machine",
   "tooltip.ecc2.giant_unit.ports": "8 configurable lower-corner I/O ports · Power accepted on any outer face (Base HV 512 EU/t)",
 
-  "tooltip.ecc2.water_gas_machine": "100 mB Water + 1 Coal Dust → 1,000 mB Water Gas (Built-in 2 EU/t Solar + LV)",
+  "tooltip.ecc2.water_gas_machine": "100 mB Water + 1 Coal Dust → 1,000 mB Water Gas (Built-in 2 EU/t Top PV, upgradeable to 5 EU/t + LV)",
+  "tooltip.ecc2.pv_power_upgrade": "Water Gas Machine upgrade: +1.5 EU/t top PV power each (max 2 effective, 5 EU/t daytime self-sufficiency)",
   "tooltip.ecc2.gas_furnace": "Smelts items using 50 mB Water Gas, Natural Gas, or Biogas per item",
   "tooltip.ecc2.gas_generator": "MV Generator (Tier 2): Water Gas 32 EU/t · Natural Gas 64 EU/t · Biogas 32 EU/t",
   "tooltip.ecc2.methane_ice_cluster": "Found on deep ocean & frozen ocean seafloors. Can 3× with a Universal Fluid Cell for Natural Gas.",
-  "tooltip.ecc2.culture_incubator": "1 Bone Meal + 100 mB Water → 100 mB Culture Medium (LV)",
-  "tooltip.ecc2.organic_fermenter": "50 mB Culture Medium + any Food (H) → 20×H mB Biogas (LV)",
+  "tooltip.ecc2.culture_incubator": "1 Bone Meal or Rotten Flesh + 100 mB Water → 100 mB Culture Medium (LV)",
+  "tooltip.ecc2.organic_fermenter": "50 mB Culture Medium + any Food (H) → 30×H mB Biogas (LV)",
   "tooltip.ecc2.cell.contents": "Contains 1,000 mB %s",
 
   "config.jade.plugin_ecc2.machine_info": "EcoCraft 2 Machine Info",

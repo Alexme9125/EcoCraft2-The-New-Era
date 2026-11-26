@@ -1,14 +1,21 @@
 package com.ecocraft2.gas;
 
 import com.ecocraft2.bridge.Ecc2BridgePlatform;
+import com.ecocraft2.common.config.Ecc2ConfigDefaults;
 import com.ecocraft2.common.config.Ecc2Ids;
 import com.ecocraft2.registry.Ecc2Registries;
+import java.util.List;
 import java.util.function.Supplier;
+import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.BucketItem;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.LiquidBlock;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -19,6 +26,7 @@ import net.minecraftforge.common.extensions.IForgeMenuType;
 import net.minecraftforge.fluids.FluidType;
 import net.minecraftforge.fluids.ForgeFlowingFluid;
 import net.minecraftforge.registries.RegistryObject;
+import org.jetbrains.annotations.Nullable;
 
 /** Forge 1.19.2 registrations for Water Gas, Natural Gas, Biogas fluids, cells, ore, and 5 machines. */
 public final class GasRegistry {
@@ -189,6 +197,27 @@ public final class GasRegistry {
                                     WaterGasMachineBlockEntity::new,
                                     GasRegistry.WATER_GAS_MACHINE_BE,
                                     "tooltip.ecc2.water_gas_machine"));
+
+    public static final RegistryObject<Item> PV_POWER_UPGRADE =
+            Ecc2Registries.ITEMS.register(
+                    Ecc2Ids.PV_POWER_UPGRADE_PATH,
+                    () ->
+                            new Item(
+                                    Ecc2Registries.tabItemProperties()
+                                            .stacksTo(
+                                                    Ecc2ConfigDefaults
+                                                            .WATER_GAS_SOLAR_UPGRADE_MAX_EFFECTIVE)) {
+                                @Override
+                                public void appendHoverText(
+                                        ItemStack stack,
+                                        @Nullable Level level,
+                                        List<Component> tooltip,
+                                        TooltipFlag flag) {
+                                    tooltip.add(
+                                            Component.translatable("tooltip.ecc2.pv_power_upgrade")
+                                                    .withStyle(ChatFormatting.GRAY));
+                                }
+                            });
 
     public static final RegistryObject<Block> GAS_FURNACE =
             registerBlock(

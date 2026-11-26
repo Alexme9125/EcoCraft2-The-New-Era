@@ -32,7 +32,7 @@ public final class WaterGasMachineMenu extends DeviceAccessMenu {
                 buf.readBlockPos(),
                 null,
                 createClientHandler(),
-                new SimpleContainerData(8));
+                new SimpleContainerData(9));
     }
 
     public WaterGasMachineMenu(
@@ -118,6 +118,10 @@ public final class WaterGasMachineMenu extends DeviceAccessMenu {
         return (data.get(7) & 2) != 0;
     }
 
+    public int effectiveSolarDeciEuPerTick() {
+        return Math.max(0, data.get(8));
+    }
+
     @Override
     public ItemStack quickMoveStack(Player player, int index) {
         Slot slot = slots.get(index);
@@ -161,7 +165,7 @@ public final class WaterGasMachineMenu extends DeviceAccessMenu {
                                     .isPresent();
                     case WaterGasMachineBlockEntity.SLOT_BATTERY ->
                             Ecc2EnergyHelper.canDischarge(stack, 14);
-                    case 6, 7, 8, 9 -> Ecc2EnergyHelper.isUpgradeItem(stack);
+                    case 6, 7, 8, 9 -> WaterGasMachineBlockEntity.isAcceptedUpgrade(stack);
                     default -> false;
                 };
             }

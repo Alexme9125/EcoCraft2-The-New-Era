@@ -59,6 +59,7 @@ public final class WaterGasMachineBlockEntity extends GasMachineBlockEntityBase
 
     public WaterGasMachineBlockEntity(BlockPos pos, BlockState state) {
         super(GiantGasModule.WATER_GAS_MACHINE_BE.get(), pos, state, INVENTORY_SIZE);
+        engine.setSolarEuPerTick(Ecc2Config.waterGasSolarEuPerTick());
     }
 
     @Override
@@ -70,6 +71,11 @@ public final class WaterGasMachineBlockEntity extends GasMachineBlockEntityBase
         var profile = Ecc2UpgradeHelper.readProfile(upgrades);
         if (!profile.equals(engine.upgrades())) {
             engine.setUpgrades(profile);
+            changed = true;
+        }
+        int pvUpgrades = Ecc2UpgradeHelper.countPvPowerUpgrades(upgrades);
+        if (pvUpgrades != engine.solarPowerUpgrades()) {
+            engine.setSolarPowerUpgrades(pvUpgrades);
             changed = true;
         }
 
@@ -164,6 +170,12 @@ public final class WaterGasMachineBlockEntity extends GasMachineBlockEntityBase
         }
         String id = GiantGasPlatform.itemId(stack);
         return "ic2:coal_dust".equals(id) || GiantGasPlatform.hasItemTag(stack, "c:dusts/coal");
+    }
+
+    /** Returns {@code true} if {@code stack} is an accepted upgrade for the Water Gas Machine. */
+    public static boolean isAcceptedUpgrade(ItemStack stack) {
+        return Ecc2UpgradeHelper.isAcceptedUpgrade(stack, true, true)
+                || Ecc2UpgradeHelper.isPvPowerUpgrade(stack);
     }
 
     // ---- WorldPowerPort & EuBuffer ----
@@ -309,7 +321,7 @@ public final class WaterGasMachineBlockEntity extends GasMachineBlockEntityBase
             case SLOT_BATTERY ->
                     PortableGear.canDischarge(stack, engine.inputTier())
                             || stack.is(Items.REDSTONE);
-            case 6, 7, 8, 9 -> Ecc2UpgradeHelper.isAcceptedUpgrade(stack, true, true);
+            case 6, 7, 8, 9 -> isAcceptedUpgrade(stack);
             default -> false;
         };
     }
@@ -360,9 +372,10 @@ public final class WaterGasMachineBlockEntity extends GasMachineBlockEntityBase
     @Override
     protected void loadState(Ecc2DataReader in) {
         in.loadItems("ecc2_items", items);
-        engine.setUpgrades(
-                Ecc2UpgradeHelper.readProfile(
-                        items.subList(UPGRADE_START, UPGRADE_START + UPGRADE_COUNT)));
+        var upgrades = items.subList(UPGRADE_START, UPGRADE_START + UPGRADE_COUNT);
+        engine.setUpgrades(Ecc2UpgradeHelper.readProfile(upgrades));
+        engine.setSolarPowerUpgrades(Ecc2UpgradeHelper.countPvPowerUpgrades(upgrades));
+        engine.setSolarEuPerTick(Ecc2Config.waterGasSolarEuPerTick());
         engine.setStoredEu(in.getDouble("ecc2_eu", 0.0));
         engine.setWaterMb(in.getInt("ecc2_water", 0));
         engine.setWaterGasMb(in.getInt("ecc2_gas", 0));
@@ -401,6 +414,14 @@ public final class WaterGasMachineBlockEntity extends GasMachineBlockEntityBase
 
     public boolean isSolarActive() {
         return engine.isSolarActive();
+    }
+
+    public double effectiveSolarEuPerTick() {
+        return engine.effectiveSolarEuPerTick();
+    }
+
+    public int solarPowerUpgrades() {
+        return engine.solarPowerUpgrades();
     }
 
     @Override
