@@ -6,6 +6,8 @@ import com.ecocraft2.common.giant.GiantMachineEngine;
 import com.ecocraft2.common.giant.GiantPortPermissions;
 import com.ecocraft2.common.giant.PortAccessMode;
 import com.ecocraft2.common.solar.SolarTier;
+import com.ecocraft2.config.Ecc2Config;
+import com.industrialage.ia2.gameplay.PortableGear;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.Container;
@@ -17,6 +19,7 @@ import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.inventory.SimpleContainerData;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 
 /**
  * Container menu for all 3x3x3 Giant Machines, pixel-aligned to {@code assets-gen/gui_coordinates.json}
@@ -63,7 +66,7 @@ public final class GiantMachineMenu extends AbstractContainerMenu {
         this(
                 containerId,
                 playerInventory,
-                core,
+                core.coreInventory(),
                 createServerData(core),
                 core.getBlockPos(),
                 core.usesWater());
@@ -73,14 +76,49 @@ public final class GiantMachineMenu extends AbstractContainerMenu {
             int containerId, Inventory playerInventory, FriendlyByteBuf buf) {
         BlockPos pos = buf.readBlockPos();
         boolean usesWater = false;
+        int tierHint = Ecc2Config.giantBaseTier();
         if (playerInventory.player.level().getBlockEntity(pos)
                 instanceof GiantUnitBlockEntity be) {
             usesWater = be.usesWater();
+            tierHint = be.inputTier();
         }
+        final boolean waterFlag = usesWater;
+        final int initialTier = tierHint;
+        SimpleContainer clientContainer =
+                new SimpleContainer(GiantUnitBlockEntity.INVENTORY_SIZE) {
+                    @Override
+                    public boolean canPlaceItem(int slot, ItemStack stack) {
+                        if (stack.isEmpty()) {
+                            return false;
+                        }
+                        if (slot >= GiantUnitBlockEntity.INPUT_START
+                                && slot
+                                        < GiantUnitBlockEntity.INPUT_START
+                                                + GiantUnitBlockEntity.INPUT_COUNT) {
+                            return true;
+                        }
+                        if (slot == GiantUnitBlockEntity.SLOT_BATTERY) {
+                            return PortableGear.canDischarge(stack, Math.max(initialTier, 14))
+                                    || stack.is(Items.REDSTONE);
+                        }
+                        if (slot >= GiantUnitBlockEntity.UPGRADE_START
+                                && slot
+                                        < GiantUnitBlockEntity.UPGRADE_START
+                                                + GiantUnitBlockEntity.UPGRADE_COUNT) {
+                            return Ecc2UpgradeHelper.isAcceptedUpgrade(stack, true, waterFlag);
+                        }
+                        if (slot == GiantUnitBlockEntity.SLOT_WASHER_IN) {
+                            return waterFlag
+                                    && GiantGasPlatform.isDrainableContainer(
+                                            stack, Ecc2Ids.MINECRAFT_WATER_ID::equals);
+                        }
+                        return false;
+                    }
+                };
         return new GiantMachineMenu(
                 containerId,
                 playerInventory,
-                new SimpleContainer(GiantUnitBlockEntity.INVENTORY_SIZE),
+                clientContainer,
                 new SimpleContainerData(DATA_COUNT),
                 pos,
                 usesWater);
@@ -313,7 +351,7 @@ public final class GiantMachineMenu extends AbstractContainerMenu {
     }
 
     public int laneBatch(int lane) {
-        return Math.max(0, Math.min(3, data.get(9 + lane)));
+        return Math.max(0, Math.min(64, data.get(9 + lane)));
     }
 
     public int storedEu() {
@@ -325,7 +363,7 @@ public final class GiantMachineMenu extends AbstractContainerMenu {
     }
 
     public int activeTotalBatch() {
-        return Math.max(0, Math.min(27, data.get(22)));
+        return Math.max(0, Math.min(GiantMachineEngine.LANE_COUNT * 64, data.get(22)));
     }
 
     public double euDrawPerTick() {

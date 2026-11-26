@@ -4,6 +4,7 @@ import com.ecocraft2.common.gas.GasFuelSpec;
 import com.ecocraft2.common.gas.GasGeneratorEngine;
 import com.ecocraft2.giant.GiantGasModule;
 import com.ecocraft2.giant.GiantGasPlatform;
+import com.industrialage.ia2.gameplay.PortableGear;
 import com.industrialage.ia2.gui.DeviceAccessMenu;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.Container;
@@ -31,11 +32,26 @@ public final class GasGeneratorMenu extends DeviceAccessMenu {
     public static GasGeneratorMenu fromNetwork(
             int containerId, Inventory playerInventory, FriendlyByteBuf buf) {
         buf.readBlockPos();
+        SimpleContainer clientContainer =
+                new SimpleContainer(GasGeneratorBlockEntity.INVENTORY_SIZE) {
+                    @Override
+                    public boolean canPlaceItem(int slot, ItemStack stack) {
+                        return switch (slot) {
+                            case GasGeneratorBlockEntity.SLOT_GAS_CELL_IN ->
+                                    GiantGasPlatform.isDrainableContainer(
+                                            stack, id -> GasFuelSpec.byFluidId(id).isPresent());
+                            case GasGeneratorBlockEntity.SLOT_CHARGE ->
+                                    PortableGear.acceptsCharge(
+                                            stack, GasGeneratorEngine.OUTPUT_TIER);
+                            default -> false;
+                        };
+                    }
+                };
         return new GasGeneratorMenu(
                 containerId,
                 playerInventory,
                 null,
-                new SimpleContainer(GasGeneratorBlockEntity.INVENTORY_SIZE),
+                clientContainer,
                 new SimpleContainerData(DATA_COUNT));
     }
 

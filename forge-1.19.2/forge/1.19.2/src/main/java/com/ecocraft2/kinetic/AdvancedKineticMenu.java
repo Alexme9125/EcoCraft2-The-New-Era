@@ -1,5 +1,6 @@
 package com.ecocraft2.kinetic;
 
+import com.ecocraft2.bridge.Ecc2RotorHooks;
 import com.ecocraft2.common.kinetic.KineticMachineTier;
 import com.ecocraft2.solar.SolarKineticRegistry;
 import net.minecraft.core.BlockPos;
@@ -14,6 +15,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.ItemStackHandler;
 import net.minecraftforge.items.SlotItemHandler;
+import org.jetbrains.annotations.NotNull;
 
 /** Menu for the 6 Advanced Wind & Water Kinetic Generators aligned to {@code gui_coordinates.json}. */
 public final class AdvancedKineticMenu extends AbstractContainerMenu {
@@ -22,7 +24,22 @@ public final class AdvancedKineticMenu extends AbstractContainerMenu {
     private final ContainerData data;
 
     public AdvancedKineticMenu(int id, Inventory playerInv, FriendlyByteBuf buf) {
-        this(id, playerInv, buf.readBlockPos(), new ItemStackHandler(1), new SimpleContainerData(7));
+        this(
+                id,
+                playerInv,
+                buf.readBlockPos(),
+                new ItemStackHandler(1) {
+                    @Override
+                    public int getSlotLimit(int slot) {
+                        return 1;
+                    }
+
+                    @Override
+                    public boolean isItemValid(int slot, @NotNull ItemStack stack) {
+                        return Ecc2RotorHooks.isRotor(stack);
+                    }
+                },
+                new SimpleContainerData(7));
     }
 
     public AdvancedKineticMenu(

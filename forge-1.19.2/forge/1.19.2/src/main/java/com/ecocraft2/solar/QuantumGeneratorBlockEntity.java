@@ -102,7 +102,7 @@ public final class QuantumGeneratorBlockEntity extends BlockEntity
     public void onLoad() {
         super.onLoad();
         if (level instanceof ServerLevel) {
-            refreshRedstone();
+            // Defer neighbor redstone sampling to first serverTick() to avoid chunk-load recursion.
             WorldEnergy.connect(this);
         }
     }

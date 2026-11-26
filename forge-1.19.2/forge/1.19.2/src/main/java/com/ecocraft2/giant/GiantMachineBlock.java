@@ -46,6 +46,8 @@ public final class GiantMachineBlock extends Block implements EntityBlock, Ecc2P
     public static final BooleanProperty ACTIVE = BooleanProperty.create("active");
     public static final EnumProperty<GiantUnitRole> ROLE =
             EnumProperty.create("role", GiantUnitRole.class);
+    public static final EnumProperty<GiantPortVisual> PORT_MODE =
+            EnumProperty.create("port_mode", GiantPortVisual.class);
 
     private final GiantMachineKind kind;
 
@@ -62,7 +64,8 @@ public final class GiantMachineBlock extends Block implements EntityBlock, Ecc2P
                         .setValue(FACING, Direction.NORTH)
                         .setValue(FORMED, Boolean.FALSE)
                         .setValue(ACTIVE, Boolean.FALSE)
-                        .setValue(ROLE, GiantUnitRole.UNFORMED));
+                        .setValue(ROLE, GiantUnitRole.UNFORMED)
+                        .setValue(PORT_MODE, GiantPortVisual.FULL));
     }
 
     public GiantMachineKind kind() {
@@ -71,7 +74,7 @@ public final class GiantMachineBlock extends Block implements EntityBlock, Ecc2P
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(FACING, FORMED, ACTIVE, ROLE);
+        builder.add(FACING, FORMED, ACTIVE, ROLE, PORT_MODE);
     }
 
     @Override
@@ -80,7 +83,13 @@ public final class GiantMachineBlock extends Block implements EntityBlock, Ecc2P
                 .setValue(FACING, ctx.getHorizontalDirection().getOpposite())
                 .setValue(FORMED, Boolean.FALSE)
                 .setValue(ACTIVE, Boolean.FALSE)
-                .setValue(ROLE, GiantUnitRole.UNFORMED);
+                .setValue(ROLE, GiantUnitRole.UNFORMED)
+                .setValue(PORT_MODE, GiantPortVisual.FULL);
+    }
+
+    @Override
+    public boolean ecc2AcceptsCable(BlockState state, Direction side) {
+        return state.getValue(FORMED);
     }
 
     @Override
@@ -152,12 +161,21 @@ public final class GiantMachineBlock extends Block implements EntityBlock, Ecc2P
         if (level.getBlockEntity(pos) instanceof GiantMachineBlockEntity unit) {
             GiantMachineBlockEntity core = unit.resolveCore();
             if (core != null && core.isFormed()) {
-                if (core.exchangeHeldFluid(player, hand, hit.getDirection())) {
+                if (unit.exchangeHeldFluid(player, hand, hit.getDirection())) {
                     return InteractionResult.CONSUME;
                 }
                 if (player instanceof ServerPlayer serverPlayer) {
                     NetworkHooks.openScreen(serverPlayer, core, core.getBlockPos());
                 }
+                return InteractionResult.CONSUME;
+            }
+            if (level instanceof ServerLevel serverLevel
+                    && state.getValue(FORMED)
+                    && unit.tryRecoverOrphan(serverLevel, state)) {
+                player.displayClientMessage(
+                        Component.translatable("gui.ecc2.giant.unformed")
+                                .withStyle(ChatFormatting.YELLOW),
+                        true);
                 return InteractionResult.CONSUME;
             }
             if (level instanceof ServerLevel serverLevel

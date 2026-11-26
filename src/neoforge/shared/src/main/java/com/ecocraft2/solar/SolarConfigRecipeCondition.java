@@ -43,10 +43,23 @@ public record SolarConfigRecipeCondition(String flag, boolean expected) implemen
         }
         return switch (flag.toLowerCase(Locale.ROOT)) {
             case "hard_recipes", "hardrecipes" -> Ecc2Config.hardRecipes();
+            case "normal_recipes" -> !Ecc2Config.hardRecipes();
             case "easy_asp_recipe", "easyasprecipe" -> Ecc2Config.easyASPRecipe();
-            case "advanced_solar_panel" -> !Ecc2Config.disableAdvancedSolarRecipe();
-            case "hybrid_solar_panel" -> !Ecc2Config.disableHybridSolarRecipe();
-            case "ultimate_hybrid_solar_panel" -> !Ecc2Config.disableUltimateSolarRecipe();
+            case "standard_asp_recipe" -> !Ecc2Config.easyASPRecipe();
+            case "advanced_solar_panel" ->
+                    !Ecc2Config.disableAdvancedSolarRecipe() && !Ecc2Config.easyASPRecipe();
+            case "advanced_solar_panel_easy" ->
+                    !Ecc2Config.disableAdvancedSolarRecipe() && Ecc2Config.easyASPRecipe();
+            case "hybrid_solar_panel" ->
+                    !Ecc2Config.disableHybridSolarRecipe() && Ecc2Config.hardRecipes();
+            case "hybrid_solar_panel_normal" ->
+                    !Ecc2Config.disableHybridSolarRecipe() && !Ecc2Config.hardRecipes();
+            case "hybrid_solar_panel_any" -> !Ecc2Config.disableHybridSolarRecipe();
+            case "ultimate_hybrid_solar_panel" ->
+                    !Ecc2Config.disableUltimateSolarRecipe() && Ecc2Config.hardRecipes();
+            case "ultimate_hybrid_solar_panel_normal" ->
+                    !Ecc2Config.disableUltimateSolarRecipe() && !Ecc2Config.hardRecipes();
+            case "ultimate_hybrid_solar_panel_any" -> !Ecc2Config.disableUltimateSolarRecipe();
             case "quantum_solar_panel" -> !Ecc2Config.disableQuantumSolarRecipe();
             case "advanced_solar_helmet" -> !Ecc2Config.disableAdvancedHelmetRecipe();
             case "hybrid_solar_helmet" -> !Ecc2Config.disableHybridHelmetRecipe();
@@ -66,11 +79,20 @@ public record SolarConfigRecipeCondition(String flag, boolean expected) implemen
         }
         String path = recipeId.substring("ecc2:".length());
         return switch (path) {
-            case "advanced_solar_panel" -> Ecc2Config.disableAdvancedSolarRecipe();
-            case "hybrid_solar_panel", "hybrid_solar_panel_split" ->
-                    Ecc2Config.disableHybridSolarRecipe();
-            case "ultimate_hybrid_solar_panel", "ultimate_hybrid_solar_panel_8x" ->
-                    Ecc2Config.disableUltimateSolarRecipe();
+            case "advanced_solar_panel" ->
+                    Ecc2Config.disableAdvancedSolarRecipe() || Ecc2Config.easyASPRecipe();
+            case "advanced_solar_panel_easy" ->
+                    Ecc2Config.disableAdvancedSolarRecipe() || !Ecc2Config.easyASPRecipe();
+            case "hybrid_solar_panel" ->
+                    Ecc2Config.disableHybridSolarRecipe() || !Ecc2Config.hardRecipes();
+            case "hybrid_solar_panel_normal" ->
+                    Ecc2Config.disableHybridSolarRecipe() || Ecc2Config.hardRecipes();
+            case "hybrid_solar_panel_split" -> Ecc2Config.disableHybridSolarRecipe();
+            case "ultimate_hybrid_solar_panel" ->
+                    Ecc2Config.disableUltimateSolarRecipe() || !Ecc2Config.hardRecipes();
+            case "ultimate_hybrid_solar_panel_normal" ->
+                    Ecc2Config.disableUltimateSolarRecipe() || Ecc2Config.hardRecipes();
+            case "ultimate_hybrid_solar_panel_8x" -> Ecc2Config.disableUltimateSolarRecipe();
             case "quantum_solar_panel" -> Ecc2Config.disableQuantumSolarRecipe();
             case "advanced_solar_helmet" -> Ecc2Config.disableAdvancedHelmetRecipe();
             case "hybrid_solar_helmet" -> Ecc2Config.disableHybridHelmetRecipe();

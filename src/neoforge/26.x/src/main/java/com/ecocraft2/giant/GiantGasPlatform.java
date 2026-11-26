@@ -1,7 +1,6 @@
 package com.ecocraft2.giant;
 
 import com.ecocraft2.EcoCraft2;
-import com.ecocraft2.gas.Ecc2FluidSpec;
 import com.industrialage.ia2.access.MachineAccess;
 import com.industrialage.ia2.access.MachinePorts;
 import com.industrialage.ia2.access.ProcessingItemPort;
@@ -11,8 +10,6 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
-import net.minecraft.client.renderer.block.FluidModel;
-import net.minecraft.client.resources.model.sprite.Material;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.component.DataComponents;
@@ -42,9 +39,6 @@ import net.minecraft.world.level.material.Fluids;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
-import net.neoforged.neoforge.client.event.RegisterFluidModelsEvent;
-import net.neoforged.neoforge.client.fluid.FluidTintSource;
-import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.handling.IPayloadHandler;
@@ -104,30 +98,6 @@ public final class GiantGasPlatform {
 
     public static BlockBehaviour.Properties fluidNonSolid(BlockBehaviour.Properties properties) {
         return properties.noCollision();
-    }
-
-    public static void registerFluidClientExtensions(IEventBus modBus, List<Ecc2FluidSpec> specs) {
-        modBus.addListener(
-                RegisterFluidModelsEvent.class,
-                event -> {
-                    for (var spec : specs) {
-                        var still =
-                                new Material(
-                                        Identifier.fromNamespaceAndPath(
-                                                EcoCraft2.MOD_ID, spec.stillTexturePath()));
-                        var flow =
-                                new Material(
-                                        Identifier.fromNamespaceAndPath(
-                                                EcoCraft2.MOD_ID, spec.flowTexturePath()));
-                        var model =
-                                new FluidModel.Unbaked(
-                                        still,
-                                        flow,
-                                        null,
-                                        (FluidTintSource) state -> spec.tintArgb());
-                        event.register(model, spec.sourceFluid(), spec.flowingFluid());
-                    }
-                });
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
@@ -194,10 +164,6 @@ public final class GiantGasPlatform {
                             event.registrar(NETWORK_VERSION).executesOn(HandlerThread.MAIN);
                     registrar.playToServer(type, codec, handler);
                 });
-    }
-
-    public static void sendToServer(CustomPacketPayload payload) {
-        ClientPacketDistributor.sendToServer(payload);
     }
 
     public static Item findItem(String id) {
@@ -494,19 +460,30 @@ public final class GiantGasPlatform {
         if (handler == null) {
             return ItemStack.EMPTY;
         }
-        try (var tx = Transaction.openRoot()) {
-            var batch =
-                    ResourceHandlerUtil.extractFirst(
-                            handler,
-                            resource -> filter.test(resource.toStack(1)),
-                            maxAmount,
-                            tx);
-            if (batch == null) {
-                return ItemStack.EMPTY;
+        for (int slot = 0; slot < handler.size(); slot++) {
+            ItemResource resource = handler.getResource(slot);
+            if (resource.isEmpty() || handler.getAmountAsLong(slot) <= 0L) {
+                continue;
             }
-            tx.commit();
-            return batch.resource().toStack(batch.amount());
+            ItemStack probe = resource.toStack(1);
+            if (!filter.test(probe)) {
+                continue;
+            }
+            // Never extract more than the item's own max stack size (prevents silent truncation
+            // of unstackable or 16-stackable items when stored into machine inventory slots).
+            int capped = Math.min(maxAmount, probe.getMaxStackSize());
+            if (capped <= 0) {
+                continue;
+            }
+            try (var tx = Transaction.openRoot()) {
+                int extracted = handler.extract(slot, resource, capped, tx);
+                if (extracted > 0) {
+                    tx.commit();
+                    return resource.toStack(extracted);
+                }
+            }
         }
+        return ItemStack.EMPTY;
     }
 
     public static int pushFluidToNeighbor(

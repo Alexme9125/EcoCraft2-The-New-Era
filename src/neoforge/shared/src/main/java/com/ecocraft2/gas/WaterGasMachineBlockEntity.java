@@ -3,12 +3,14 @@ package com.ecocraft2.gas;
 import com.ecocraft2.common.config.Ecc2Ids;
 import com.ecocraft2.common.gas.GasMachineOutcome;
 import com.ecocraft2.common.gas.WaterGasEngine;
+import com.ecocraft2.config.Ecc2Config;
 import com.ecocraft2.giant.Ecc2DataReader;
 import com.ecocraft2.giant.Ecc2DataWriter;
 import com.ecocraft2.giant.Ecc2FluidTankView;
 import com.ecocraft2.giant.Ecc2UpgradeHelper;
 import com.ecocraft2.giant.GiantGasModule;
 import com.ecocraft2.giant.GiantGasPlatform;
+import com.industrialage.ia2.access.MachineAccess;
 import com.industrialage.ia2.energy.graph.EnergyGraph;
 import com.industrialage.ia2.gameplay.PortableGear;
 import com.industrialage.ia2.logistics.FluidContents;
@@ -47,6 +49,7 @@ public final class WaterGasMachineBlockEntity extends GasMachineBlockEntityBase
     public static final int INVENTORY_SIZE = 10;
 
     private static final int[] ALL_AUTOMATED_SLOTS = {0, 1, 2, 3, 4, 5};
+    private static final int[] EMPTY_SLOTS = new int[0];
     private static final int[] INPUT_SLOTS = {SLOT_COAL_DUST};
     private static final int[] OUTPUT_SLOTS = {SLOT_WATER_CELL_OUT, SLOT_GAS_CELL_OUT};
     private static final EnergyGraph.Ports SINK_PORTS =
@@ -105,6 +108,7 @@ public final class WaterGasMachineBlockEntity extends GasMachineBlockEntityBase
                         amt -> engine.drainWaterGas(amt, false));
 
         // Evaluate top solar conditions + run WaterGasEngine
+        engine.setSolarEuPerTick(Ecc2Config.waterGasSolarEuPerTick());
         boolean hasCoal = isCoalDust(items.get(SLOT_COAL_DUST));
         boolean redstoneBlocked =
                 Ecc2UpgradeHelper.hasRedstoneInverter(upgrades)
@@ -113,7 +117,7 @@ public final class WaterGasMachineBlockEntity extends GasMachineBlockEntityBase
         boolean hasSky = level.dimensionType().hasSkyLight();
         boolean seesSky = hasSky && level.canSeeSky(above);
         boolean isDay = GiantGasPlatform.isDaytime(level);
-        boolean isRaining = level.isRaining();
+        boolean isRaining = level.isRaining() || level.isThundering();
         boolean canRain = level.getBiome(above).value().hasPrecipitation();
 
         GasMachineOutcome outcome =
@@ -291,7 +295,7 @@ public final class WaterGasMachineBlockEntity extends GasMachineBlockEntityBase
 
     @Override
     public int[] getSlotsForFace(Direction side) {
-        return ALL_AUTOMATED_SLOTS;
+        return MachineAccess.connects(this, side) ? ALL_AUTOMATED_SLOTS : EMPTY_SLOTS;
     }
 
     @Override
@@ -312,6 +316,9 @@ public final class WaterGasMachineBlockEntity extends GasMachineBlockEntityBase
 
     @Override
     public boolean canPlaceItemThroughFace(int slot, ItemStack stack, Direction side) {
+        if (!MachineAccess.allowsInput(this, side)) {
+            return false;
+        }
         if (slot == SLOT_BATTERY) {
             return PortableGear.canSupplyCharge(stack, engine.inputTier())
                     || stack.is(Items.REDSTONE);
@@ -322,7 +329,8 @@ public final class WaterGasMachineBlockEntity extends GasMachineBlockEntityBase
 
     @Override
     public boolean canTakeItemThroughFace(int slot, ItemStack stack, Direction side) {
-        return slot == SLOT_WATER_CELL_OUT || slot == SLOT_GAS_CELL_OUT;
+        return MachineAccess.allowsOutput(this, side)
+                && (slot == SLOT_WATER_CELL_OUT || slot == SLOT_GAS_CELL_OUT);
     }
 
     @Override

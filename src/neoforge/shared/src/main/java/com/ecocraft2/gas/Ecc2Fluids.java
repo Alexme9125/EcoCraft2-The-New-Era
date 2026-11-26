@@ -2,6 +2,7 @@ package com.ecocraft2.gas;
 
 import com.ecocraft2.EcoCraft2;
 import com.ecocraft2.common.config.Ecc2Ids;
+import com.ecocraft2.giant.GiantGasClientPlatform;
 import com.ecocraft2.giant.GiantGasPlatform;
 import com.industrialage.ia2.logistics.CellItem;
 import java.util.List;
@@ -162,7 +163,7 @@ public final class Ecc2Fluids {
         FLUID_BLOCKS.register(modBus);
         FLUID_ITEMS.register(modBus);
         if (dist == Dist.CLIENT) {
-            GiantGasPlatform.registerFluidClientExtensions(modBus, ALL_SPECS);
+            GiantGasClientPlatform.registerFluidClientExtensions(modBus, ALL_SPECS);
         }
     }
 

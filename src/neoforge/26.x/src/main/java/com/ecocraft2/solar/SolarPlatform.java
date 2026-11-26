@@ -2,15 +2,12 @@ package com.ecocraft2.solar;
 
 import com.ecocraft2.EcoCraft2;
 import com.ecocraft2.common.solar.SolarHelmetSpec;
-import com.ecocraft2.kinetic.AdvancedKineticScreen;
-import com.ecocraft2.kinetic.AdvancedRotorRenderer;
 import com.industrialage.ia2.access.MachineAccess;
 import com.industrialage.ia2.access.MachinePorts;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 import java.util.function.Supplier;
-import net.minecraft.client.Minecraft;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponents;
@@ -41,9 +38,6 @@ import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
-import net.neoforged.neoforge.client.event.EntityRenderersEvent;
-import net.neoforged.neoforge.client.event.RecipesReceivedEvent;
-import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 import net.neoforged.neoforge.event.OnDatapackSyncEvent;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.registration.HandlerThread;
@@ -61,6 +55,10 @@ public final class SolarPlatform {
 
     private SolarPlatform() {}
 
+    static void setClientMtRecipes(List<SolarKineticModule.MatchedMtRecipe> recipes) {
+        clientMtRecipes = recipes == null ? List.of() : List.copyOf(recipes);
+    }
+
     public static void registerArmorMaterials(IEventBus modBus) {
         // Equipment layers are data-driven via assets/ecc2/equipment/*.json in 26.x.
     }
@@ -71,10 +69,6 @@ public final class SolarPlatform {
 
     public static boolean isDay(Level level) {
         return level.isBrightOutside();
-    }
-
-    public static boolean hasShiftDown() {
-        return Minecraft.getInstance().hasShiftDown();
     }
 
     public static Item findItem(String id) {
@@ -128,13 +122,6 @@ public final class SolarPlatform {
             String path) {
         return new CustomPacketPayload.Type<>(
                 Identifier.fromNamespaceAndPath(EcoCraft2.MOD_ID, path));
-    }
-
-    public static void sendToServer(CustomPacketPayload payload) {
-        var listener = Minecraft.getInstance().getConnection();
-        if (listener != null && listener.isAcceptingMessages()) {
-            listener.send(payload);
-        }
     }
 
     public static AttributeModifier armorModifier(String path, double amount) {
@@ -199,6 +186,11 @@ public final class SolarPlatform {
                 MolecularTransformerRecipe.MAP_CODEC, MolecularTransformerRecipe.STREAM_CODEC);
     }
 
+    public static RecipeSerializer<SolarHelmetUpgradeRecipe> createSolarHelmetUpgradeSerializer() {
+        return new RecipeSerializer<>(
+                SolarHelmetUpgradeRecipe.MAP_CODEC, SolarHelmetUpgradeRecipe.STREAM_CODEC);
+    }
+
     public static void registerPayloads(IEventBus modBus) {
         modBus.addListener(
                 RegisterPayloadHandlersEvent.class,
@@ -238,50 +230,6 @@ public final class SolarPlatform {
                 be,
                 side,
                 new WorldlyContainerWrapper(container, side == null ? Direction.UP : side));
-    }
-
-    public static void registerClient(IEventBus modBus, IEventBus gameBus) {
-        modBus.addListener(
-                RegisterMenuScreensEvent.class,
-                event -> {
-                    event.register(
-                            SolarKineticModule.SOLAR_PANEL_MENU.get(), SolarPanelScreen::new);
-                    event.register(
-                            SolarKineticModule.QUANTUM_GENERATOR_MENU.get(),
-                            QuantumGeneratorScreen::new);
-                    event.register(
-                            SolarKineticModule.MOLECULAR_TRANSFORMER_MENU.get(),
-                            MolecularTransformerScreen::new);
-                    event.register(
-                            SolarKineticModule.KINETIC_GENERATOR_MENU.get(),
-                            AdvancedKineticScreen::new);
-                });
-        modBus.addListener(
-                EntityRenderersEvent.RegisterRenderers.class,
-                event -> {
-                    event.registerBlockEntityRenderer(
-                            SolarKineticModule.MOLECULAR_TRANSFORMER_BE.get(),
-                            MolecularTransformerRenderer::new);
-                    event.registerBlockEntityRenderer(
-                            SolarKineticModule.KINETIC_GENERATOR_BE.get(),
-                            AdvancedRotorRenderer::new);
-                });
-        // Cache synced Molecular Transformer recipes on the client for JEI / EMI compat.
-        gameBus.addListener(
-                RecipesReceivedEvent.class,
-                event -> {
-                    var type = SolarKineticModule.MOLECULAR_TRANSFORMER_RECIPE_TYPE.get();
-                    var synced = new ArrayList<SolarKineticModule.MatchedMtRecipe>();
-                    for (RecipeHolder<MolecularTransformerRecipe> holder :
-                            event.getRecipeMap().byType(type)) {
-                        if (holder.value().isAvailable()) {
-                            synced.add(
-                                    new SolarKineticModule.MatchedMtRecipe(
-                                            holder.id().identifier().toString(), holder.value()));
-                        }
-                    }
-                    clientMtRecipes = List.copyOf(synced);
-                });
     }
 
     public static void registerRecipeSyncAndFilter(IEventBus gameBus) {

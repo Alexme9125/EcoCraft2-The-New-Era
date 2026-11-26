@@ -308,7 +308,16 @@ public final class Ecc2JeiPlugin implements IModPlugin {
                     0xFF2C4A2C,
                     false);
             graphics.drawString(
-                    font, trim(font, euLine + " · Tier 14 (No Limit)", maxW), 38, 49, 0xFF556677, false);
+                    font,
+                    trim(
+                            font,
+                            Component.translatable("jei.ecc2.mt.tier_unlimited", euLine)
+                                    .getString(),
+                            maxW),
+                    38,
+                    49,
+                    0xFF556677,
+                    false);
         }
     }
 
@@ -498,7 +507,14 @@ public final class Ecc2JeiPlugin implements IModPlugin {
             graphics.drawString(font, fuelName, 54, 10, 0xFF1E3A52, false);
             graphics.drawString(
                     font,
-                    recipe.mbPerOp() + " mB / smelt (" + recipe.baseTicks() + "t · 0 EU)",
+                    trim(
+                            font,
+                            Component.translatable(
+                                            "jei.ecc2.gas_furnace.rate",
+                                            recipe.mbPerOp(),
+                                            recipe.baseTicks())
+                                    .getString(),
+                            WIDTH - 58),
                     54,
                     24,
                     0xFF445566,
@@ -673,18 +689,18 @@ public final class Ecc2JeiPlugin implements IModPlugin {
             arrowFill.draw(graphics, 60, 9);
             Font font = Minecraft.getInstance().font;
             String formula =
-                    "H = "
-                            + recipe.nutrition()
-                            + " → "
-                            + Ecc2DataSync.formatInt(recipe.biogasMb())
-                            + " mB Biogas (20×H)";
+                    Component.translatable(
+                                    "jei.ecc2.fermenter.yield",
+                                    recipe.nutrition(),
+                                    Ecc2DataSync.formatInt(recipe.biogasMb()))
+                            .getString();
             String cost =
-                    recipe.cultureMb()
-                            + " mB Culture · "
-                            + recipe.euCost()
-                            + " EU / "
-                            + recipe.ticks()
-                            + "t";
+                    Component.translatable(
+                                    "jei.ecc2.fermenter.cost",
+                                    recipe.cultureMb(),
+                                    recipe.euCost(),
+                                    recipe.ticks())
+                            .getString();
             graphics.drawString(font, trim(font, formula, WIDTH - 16), 8, 31, 0xFF1A5A6E, false);
             graphics.drawString(font, trim(font, cost, WIDTH - 16), 8, 43, 0xFF445566, false);
         }

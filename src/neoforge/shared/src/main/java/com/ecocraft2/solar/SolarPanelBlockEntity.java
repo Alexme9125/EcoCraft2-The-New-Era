@@ -6,6 +6,7 @@ import com.ecocraft2.common.solar.SkyCondition;
 import com.ecocraft2.common.solar.SolarPanelEngine;
 import com.ecocraft2.common.solar.SolarTier;
 import com.ecocraft2.config.Ecc2Config;
+import com.industrialage.ia2.access.MachineAccess;
 import com.industrialage.ia2.access.MachineAccessTarget;
 import com.industrialage.ia2.energy.graph.EnergyGraph;
 import com.industrialage.ia2.gameplay.PortableGear;
@@ -45,6 +46,7 @@ public final class SolarPanelBlockEntity extends Ecc2SaveBlockEntity
     public static final int CHARGE_SLOTS = 4;
 
     private static final int[] ALL_SLOTS = {0, 1, 2, 3};
+    private static final int[] EMPTY_SLOTS = new int[0];
     private static final Set<Face> ALL_FACES = Set.of(Face.values());
     private static final EnergyGraph.Ports SOURCE_PORTS =
             new EnergyGraph.Ports(Set.of(), ALL_FACES, false);
@@ -312,17 +314,17 @@ public final class SolarPanelBlockEntity extends Ecc2SaveBlockEntity
 
     @Override
     public int[] getSlotsForFace(Direction side) {
-        return ALL_SLOTS;
+        return MachineAccess.connects(this, side) ? ALL_SLOTS : EMPTY_SLOTS;
     }
 
     @Override
     public boolean canPlaceItemThroughFace(int index, ItemStack stack, Direction direction) {
-        return canPlaceItem(index, stack);
+        return MachineAccess.allowsInput(this, direction) && canPlaceItem(index, stack);
     }
 
     @Override
     public boolean canTakeItemThroughFace(int index, ItemStack stack, Direction direction) {
-        return isChargeComplete(stack);
+        return MachineAccess.allowsOutput(this, direction) && isChargeComplete(stack);
     }
 
     @Override

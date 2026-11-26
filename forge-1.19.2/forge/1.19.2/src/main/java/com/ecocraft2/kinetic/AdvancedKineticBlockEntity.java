@@ -8,7 +8,8 @@ import com.ecocraft2.common.kinetic.RotorSpec;
 import com.ecocraft2.common.kinetic.RotorWearAccumulator;
 import com.ecocraft2.config.Ecc2Config;
 import com.ecocraft2.solar.SolarKineticRegistry;
-import com.industrialage.ia2.content.WindHeight;
+import java.util.ArrayDeque;
+import java.util.HashSet;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
@@ -43,8 +44,8 @@ import org.jetbrains.annotations.Nullable;
  * BlockEntity for the 6 Advanced Wind & Water Kinetic Generators.
  *
  * <p>Implements {@link Ecc2KineticSource} so IC2NE's {@code ic2:kinetic_generator} draws KU
- * natively out of the shaft face ({@code facing}), while the 3D spinning rotor renders on
- * {@code facing.getOpposite()}.
+ * natively out of the shaft face ({@code facing.getOpposite()}), while the 3D spinning rotor
+ * renders on the front face ({@code facing}).
  */
 public final class AdvancedKineticBlockEntity extends BlockEntity
         implements Ecc2KineticSource, MenuProvider {
@@ -55,6 +56,9 @@ public final class AdvancedKineticBlockEntity extends BlockEntity
     public static final int STATUS_NO_WATER = 3;
     public static final int STATUS_OVERWIND = 4;
 
+    private static final int MAX_WATER_BFS_NODES = 512;
+    private static final int MIN_NATURAL_WATER_BLOCKS = 24;
+
     private final boolean water;
     private final KineticMachineTier tier;
     private final RotorWearAccumulator wearAccumulator = new RotorWearAccumulator();
@@ -63,6 +67,8 @@ public final class AdvancedKineticBlockEntity extends BlockEntity
     private int currentWindMcw;
     private int statusCode = STATUS_NO_ROTOR;
     private boolean overWind;
+    private boolean naturalWaterConnected;
+    private long lastWaterCheckTick = Long.MIN_VALUE;
     private long drawnTick = Long.MIN_VALUE;
 
     // Client-synced 3D rotor render fields (0=none, 1=wood, 2=iron, 3=bronze, 4=steel, 5=carbon)
@@ -147,7 +153,7 @@ public final class AdvancedKineticBlockEntity extends BlockEntity
         return tier;
     }
 
-    public Direction shaftFacing() {
+    public Direction rotorFace() {
         BlockState state = getBlockState();
         if (state.getBlock() instanceof AdvancedKineticBlock block) {
             return state.getValue(block.facingProperty());
@@ -155,8 +161,8 @@ public final class AdvancedKineticBlockEntity extends BlockEntity
         return Direction.NORTH;
     }
 
-    public Direction rotorFace() {
-        return shaftFacing().getOpposite();
+    public Direction shaftFacing() {
+        return rotorFace().getOpposite();
     }
 
     public int visualRotorType() {
@@ -247,8 +253,13 @@ public final class AdvancedKineticBlockEntity extends BlockEntity
     }
 
     private int sampleWindKu(ServerLevel level, RotorSpec spec) {
-        Direction shaft = shaftFacing();
         Direction rotorDir = rotorFace();
+        if (!rotorDir.getAxis().isHorizontal()) {
+            currentWindMcw = 0;
+            overWind = false;
+            statusCode = STATUS_OBSTRUCTED;
+            return 0;
+        }
         int diameter = spec.windDiameter();
         if (!isRotorSweepClear(level, rotorDir, diameter, false)) {
             currentWindMcw = 0;
@@ -256,7 +267,7 @@ public final class AdvancedKineticBlockEntity extends BlockEntity
             statusCode = STATUS_OBSTRUCTED;
             return 0;
         }
-        int wind = Ecc2RotorHooks.computeWindStrength(level, worldPosition, shaft);
+        int wind = Ecc2RotorHooks.computeWindStrength(level, worldPosition, shaftFacing());
         if (level.isThundering()) {
             wind = (int) Math.round(wind * 1.5);
         } else if (level.isRaining()) {
@@ -266,10 +277,7 @@ public final class AdvancedKineticBlockEntity extends BlockEntity
         overWind = KineticCalculation.isOverWind(wind, spec);
         statusCode = overWind ? STATUS_OVERWIND : STATUS_OK;
 
-        BlockPos center = worldPosition.relative(rotorDir);
-        double heightFactor = WindHeight.response(center.getY());
-        double clearance = WindHeight.clearance(diameter);
-        double ku = wind * (spec.rating() / 100.0) * heightFactor * clearance;
+        double ku = (wind * (double) spec.rating()) / 100.0;
         return Math.max(0, (int) Math.round(ku));
     }
 
@@ -282,35 +290,30 @@ public final class AdvancedKineticBlockEntity extends BlockEntity
             statusCode = STATUS_OBSTRUCTED;
             return 0;
         }
+        long now = level.getGameTime();
+        if (now - lastWaterCheckTick >= 40L || lastWaterCheckTick == Long.MIN_VALUE) {
+            lastWaterCheckTick = now;
+            naturalWaterConnected = checkNaturalWaterConnectivity(level, rotorDir);
+        }
+        if (!naturalWaterConnected) {
+            currentWindMcw = 0;
+            overWind = false;
+            statusCode = STATUS_NO_WATER;
+            return 0;
+        }
         BlockPos hub = worldPosition.relative(rotorDir);
         Holder<Biome> biome = level.getBiome(hub);
-        boolean isRiver = biome.is(BiomeTags.IS_RIVER);
-        boolean isOcean = biome.is(BiomeTags.IS_OCEAN) || biome.is(BiomeTags.IS_DEEP_OCEAN);
-        int baseFlow;
-        if (biome.is(BiomeTags.IS_DEEP_OCEAN)) {
-            baseFlow = 80;
-        } else if (isOcean) {
-            baseFlow = 60;
-        } else if (isRiver) {
-            baseFlow = 50;
-        } else {
-            currentWindMcw = 0;
-            overWind = false;
-            statusCode = STATUS_NO_WATER;
-            return 0;
-        }
-        // Require a natural connected water body around the rotor hub (at least 16 water blocks)
-        int waterBlocks = countNearbyWater(level, hub);
-        if (waterBlocks < 16) {
-            currentWindMcw = 0;
-            overWind = false;
-            statusCode = STATUS_NO_WATER;
-            return 0;
-        }
-        currentWindMcw = baseFlow;
+        int biomeBase =
+                biome.is(BiomeTags.IS_DEEP_OCEAN)
+                        ? 100
+                        : (biome.is(BiomeTags.IS_OCEAN) ? 90 : 80);
+        long phase = now / 200L;
+        int flow =
+                biomeBase + 10 * Math.floorMod(phase + worldPosition.getX() + worldPosition.getZ(), 3);
+        currentWindMcw = flow;
         overWind = false;
         statusCode = STATUS_OK;
-        return Math.max(1, (int) Math.round(baseFlow * (spec.rating() / 100.0)));
+        return Math.max(1, (int) Math.round((flow * (double) spec.rating()) / 100.0));
     }
 
     private boolean isRotorSweepClear(
@@ -318,8 +321,13 @@ public final class AdvancedKineticBlockEntity extends BlockEntity
         BlockPos center = worldPosition.relative(rotorDir);
         int radius = Math.max(1, diameter / 2);
         Direction.Axis axis = rotorDir.getAxis();
+        int totalCells = 0;
+        int waterCells = 0;
         for (int a = -radius; a <= radius; a++) {
             for (int b = -radius; b <= radius; b++) {
+                if (a * a + b * b > radius * radius + 1) {
+                    continue;
+                }
                 BlockPos check =
                         switch (axis) {
                             case X -> center.offset(0, a, b);
@@ -330,34 +338,59 @@ public final class AdvancedKineticBlockEntity extends BlockEntity
                     return false;
                 }
                 BlockState st = level.getBlockState(check);
-                if (requireWater) {
-                    if (!st.getFluidState().is(FluidTags.WATER)) {
-                        return false;
-                    }
-                } else {
-                    if (!st.isAir() && st.getMaterial().blocksMotion()) {
-                        return false;
-                    }
+                if (!st.getCollisionShape(level, check).isEmpty()) {
+                    return false;
+                }
+                totalCells++;
+                if (requireWater && st.getFluidState().is(FluidTags.WATER)) {
+                    waterCells++;
                 }
             }
         }
-        return true;
+        if (requireWater) {
+            return totalCells > 0
+                    && level.hasChunkAt(center)
+                    && level.getFluidState(center).is(FluidTags.WATER)
+                    && waterCells * 2 >= totalCells;
+        }
+        return totalCells > 0;
     }
 
-    private static int countNearbyWater(ServerLevel level, BlockPos center) {
-        int found = 0;
-        for (int dx = -2; dx <= 2; dx++) {
-            for (int dy = -1; dy <= 1; dy++) {
-                for (int dz = -2; dz <= 2; dz++) {
-                    BlockPos p = center.offset(dx, dy, dz);
-                    if (level.hasChunkAt(p)
-                            && level.getFluidState(p).is(FluidTags.WATER)) {
-                        found++;
-                    }
+    private boolean checkNaturalWaterConnectivity(ServerLevel level, Direction rotorDir) {
+        BlockPos hub = worldPosition.relative(rotorDir);
+        if (!level.hasChunkAt(hub) || !level.getFluidState(hub).is(FluidTags.WATER)) {
+            return false;
+        }
+        var queue = new ArrayDeque<BlockPos>();
+        var visited = new HashSet<Long>();
+        queue.add(hub);
+        visited.add(hub.asLong());
+
+        int naturalWaterCount = 0;
+        while (!queue.isEmpty() && visited.size() < MAX_WATER_BFS_NODES) {
+            BlockPos cur = queue.poll();
+            Holder<Biome> biome = level.getBiome(cur);
+            if (biome.is(BiomeTags.IS_RIVER)
+                    || biome.is(BiomeTags.IS_OCEAN)
+                    || biome.is(BiomeTags.IS_DEEP_OCEAN)) {
+                naturalWaterCount++;
+                if (naturalWaterCount >= MIN_NATURAL_WATER_BLOCKS) {
+                    return true;
+                }
+            }
+            for (Direction dir : Direction.values()) {
+                BlockPos next = cur.relative(dir);
+                if (Math.abs(next.getY() - hub.getY()) > 6) {
+                    continue;
+                }
+                if (visited.add(next.asLong())
+                        && level.hasChunkAt(next)
+                        && level.getFluidState(next).is(FluidTags.WATER)) {
+                    queue.add(next);
                 }
             }
         }
-        return found;
+        return naturalWaterCount >= MIN_NATURAL_WATER_BLOCKS;
     }
 
     private static int rotorVisualId(ItemStack stack) {

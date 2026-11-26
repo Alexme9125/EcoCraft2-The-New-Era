@@ -5,18 +5,18 @@ import com.ecocraft2.bridge.Ecc2RotorHooks;
 import com.ecocraft2.client.Ecc2ClientSetup;
 import com.ecocraft2.compat.Ecc2TopCompat;
 import com.ecocraft2.config.Ecc2Config;
+import com.ecocraft2.config.SolarConfigRecipeCondition;
 import com.ecocraft2.gas.GasRegistry;
 import com.ecocraft2.giant.GiantRegistry;
 import com.ecocraft2.network.Ecc2Network;
 import com.ecocraft2.registry.Ecc2Registries;
-import com.ecocraft2.solar.DyeableSolarHelmetItem;
 import com.ecocraft2.solar.SolarHelmetItem;
 import com.ecocraft2.solar.SolarKineticRegistry;
-import net.minecraft.world.Container;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.common.crafting.CraftingHelper;
 import net.minecraftforge.event.entity.player.ItemTooltipEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
@@ -26,6 +26,8 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.InterModEnqueueEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraftforge.registries.RegisterEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -58,16 +60,23 @@ public final class EcoCraft2 {
 
         IEventBus modBus = FMLJavaModLoadingContext.get().getModEventBus();
         Ecc2Registries.registerAll(modBus);
+        modBus.addListener(this::onRegisterEvent);
         modBus.addListener(this::onCommonSetup);
         modBus.addListener(this::onInterModEnqueue);
 
         IEventBus gameBus = MinecraftForge.EVENT_BUS;
         gameBus.addListener(this::onItemTooltip);
-        gameBus.addListener(this::onItemCrafted);
+        gameBus.addListener(this::onPlayerLoggedOut);
 
         DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> Ecc2ClientSetup.register(modBus));
 
         LOG.info("Initialized EcoCraft 2: The New Era (Forge 1.19.2)");
+    }
+
+    private void onRegisterEvent(RegisterEvent event) {
+        if (event.getRegistryKey().equals(ForgeRegistries.Keys.RECIPE_SERIALIZERS)) {
+            CraftingHelper.register(SolarConfigRecipeCondition.Serializer.INSTANCE);
+        }
     }
 
     private void onCommonSetup(FMLCommonSetupEvent event) {
@@ -84,31 +93,8 @@ public final class EcoCraft2 {
         Ecc2RotorHooks.appendRotorTooltip(event.getItemStack(), event.getToolTip());
     }
 
-    /**
-     * Preserves leather dye color and stored EU when upgrading a Hybrid Solar Helmet into an
-     * Ultimate Hybrid Solar Helmet via the shapeless upgrade recipe.
-     */
-    private void onItemCrafted(PlayerEvent.ItemCraftedEvent event) {
-        ItemStack result = event.getCrafting();
-        if (!(result.getItem() instanceof DyeableSolarHelmetItem targetHelmet)
-                || result.getItem() != SolarKineticRegistry.ULTIMATE_HYBRID_SOLAR_HELMET.get()) {
-            return;
-        }
-        Container craftMatrix = event.getInventory();
-        for (int i = 0; i < craftMatrix.getContainerSize(); i++) {
-            ItemStack ingredient = craftMatrix.getItem(i);
-            if (ingredient.getItem() == SolarKineticRegistry.HYBRID_SOLAR_HELMET.get()
-                    && ingredient.getItem() instanceof DyeableSolarHelmetItem sourceHelmet) {
-                if (sourceHelmet.hasCustomColor(ingredient)) {
-                    targetHelmet.setColor(result, sourceHelmet.getColor(ingredient));
-                }
-                double priorEu = ((SolarHelmetItem) sourceHelmet).ecc2Stored(ingredient);
-                if (priorEu > 0.0) {
-                    targetHelmet.ecc2SetStored(result, priorEu);
-                }
-                return;
-            }
-        }
+    private void onPlayerLoggedOut(PlayerEvent.PlayerLoggedOutEvent event) {
+        SolarHelmetItem.clearPlayerEngine(event.getEntity().getUUID());
     }
 
     private static void registerDefaultIc2Bridges() {
@@ -130,6 +116,7 @@ public final class EcoCraft2 {
         Ecc2ExternalRecipes.registerCompressor("ic2:uranium_ore", 1, "ecc2:uranium_ingot", 1);
         Ecc2ExternalRecipes.registerCompressor(
                 "ic2:deepslate_uranium_ore", 1, "ecc2:uranium_ingot", 1);
+        Ecc2ExternalRecipes.registerCompressor("ic2:raw_uranium", 1, "ecc2:uranium_ingot", 1);
         Ecc2ExternalRecipes.registerCompressor("ic2:crushed_uranium", 1, "ecc2:uranium_ingot", 1);
         Ecc2ExternalRecipes.registerCompressor("ic2:purified_uranium", 1, "ecc2:uranium_ingot", 1);
         Ecc2ExternalRecipes.registerCompressor("ic2:uranium", 1, "ecc2:uranium_ingot", 1);

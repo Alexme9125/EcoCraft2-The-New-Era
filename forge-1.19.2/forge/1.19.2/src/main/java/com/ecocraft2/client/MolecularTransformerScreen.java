@@ -2,9 +2,9 @@ package com.ecocraft2.client;
 
 import com.ecocraft2.bridge.Ecc2BridgePlatform;
 import com.ecocraft2.solar.MolecularTransformerMenu;
+import com.industrialage.ia2.gui.DeviceScreen;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
-import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -12,8 +12,7 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
 
 /** GUI screen for the Molecular Transformer (220x193, vertical progress fill + LCD telemetry). */
-public final class MolecularTransformerScreen
-        extends AbstractContainerScreen<MolecularTransformerMenu> {
+public final class MolecularTransformerScreen extends DeviceScreen<MolecularTransformerMenu> {
 
     private static final ResourceLocation TEXTURE =
             Ecc2BridgePlatform.rl("textures/gui/molecular_transformer.png");
@@ -30,9 +29,9 @@ public final class MolecularTransformerScreen
     }
 
     @Override
-    public void render(PoseStack poseStack, int mouseX, int mouseY, float partialTick) {
+    protected void renderPanel(PoseStack poseStack, int mouseX, int mouseY, float partialTick) {
         renderBackground(poseStack);
-        super.render(poseStack, mouseX, mouseY, partialTick);
+        super.renderPanel(poseStack, mouseX, mouseY, partialTick);
         renderTooltip(poseStack, mouseX, mouseY);
     }
 

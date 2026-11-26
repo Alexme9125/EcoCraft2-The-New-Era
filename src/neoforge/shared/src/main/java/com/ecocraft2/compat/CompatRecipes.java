@@ -10,6 +10,7 @@ import com.ecocraft2.common.gas.WaterGasEngine;
 import com.ecocraft2.common.giant.GiantMachineEngine;
 import com.ecocraft2.common.giant.GiantMachineSpec;
 import com.ecocraft2.common.solar.SolarTier;
+import com.ecocraft2.config.Ecc2Config;
 import com.ecocraft2.gas.Ecc2Fluids;
 import com.ecocraft2.giant.GiantGasModule;
 import com.ecocraft2.giant.GiantGasPlatform;
@@ -140,12 +141,16 @@ public final class CompatRecipes {
                         WaterGasEngine.GAS_OUTPUT_PER_OP_MB,
                         WaterGasEngine.BASE_EU_PER_OP,
                         WaterGasEngine.BASE_TICKS_PER_OP,
-                        Component.literal("Solar +2 EU/t (Day) + LV (Tier 1)")));
+                        Component.translatable(
+                                "jei.ecc2.water_gas.note",
+                                Ecc2DataSync.formatInt(Ecc2Config.waterGasSolarEuPerTick()))));
     }
 
-    /** Builds the 3 Gas Furnace fuel entries (50 mB / 100t per smelt). */
+    /** Builds the 3 Gas Furnace fuel entries (configured mB / base ticks per smelt). */
     public static List<GasFurnaceFuelEntry> gasFurnaceFuelRecipes() {
         var list = new ArrayList<GasFurnaceFuelEntry>(3);
+        int mbPerItem = Ecc2Config.gasFurnaceGasPerItem();
+        int baseTicks = Ecc2Config.gasFurnaceBaseTicks();
         for (GasFuelSpec spec : GasFuelSpec.values()) {
             Fluid fluid = GiantGasPlatform.findFluid(spec.fluidId());
             if (fluid != Fluids.EMPTY) {
@@ -154,27 +159,39 @@ public final class CompatRecipes {
                                 "ecc2:gas_furnace/" + spec.name().toLowerCase(Locale.ROOT),
                                 spec,
                                 fluid,
-                                GasFurnaceEngine.GAS_PER_ITEM_MB,
-                                GasFurnaceEngine.BASE_SMELT_TICKS));
+                                mbPerItem,
+                                baseTicks));
             }
         }
         return list;
     }
 
-    /** Builds the 3 Gas Generator fuel entries (exact EU / 1,000 mB and EU/t). */
+    /** Builds the 3 Gas Generator fuel entries (configured EU / 1,000 mB and EU/t). */
     public static List<GasGenFuelEntry> gasGeneratorFuelRecipes() {
         var list = new ArrayList<GasGenFuelEntry>(3);
         for (GasFuelSpec spec : GasFuelSpec.values()) {
             Fluid fluid = GiantGasPlatform.findFluid(spec.fluidId());
             if (fluid != Fluids.EMPTY) {
+                int euPerBucket =
+                        switch (spec) {
+                            case WATER_GAS -> Ecc2Config.waterGasEnergyPerBucket();
+                            case NATURAL_GAS -> Ecc2Config.naturalGasEnergyPerBucket();
+                            case BIOGAS -> Ecc2Config.biogasEnergyPerBucket();
+                        };
+                int euPerTick =
+                        switch (spec) {
+                            case WATER_GAS -> Ecc2Config.waterGasOutputEuPerTick();
+                            case NATURAL_GAS -> Ecc2Config.naturalGasOutputEuPerTick();
+                            case BIOGAS -> Ecc2Config.biogasOutputEuPerTick();
+                        };
                 list.add(
                         new GasGenFuelEntry(
                                 "ecc2:gas_generator/" + spec.name().toLowerCase(Locale.ROOT),
                                 spec,
                                 fluid,
                                 1000,
-                                spec.euPerBucket(),
-                                spec.euPerTick()));
+                                euPerBucket,
+                                euPerTick));
             }
         }
         return list;
@@ -193,7 +210,7 @@ public final class CompatRecipes {
                         CultureIncubatorEngine.CULTURE_OUTPUT_PER_OP_MB,
                         CultureIncubatorEngine.BASE_EU_PER_OP,
                         CultureIncubatorEngine.BASE_TICKS_PER_OP,
-                        Component.literal("LV (Tier 1) · Fills Universal & Basic Cells")));
+                        Component.translatable("jei.ecc2.culture_incubator.note")));
     }
 
     /**
@@ -206,6 +223,8 @@ public final class CompatRecipes {
         if (biogas == Fluids.EMPTY) {
             return List.of();
         }
+        int biogasPerHunger = Ecc2Config.organicFermenterBiogasPerHunger();
+        int culturePerOp = Ecc2Config.organicFermenterCulturePerOp();
         var list = new ArrayList<FermenterEntry>();
         for (Item item : BuiltInRegistries.ITEM) {
             if (item == Items.AIR) {
@@ -216,7 +235,11 @@ public final class CompatRecipes {
             if (nutrition <= 0) {
                 continue;
             }
-            int yieldMb = OrganicFermenterEngine.biogasYieldForNutrition(nutrition);
+            int yieldMb =
+                    (int)
+                            Math.min(
+                                    OrganicFermenterEngine.BIOGAS_TANK_CAPACITY_MB,
+                                    (long) nutrition * biogasPerHunger);
             if (yieldMb <= 0) {
                 continue;
             }
@@ -229,7 +252,7 @@ public final class CompatRecipes {
                             nutrition,
                             remainder,
                             culture,
-                            OrganicFermenterEngine.CULTURE_PER_OP_MB,
+                            culturePerOp,
                             biogas,
                             yieldMb,
                             OrganicFermenterEngine.BASE_EU_PER_OP,
@@ -262,7 +285,7 @@ public final class CompatRecipes {
                 list.add(
                         new Ic2BridgeEntry(
                                 "ecc2:ic2_recipes/canning_" + (canIdx++),
-                                Component.literal("IC2 Canning Machine (Bottle Mode)"),
+                                Component.translatable("jei.ecc2.ic2_bridge.canning"),
                                 List.of(ingredient, container),
                                 output,
                                 canners));
@@ -279,7 +302,7 @@ public final class CompatRecipes {
                 list.add(
                         new Ic2BridgeEntry(
                                 "ecc2:ic2_recipes/compressor_" + (compIdx++),
-                                Component.literal("IC2 Compressor / Giant Compressor"),
+                                Component.translatable("jei.ecc2.ic2_bridge.compressor"),
                                 List.of(input),
                                 output,
                                 compressors));
@@ -295,7 +318,7 @@ public final class CompatRecipes {
                 list.add(
                         new Ic2BridgeEntry(
                                 "ecc2:ic2_recipes/extruder_" + (extIdx++),
-                                Component.literal("IC2 Metal Former (Extruding)"),
+                                Component.translatable("jei.ecc2.ic2_bridge.extruder"),
                                 List.of(input),
                                 output,
                                 formers));
@@ -339,7 +362,7 @@ public final class CompatRecipes {
                             unitCube,
                             sourceIcon,
                             GiantMachineEngine.LANE_COUNT,
-                            GiantMachineEngine.MAX_BATCH_PER_LANE,
+                            Ecc2Config.giantMaxBatchPerLane(),
                             spec.baseTier(),
                             (int) Math.round(SolarTier.packetSize(spec.baseTier())),
                             spec.baseEuPerTick(),
@@ -374,10 +397,14 @@ public final class CompatRecipes {
                                 new ItemStack(Ecc2Fluids.NATURAL_GAS_CELL.get())),
                         List.of(
                                 Component.translatable("tooltip.ecc2.methane_ice_cluster"),
-                                Component.literal(
-                                        "Can 3x Methane Ice Cluster + 1x Universal Fluid Cell -> 1x Natural Gas Cell in any IC2 Canner."),
-                                Component.literal(
-                                        "Natural Gas fuels Gas Furnaces (50 mB/item) and Gas Generators (10,000 EU/B @ 64 EU/t)."))));
+                                Component.translatable("jei.ecc2.info.methane_ice.canning"),
+                                Component.translatable(
+                                        "jei.ecc2.info.methane_ice.fuel",
+                                        Ecc2DataSync.formatInt(Ecc2Config.gasFurnaceGasPerItem()),
+                                        Ecc2DataSync.formatInt(
+                                                Ecc2Config.naturalGasEnergyPerBucket()),
+                                        Ecc2DataSync.formatInt(
+                                                Ecc2Config.naturalGasOutputEuPerTick())))));
         pages.add(
                 new InfoPage(
                         "ecc2:info/giant_machines",
@@ -385,8 +412,7 @@ public final class CompatRecipes {
                         List.of(
                                 Component.translatable("tooltip.ecc2.giant_unit"),
                                 Component.translatable("tooltip.ecc2.giant_unit.ports"),
-                                Component.literal(
-                                        "Right-click any formed block to open the 9-lane parallel GUI and configure the 8 lower-corner I/O ports (Full / Input / Output / Blocked)."))));
+                                Component.translatable("jei.ecc2.info.giant_machines.usage"))));
         pages.add(
                 new InfoPage(
                         "ecc2:info/culture_cells",
@@ -404,36 +430,38 @@ public final class CompatRecipes {
 
     /** Formats a Giant Machine's compact spec line for JEI/EMI category views. */
     public static Component giantSpecLine(GiantMachineEntry entry) {
-        String base =
-                entry.lanes()
-                        + "×"
-                        + entry.batchPerLane()
-                        + " ops · "
-                        + entry.baseEuPerTick()
-                        + " EU/t · "
-                        + entry.baseTicks()
-                        + "t";
         if (entry.waterPerOpMb() > 0) {
-            return Component.literal(
-                    base
-                            + " · "
-                            + Ecc2DataSync.formatInt(entry.waterPerOpMb())
-                            + " mB Water");
+            return Component.translatable(
+                    "jei.ecc2.giant.spec_water",
+                    entry.lanes(),
+                    entry.batchPerLane(),
+                    entry.baseEuPerTick(),
+                    entry.baseTicks(),
+                    Ecc2DataSync.formatInt(entry.waterPerOpMb()));
         }
         if (entry.scrapChanceDenom() > 0) {
-            return Component.literal(base + " · 1/" + entry.scrapChanceDenom() + " Scrap");
+            return Component.translatable(
+                    "jei.ecc2.giant.spec_scrap",
+                    entry.lanes(),
+                    entry.batchPerLane(),
+                    entry.baseEuPerTick(),
+                    entry.baseTicks(),
+                    entry.scrapChanceDenom());
         }
-        return Component.literal(base);
+        return Component.translatable(
+                "jei.ecc2.giant.spec",
+                entry.lanes(),
+                entry.batchPerLane(),
+                entry.baseEuPerTick(),
+                entry.baseTicks());
     }
 
     /** Formats a Giant Machine's power tier and port summary line. */
     public static Component giantPowerLine(GiantMachineEntry entry) {
-        return Component.literal(
-                "3×3×3 Cube · Tier "
-                        + entry.baseTier()
-                        + " ("
-                        + Ecc2DataSync.formatInt(entry.maxPacketEu())
-                        + " EU/t) · 8 Corner Ports");
+        return Component.translatable(
+                "jei.ecc2.giant.power",
+                entry.baseTier(),
+                Ecc2DataSync.formatInt(entry.maxPacketEu()));
     }
 
     private static List<ItemStack> collectCoalDustInputs() {

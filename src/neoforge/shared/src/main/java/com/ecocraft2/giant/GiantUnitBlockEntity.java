@@ -22,7 +22,9 @@ import com.industrialage.ia2.power.WorldEnergy;
 import com.industrialage.ia2.power.WorldPowerPort;
 import java.util.ArrayList;
 import java.util.EnumSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.IntStream;
@@ -57,7 +59,6 @@ public final class GiantUnitBlockEntity extends Ecc2BlockEntityBase
                 EuBuffer,
                 MachineAccessTarget,
                 Ecc2CapabilityProvider,
-                ProcessingSlots,
                 MenuProvider {
 
     public static final int INPUT_START = 0;
@@ -86,6 +87,7 @@ public final class GiantUnitBlockEntity extends Ecc2BlockEntityBase
     private final GiantMachineType machineType;
     private final NonNullList<ItemStack> items =
             NonNullList.withSize(INVENTORY_SIZE, ItemStack.EMPTY);
+    private final ProcessingSlots coreAutomationSlots = new CoreAutomationSlots();
     private GiantMachineEngine engine;
 
     private boolean formed;
@@ -93,6 +95,7 @@ public final class GiantUnitBlockEntity extends Ecc2BlockEntityBase
     private BlockPos corePos;
     private Direction structureFacing = Direction.NORTH;
     private boolean dissolved;
+    private boolean pendingPortVisualSync;
     private int lastTick = Integer.MIN_VALUE;
 
     public GiantUnitBlockEntity(BlockPos pos, BlockState state) {
@@ -170,13 +173,31 @@ public final class GiantUnitBlockEntity extends Ecc2BlockEntityBase
         }
     }
 
-    // ---- Server Tick (CORE only) ----
+    // ---- Server Tick (CORE processing + cross-chunk integrity & orphan recovery) ----
 
     void serverTick(ServerLevel level, BlockState state) {
-        if (!formed || role != GiantBlockRole.CORE) {
+        if (!formed) {
             return;
         }
-        lastTick = level.getServer().getTickCount();
+        int tickCount = level.getServer().getTickCount();
+        if (role != GiantBlockRole.CORE) {
+            if (Math.floorMod(tickCount + worldPosition.hashCode(), 20) == 0) {
+                tryRecoverOrphan(level, state);
+            }
+            return;
+        }
+        lastTick = tickCount;
+        if (pendingPortVisualSync) {
+            pendingPortVisualSync = false;
+            refreshAllCorners(level);
+        }
+        if (Math.floorMod(tickCount + worldPosition.hashCode(), 20) == 0) {
+            BlockPos brokenPos = findBrokenMember(level);
+            if (brokenPos != null) {
+                GiantMultiblockController.dissolve(level, worldPosition, brokenPos, null);
+                return;
+            }
+        }
         boolean changed = false;
 
         // 1. Refresh IC2 upgrades (Overclocker, Transformer, Energy Storage).
@@ -200,13 +221,11 @@ public final class GiantUnitBlockEntity extends Ecc2BlockEntityBase
                 !Ecc2UpgradeHelper.hasRedstoneInverter(upgradeList)
                         || hasMultiblockRedstoneSignal(level);
 
-        // 5. Tick 9-lane x 3-op parallel GiantMachineEngine.
-        int maxBatchCfg =
-                Math.max(
-                        1,
-                        Math.min(
-                                GiantMachineEngine.MAX_BATCH_PER_LANE,
-                                Ecc2Config.giantMaxBatchPerLane()));
+        // 5. Tick 9-lane parallel GiantMachineEngine using configured per-lane batch cap.
+        int maxBatchCfg = Math.max(1, Math.min(64, Ecc2Config.giantMaxBatchPerLane()));
+        if (engine.maxBatchPerLane() != maxBatchCfg) {
+            engine.setMaxBatchPerLane(maxBatchCfg);
+        }
         if (canRun) {
             var summary =
                     engine.tick(
@@ -215,6 +234,12 @@ public final class GiantUnitBlockEntity extends Ecc2BlockEntityBase
                                 public int availableBatch(int lane, int maxBatch) {
                                     int capped = Math.min(maxBatch, maxBatchCfg);
                                     return computeAvailableBatch(level, lane, capped);
+                                }
+
+                                @Override
+                                public int availableInputBatch(int lane, int maxBatch) {
+                                    int capped = Math.min(maxBatch, maxBatchCfg);
+                                    return computeAvailableInputBatch(level, lane, capped);
                                 }
 
                                 @Override
@@ -241,6 +266,55 @@ public final class GiantUnitBlockEntity extends Ecc2BlockEntityBase
         if (changed) {
             setChanged();
         }
+    }
+
+    /** Recovers a non-core block orphaned when its core was broken across a chunk boundary. */
+    boolean tryRecoverOrphan(ServerLevel level, BlockState state) {
+        if (!formed || role == GiantBlockRole.CORE) {
+            return false;
+        }
+        if (corePos != null && !level.hasChunkAt(corePos)) {
+            return false;
+        }
+        if (coreEntity() != null) {
+            return false;
+        }
+        WorldEnergy.disconnect(this);
+        unbindFormed();
+        if (state.getBlock() instanceof GiantUnitBlock) {
+            BlockState unformed =
+                    state.setValue(GiantUnitBlock.FORMED, false)
+                            .setValue(GiantUnitBlock.ACTIVE, false)
+                            .setValue(GiantUnitBlock.ROLE, GiantBlockRole.UNFORMED)
+                            .setValue(GiantUnitBlock.PORT_MODE, GiantPortVisual.FULL);
+            level.setBlock(worldPosition, unformed, Block.UPDATE_ALL);
+        }
+        invalidateCapabilities();
+        TransportBlock.refreshConnections(level, worldPosition);
+        return true;
+    }
+
+    private BlockPos findBrokenMember(ServerLevel level) {
+        MultiblockBounds bounds =
+                MultiblockGeometry.boundsFromCore(GiantMultiblockController.toPos3(worldPosition));
+        for (BlockPos3 p3 : bounds.allPositions()) {
+            BlockPos pos = GiantMultiblockController.toBlockPos(p3);
+            if (!level.hasChunkAt(pos)) {
+                continue;
+            }
+            BlockState st = level.getBlockState(pos);
+            if (!(st.getBlock() instanceof GiantUnitBlock unit)
+                    || unit.machineType() != machineType
+                    || !st.getValue(GiantUnitBlock.FORMED)) {
+                return pos;
+            }
+            if (!(level.getBlockEntity(pos) instanceof GiantUnitBlockEntity member)
+                    || !member.isFormed()
+                    || !worldPosition.equals(member.corePos())) {
+                return pos;
+            }
+        }
+        return null;
     }
 
     private boolean hasMultiblockRedstoneSignal(ServerLevel level) {
@@ -300,6 +374,18 @@ public final class GiantUnitBlockEntity extends Ecc2BlockEntityBase
             mergeIntoSlot(SLOT_WASHER_OUT, remainder);
         }
         return true;
+    }
+
+    private int computeAvailableInputBatch(ServerLevel level, int lane, int maxBatch) {
+        ItemStack input = items.get(INPUT_START + lane);
+        if (input.isEmpty() || maxBatch <= 0) {
+            return 0;
+        }
+        GiantRecipeAdapter.Result recipe = machineType.recipeAdapter().resolve(level, input);
+        if (recipe == null || recipe.inputCount() <= 0) {
+            return 0;
+        }
+        return Math.min(maxBatch, input.getCount() / recipe.inputCount());
     }
 
     private int computeAvailableBatch(ServerLevel level, int lane, int maxBatch) {
@@ -442,7 +528,7 @@ public final class GiantUnitBlockEntity extends Ecc2BlockEntityBase
                         level,
                         upgradeList,
                         endpoints,
-                        this,
+                        coreAutomationSlots,
                         INPUT_SLOTS,
                         outSlots,
                         stack -> machineType.recipeAdapter().acceptsInput(level, stack));
@@ -525,11 +611,33 @@ public final class GiantUnitBlockEntity extends Ecc2BlockEntityBase
 
     private void refreshAllCorners(ServerLevel level) {
         BlockFace facing = GiantMultiblockController.toBlockFace(structureFacing);
+        GiantPortPermissions perms = engine.portPermissions();
+        Map<BlockPos, List<PortAccessMode>> cornerModes = new LinkedHashMap<>(4);
         for (GiantCornerPort port : GiantCornerPort.values()) {
             BlockPos3 off = port.cornerOffset(facing);
             BlockPos cornerPos = worldPosition.offset(off.x(), off.y(), off.z());
-            if (level.hasChunkAt(cornerPos)
-                    && level.getBlockEntity(cornerPos) instanceof GiantUnitBlockEntity cornerBe) {
+            cornerModes.computeIfAbsent(cornerPos, ignored -> new ArrayList<>(2)).add(perms.get(port));
+        }
+        for (var entry : cornerModes.entrySet()) {
+            BlockPos cornerPos = entry.getKey();
+            if (!level.hasChunkAt(cornerPos)) {
+                continue;
+            }
+            List<PortAccessMode> modes = entry.getValue();
+            PortAccessMode first = modes.isEmpty() ? PortAccessMode.BLOCKED : modes.get(0);
+            PortAccessMode second = modes.size() > 1 ? modes.get(1) : first;
+            GiantPortVisual visual = GiantPortVisual.combine(first, second);
+            BlockState cornerState = level.getBlockState(cornerPos);
+            if (cornerState.getBlock() instanceof GiantUnitBlock
+                    && cornerState.getValue(GiantUnitBlock.FORMED)
+                    && cornerState.getValue(GiantUnitBlock.ROLE) == GiantBlockRole.CORNER
+                    && cornerState.getValue(GiantUnitBlock.PORT_MODE) != visual) {
+                level.setBlock(
+                        cornerPos,
+                        cornerState.setValue(GiantUnitBlock.PORT_MODE, visual),
+                        Block.UPDATE_CLIENTS);
+            }
+            if (level.getBlockEntity(cornerPos) instanceof GiantUnitBlockEntity cornerBe) {
                 cornerBe.invalidateCapabilities();
                 TransportBlock.refreshConnections(level, cornerPos);
             }
@@ -540,7 +648,7 @@ public final class GiantUnitBlockEntity extends Ecc2BlockEntityBase
 
     @Override
     public EnergyGraph.Ports energyPorts() {
-        if (!formed || corePos == null) {
+        if (!formed || corePos == null || coreEntity() == null) {
             return EMPTY_PORTS;
         }
         MultiblockBounds bounds =
@@ -573,7 +681,9 @@ public final class GiantUnitBlockEntity extends Ecc2BlockEntityBase
     @Override
     public double packetLimit() {
         GiantUnitBlockEntity core = coreEntity();
-        return core == null ? 0.0 : core.engine.maxInputPacket();
+        // Never return 0.0 for an orphaned or cross-chunk unloaded core (which would trigger
+        // spurious overvoltage explosions on adjacent cables before orphan recovery runs).
+        return core == null ? Double.POSITIVE_INFINITY : core.engine.maxInputPacket();
     }
 
     @Override
@@ -614,8 +724,15 @@ public final class GiantUnitBlockEntity extends Ecc2BlockEntityBase
 
     @Override
     public boolean exchangeHeldFluid(Player player, InteractionHand hand, Direction side) {
+        var portOpt = cornerPortFor(side);
+        if (portOpt.isEmpty()) {
+            return false;
+        }
         GiantUnitBlockEntity core = coreEntity();
         if (core == null || !core.usesWater()) {
+            return false;
+        }
+        if (!core.engine.portPermissions().allowsInput(portOpt.get())) {
             return false;
         }
         return GiantGasPlatform.interactPlayerFluid(
@@ -633,7 +750,12 @@ public final class GiantUnitBlockEntity extends Ecc2BlockEntityBase
             return null;
         }
         PortAccessMode mode = core.engine.portPermissions().get(portOpt.get());
-        return mode.connects() ? core : null;
+        return mode.connects() ? core.coreAutomationSlots : null;
+    }
+
+    /** Returns the core's internal inventory view for menus, upgrades, and break drops only. */
+    public Container coreInventory() {
+        return coreAutomationSlots;
     }
 
     @Override
@@ -743,14 +865,10 @@ public final class GiantUnitBlockEntity extends Ecc2BlockEntityBase
         };
     }
 
-    // ---- ProcessingSlots & Container (on CORE) ----
+    // ---- Internal Core ProcessingSlots (NOT directly implemented on GiantUnitBlockEntity so
+    // vanilla hoppers/droppers cannot bypass the 8 lower-corner capability gates or void items
+    // into unformed/shell blocks) ----
 
-    @Override
-    public int[] getSlotsForFace(Direction side) {
-        return usesWater() ? AUTOMATED_SLOTS_WASHER : AUTOMATED_SLOTS_STANDARD;
-    }
-
-    @Override
     public boolean canPlaceItem(int slot, ItemStack stack) {
         if (stack.isEmpty()) {
             return false;
@@ -774,82 +892,6 @@ public final class GiantUnitBlockEntity extends Ecc2BlockEntityBase
         return false;
     }
 
-    @Override
-    public boolean canPlaceItemThroughFace(int slot, ItemStack stack, Direction side) {
-        if (stack.isEmpty() || slot >= UPGRADE_START && slot < UPGRADE_START + UPGRADE_COUNT) {
-            return false;
-        }
-        if (slot >= OUTPUT_START && slot < OUTPUT_START + OUTPUT_COUNT) {
-            return false;
-        }
-        if (slot == SLOT_WASHER_OUT) {
-            return false;
-        }
-        if (slot == SLOT_BATTERY) {
-            return PortableGear.canSupplyCharge(stack, engine.inputTier())
-                    || stack.is(Items.REDSTONE);
-        }
-        return canPlaceItem(slot, stack);
-    }
-
-    @Override
-    public boolean canTakeItemThroughFace(int slot, ItemStack stack, Direction side) {
-        if (stack.isEmpty()) {
-            return false;
-        }
-        if (slot >= OUTPUT_START && slot < OUTPUT_START + OUTPUT_COUNT) {
-            return true;
-        }
-        return usesWater() && slot == SLOT_WASHER_OUT;
-    }
-
-    @Override
-    public int automationLimit(int slot, ItemStack stack) {
-        return slot == SLOT_BATTERY ? PortableGear.powerSlotLimit(stack) : stack.getMaxStackSize();
-    }
-
-    @Override
-    public int getContainerSize() {
-        return INVENTORY_SIZE;
-    }
-
-    @Override
-    public boolean isEmpty() {
-        for (ItemStack s : items) {
-            if (!s.isEmpty()) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    @Override
-    public ItemStack getItem(int slot) {
-        return items.get(slot);
-    }
-
-    @Override
-    public ItemStack removeItem(int slot, int amount) {
-        ItemStack removed = ContainerHelper.removeItem(items, slot, amount);
-        if (!removed.isEmpty()) {
-            setChanged();
-        }
-        return removed;
-    }
-
-    @Override
-    public ItemStack removeItemNoUpdate(int slot) {
-        return ContainerHelper.takeItem(items, slot);
-    }
-
-    @Override
-    public void setItem(int slot, ItemStack stack) {
-        items.set(slot, stack);
-        stack.limitSize(getMaxStackSize(stack));
-        setChanged();
-    }
-
-    @Override
     public boolean stillValid(Player player) {
         if (!formed || isRemoved() || getLevel() == null || getLevel().getBlockEntity(worldPosition) != this) {
             return false;
@@ -861,12 +903,116 @@ public final class GiantUnitBlockEntity extends Ecc2BlockEntityBase
                 <= 100.0;
     }
 
-    @Override
     public void clearContent() {
         for (int i = 0; i < items.size(); i++) {
             items.set(i, ItemStack.EMPTY);
         }
         setChanged();
+    }
+
+    private final class CoreAutomationSlots implements ProcessingSlots {
+
+        @Override
+        public int[] getSlotsForFace(Direction side) {
+            return usesWater() ? AUTOMATED_SLOTS_WASHER : AUTOMATED_SLOTS_STANDARD;
+        }
+
+        @Override
+        public boolean canPlaceItem(int slot, ItemStack stack) {
+            return GiantUnitBlockEntity.this.canPlaceItem(slot, stack);
+        }
+
+        @Override
+        public boolean canPlaceItemThroughFace(int slot, ItemStack stack, Direction side) {
+            if (stack.isEmpty() || slot >= UPGRADE_START && slot < UPGRADE_START + UPGRADE_COUNT) {
+                return false;
+            }
+            if (slot >= OUTPUT_START && slot < OUTPUT_START + OUTPUT_COUNT) {
+                return false;
+            }
+            if (slot == SLOT_WASHER_OUT) {
+                return false;
+            }
+            if (slot == SLOT_BATTERY) {
+                return PortableGear.canSupplyCharge(stack, engine.inputTier())
+                        || stack.is(Items.REDSTONE);
+            }
+            return GiantUnitBlockEntity.this.canPlaceItem(slot, stack);
+        }
+
+        @Override
+        public boolean canTakeItemThroughFace(int slot, ItemStack stack, Direction side) {
+            if (stack.isEmpty()) {
+                return false;
+            }
+            if (slot >= OUTPUT_START && slot < OUTPUT_START + OUTPUT_COUNT) {
+                return true;
+            }
+            return usesWater() && slot == SLOT_WASHER_OUT;
+        }
+
+        @Override
+        public int automationLimit(int slot, ItemStack stack) {
+            return slot == SLOT_BATTERY
+                    ? PortableGear.powerSlotLimit(stack)
+                    : stack.getMaxStackSize();
+        }
+
+        @Override
+        public int getContainerSize() {
+            return INVENTORY_SIZE;
+        }
+
+        @Override
+        public boolean isEmpty() {
+            for (ItemStack s : items) {
+                if (!s.isEmpty()) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        @Override
+        public ItemStack getItem(int slot) {
+            return items.get(slot);
+        }
+
+        @Override
+        public ItemStack removeItem(int slot, int amount) {
+            ItemStack removed = ContainerHelper.removeItem(items, slot, amount);
+            if (!removed.isEmpty()) {
+                GiantUnitBlockEntity.this.setChanged();
+            }
+            return removed;
+        }
+
+        @Override
+        public ItemStack removeItemNoUpdate(int slot) {
+            return ContainerHelper.takeItem(items, slot);
+        }
+
+        @Override
+        public void setItem(int slot, ItemStack stack) {
+            items.set(slot, stack);
+            stack.limitSize(getMaxStackSize(stack));
+            GiantUnitBlockEntity.this.setChanged();
+        }
+
+        @Override
+        public void setChanged() {
+            GiantUnitBlockEntity.this.setChanged();
+        }
+
+        @Override
+        public boolean stillValid(Player player) {
+            return GiantUnitBlockEntity.this.stillValid(player);
+        }
+
+        @Override
+        public void clearContent() {
+            GiantUnitBlockEntity.this.clearContent();
+        }
     }
 
     // ---- MenuProvider ----
@@ -932,6 +1078,7 @@ public final class GiantUnitBlockEntity extends Ecc2BlockEntityBase
         if (role == GiantBlockRole.CORE) {
             in.loadItems("ecc2_items", items);
             engine = new GiantMachineEngine(machineType.effectiveSpec());
+            engine.setMaxBatchPerLane(Ecc2Config.giantMaxBatchPerLane());
             engine.setUpgrades(Ecc2UpgradeHelper.readProfile(upgradeStacks()));
             engine.setStoredEu(in.getDouble("ecc2_eu", 0.0));
             engine.setWaterMb(in.getInt("ecc2_water", 0));
@@ -939,6 +1086,7 @@ public final class GiantUnitBlockEntity extends Ecc2BlockEntityBase
             int[] savedProg = in.getIntArray("ecc2_lane_prog", GiantMachineEngine.LANE_COUNT);
             int[] savedBatch = in.getIntArray("ecc2_lane_batch", GiantMachineEngine.LANE_COUNT);
             engine.restoreLanes(savedProg, savedBatch);
+            pendingPortVisualSync = true;
         }
     }
 

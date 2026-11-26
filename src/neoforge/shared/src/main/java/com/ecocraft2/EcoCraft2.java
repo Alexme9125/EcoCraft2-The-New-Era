@@ -128,6 +128,7 @@ public final class EcoCraft2 {
         Ecc2ExternalRecipes.registerCompressor("ic2:uranium_ore", 1, "ecc2:uranium_ingot", 1);
         Ecc2ExternalRecipes.registerCompressor(
                 "ic2:deepslate_uranium_ore", 1, "ecc2:uranium_ingot", 1);
+        Ecc2ExternalRecipes.registerCompressor("ic2:raw_uranium", 1, "ecc2:uranium_ingot", 1);
         Ecc2ExternalRecipes.registerCompressor("ic2:crushed_uranium", 1, "ecc2:uranium_ingot", 1);
         Ecc2ExternalRecipes.registerCompressor("ic2:purified_uranium", 1, "ecc2:uranium_ingot", 1);
         Ecc2ExternalRecipes.registerCompressor("ic2:uranium", 1, "ecc2:uranium_ingot", 1);

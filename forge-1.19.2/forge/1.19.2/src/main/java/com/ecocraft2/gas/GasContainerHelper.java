@@ -2,10 +2,14 @@ package com.ecocraft2.gas;
 
 import com.ecocraft2.bridge.Ecc2BridgePlatform;
 import com.ecocraft2.common.gas.GasFuelSpec;
+import com.industrialage.ia2.logistics.CellFamily;
+import com.industrialage.ia2.logistics.CellItem;
 import java.util.Optional;
 import java.util.function.IntConsumer;
 import java.util.function.Predicate;
+import net.minecraft.world.item.BucketItem;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.FluidUtil;
@@ -56,8 +60,17 @@ public final class GasContainerHelper {
             return false;
         }
         var handler = opt.get();
-        FluidStack sim = handler.drain(maxRoomMb, IFluidHandler.FluidAction.SIMULATE);
+        boolean atomicUnit =
+                single.getItem() instanceof CellItem || single.getItem() instanceof BucketItem;
+        if (atomicUnit && maxRoomMb < CellFamily.CAPACITY) {
+            return false;
+        }
+        int requestMb = atomicUnit ? CellFamily.CAPACITY : maxRoomMb;
+        FluidStack sim = handler.drain(requestMb, IFluidHandler.FluidAction.SIMULATE);
         if (sim.isEmpty() || !fluidFilter.test(sim)) {
+            return false;
+        }
+        if (atomicUnit && sim.getAmount() < CellFamily.CAPACITY) {
             return false;
         }
         FluidStack drained = handler.drain(sim, IFluidHandler.FluidAction.EXECUTE);
@@ -96,11 +109,19 @@ public final class GasContainerHelper {
             return false;
         }
         var handler = opt.get();
-        int sim = handler.fill(available.copy(), IFluidHandler.FluidAction.SIMULATE);
-        if (sim <= 0) {
+        boolean atomicUnit = single.getItem() instanceof CellItem || single.is(Items.BUCKET);
+        if (atomicUnit && available.getAmount() < CellFamily.CAPACITY) {
             return false;
         }
-        int filled = handler.fill(available.copy(), IFluidHandler.FluidAction.EXECUTE);
+        FluidStack offer = available.copy();
+        if (atomicUnit) {
+            offer.setAmount(CellFamily.CAPACITY);
+        }
+        int sim = handler.fill(offer, IFluidHandler.FluidAction.SIMULATE);
+        if (sim <= 0 || (atomicUnit && sim < CellFamily.CAPACITY)) {
+            return false;
+        }
+        int filled = handler.fill(offer, IFluidHandler.FluidAction.EXECUTE);
         if (filled <= 0) {
             return false;
         }

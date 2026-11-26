@@ -92,7 +92,8 @@ public final class GiantMultiblockController {
                     current.setValue(GiantUnitBlock.FACING, horizontalFacing)
                             .setValue(GiantUnitBlock.FORMED, true)
                             .setValue(GiantUnitBlock.ACTIVE, false)
-                            .setValue(GiantUnitBlock.ROLE, role);
+                            .setValue(GiantUnitBlock.ROLE, role)
+                            .setValue(GiantUnitBlock.PORT_MODE, GiantPortVisual.FULL);
             level.setBlock(pos, formedState, Block.UPDATE_ALL);
             if (level.getBlockEntity(pos) instanceof GiantUnitBlockEntity be) {
                 be.bindFormed(corePos, horizontalFacing, role);
@@ -142,7 +143,7 @@ public final class GiantMultiblockController {
 
             if (core != null && core.markDissolvedOnce()) {
                 // Drop all stored inventory contents cleanly once (inputs, outputs, battery, upgrades, washer slots).
-                Containers.dropContents(level, brokenPos, core);
+                Containers.dropContents(level, brokenPos, core.coreInventory());
                 core.clearContent();
             }
 
@@ -167,11 +168,13 @@ public final class GiantMultiblockController {
                     }
                     if (state.getValue(GiantUnitBlock.FORMED)
                             || state.getValue(GiantUnitBlock.ROLE) != GiantBlockRole.UNFORMED
-                            || state.getValue(GiantUnitBlock.ACTIVE)) {
+                            || state.getValue(GiantUnitBlock.ACTIVE)
+                            || state.getValue(GiantUnitBlock.PORT_MODE) != GiantPortVisual.FULL) {
                         BlockState unformed =
                                 state.setValue(GiantUnitBlock.FORMED, false)
                                         .setValue(GiantUnitBlock.ACTIVE, false)
-                                        .setValue(GiantUnitBlock.ROLE, GiantBlockRole.UNFORMED);
+                                        .setValue(GiantUnitBlock.ROLE, GiantBlockRole.UNFORMED)
+                                        .setValue(GiantUnitBlock.PORT_MODE, GiantPortVisual.FULL);
                         level.setBlock(pos, unformed, Block.UPDATE_ALL);
                     }
                     if (level.getBlockEntity(pos) instanceof GiantUnitBlockEntity unitBe) {

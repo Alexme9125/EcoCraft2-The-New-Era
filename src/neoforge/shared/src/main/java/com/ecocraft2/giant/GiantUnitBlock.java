@@ -37,6 +37,8 @@ public final class GiantUnitBlock extends Ecc2BlockBase
     public static final BooleanProperty ACTIVE = BooleanProperty.create("active");
     public static final EnumProperty<GiantBlockRole> ROLE =
             EnumProperty.create("role", GiantBlockRole.class);
+    public static final EnumProperty<GiantPortVisual> PORT_MODE =
+            EnumProperty.create("port_mode", GiantPortVisual.class);
 
     private final GiantMachineType machineType;
 
@@ -49,7 +51,8 @@ public final class GiantUnitBlock extends Ecc2BlockBase
                         .setValue(FACING, Direction.NORTH)
                         .setValue(FORMED, false)
                         .setValue(ACTIVE, false)
-                        .setValue(ROLE, GiantBlockRole.UNFORMED));
+                        .setValue(ROLE, GiantBlockRole.UNFORMED)
+                        .setValue(PORT_MODE, GiantPortVisual.FULL));
     }
 
     public GiantMachineType machineType() {
@@ -58,7 +61,7 @@ public final class GiantUnitBlock extends Ecc2BlockBase
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(FACING, FORMED, ACTIVE, ROLE);
+        builder.add(FACING, FORMED, ACTIVE, ROLE, PORT_MODE);
     }
 
     @Override
@@ -67,7 +70,8 @@ public final class GiantUnitBlock extends Ecc2BlockBase
                 .setValue(FACING, context.getHorizontalDirection().getOpposite())
                 .setValue(FORMED, false)
                 .setValue(ACTIVE, false)
-                .setValue(ROLE, GiantBlockRole.UNFORMED);
+                .setValue(ROLE, GiantBlockRole.UNFORMED)
+                .setValue(PORT_MODE, GiantPortVisual.FULL);
     }
 
     @Override
@@ -130,10 +134,15 @@ public final class GiantUnitBlock extends Ecc2BlockBase
         }
         GiantUnitBlockEntity core = unitBe.coreEntity();
         if (core == null) {
+            if (level instanceof ServerLevel server && unitBe.tryRecoverOrphan(server, state)) {
+                GiantGasPlatform.sendActionBar(
+                        player, Component.translatable("gui.ecc2.giant.unformed"));
+                return true;
+            }
             return false;
         }
         if (core.machineType().spec().usesWater()
-                && core.exchangeHeldFluid(player, hand, hitFace)) {
+                && unitBe.exchangeHeldFluid(player, hand, hitFace)) {
             return true;
         }
         if (player instanceof ServerPlayer serverPlayer) {

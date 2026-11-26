@@ -11,6 +11,7 @@ import com.ecocraft2.solar.Ecc2SaveBlockEntity;
 import com.ecocraft2.solar.Ecc2TagIO;
 import com.ecocraft2.solar.SolarKineticModule;
 import com.ecocraft2.solar.SolarPlatform;
+import com.industrialage.ia2.access.MachineAccess;
 import com.industrialage.ia2.access.MachineAccessTarget;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -42,6 +43,7 @@ public final class AdvancedKineticBlockEntity extends Ecc2SaveBlockEntity
 
     public static final int SLOT_ROTOR = 0;
     private static final int[] SLOTS_ROTOR = {SLOT_ROTOR};
+    private static final int[] EMPTY_SLOTS = new int[0];
     private static final int WATER_RECHECK_INTERVAL = 40;
 
     private final KineticMachineTier kineticTier;
@@ -322,17 +324,19 @@ public final class AdvancedKineticBlockEntity extends Ecc2SaveBlockEntity
 
     @Override
     public int[] getSlotsForFace(Direction side) {
-        return SLOTS_ROTOR;
+        return MachineAccess.connects(this, side) ? SLOTS_ROTOR : EMPTY_SLOTS;
     }
 
     @Override
     public boolean canPlaceItemThroughFace(int index, ItemStack stack, Direction direction) {
-        return index == SLOT_ROTOR && acceptsRotor(stack);
+        return MachineAccess.allowsInput(this, direction)
+                && index == SLOT_ROTOR
+                && acceptsRotor(stack);
     }
 
     @Override
     public boolean canTakeItemThroughFace(int index, ItemStack stack, Direction direction) {
-        return index == SLOT_ROTOR;
+        return MachineAccess.allowsOutput(this, direction) && index == SLOT_ROTOR;
     }
 
     @Override

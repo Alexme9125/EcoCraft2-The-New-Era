@@ -23,11 +23,31 @@ public final class GasFurnaceEngine {
     public static final int GAS_TANK_CAPACITY_MB = Ecc2ConfigDefaults.GAS_FURNACE_TANK_CAPACITY_MB;
 
     private GasFuelSpec currentFuel;
+    private int gasPerItemMb = GAS_PER_ITEM_MB;
+    private int baseSmeltTicks = BASE_SMELT_TICKS;
     private int gasMb;
     private int overclockers;
     private int progress;
     private int gasSpentOnCurrentItem;
     private boolean active;
+
+    /** Configures runtime gas cost per smelted item and base smelting duration. */
+    public void configure(int gasPerItemMb, int baseSmeltTicks) {
+        this.gasPerItemMb = Math.max(1, gasPerItemMb);
+        this.baseSmeltTicks = Math.max(1, baseSmeltTicks);
+        this.gasSpentOnCurrentItem = Math.min(this.gasSpentOnCurrentItem, this.gasPerItemMb);
+        this.progress = Math.min(this.progress, operationTicks());
+    }
+
+    /** Returns configured gas consumed per smelted item in mB. */
+    public int gasPerItemMb() {
+        return gasPerItemMb;
+    }
+
+    /** Returns configured base smelting time in ticks before overclockers. */
+    public int baseSmeltTicks() {
+        return baseSmeltTicks;
+    }
 
     /**
      * Advances the Gas Furnace by one tick.
@@ -53,11 +73,11 @@ public final class GasFurnaceEngine {
         int opTicks = operationTicks();
         int nextProgress = progress + 1;
         int targetSpent = nextProgress >= opTicks
-                ? GAS_PER_ITEM_MB
-                : (int) (((long) nextProgress * GAS_PER_ITEM_MB + opTicks - 1L) / opTicks);
+                ? gasPerItemMb
+                : (int) (((long) nextProgress * gasPerItemMb + opTicks - 1L) / opTicks);
         int neededThisTick = Math.max(0, targetSpent - gasSpentOnCurrentItem);
 
-        if (neededThisTick > gasMb || (progress == 0 && gasMb <= 0 && gasSpentOnCurrentItem < GAS_PER_ITEM_MB)) {
+        if (neededThisTick > gasMb || (progress == 0 && gasMb <= 0 && gasSpentOnCurrentItem < gasPerItemMb)) {
             active = false;
             return GasMachineOutcome.NO_POWER;
         }
@@ -152,12 +172,12 @@ public final class GasFurnaceEngine {
         this.overclockers = overclockers;
     }
 
-    /** Returns upgraded smelting duration in ticks: {@code max(1, round(100 * 0.7^overclockers))}. */
+    /** Returns upgraded smelting duration in ticks: {@code max(1, round(baseSmeltTicks * 0.7^overclockers))}. */
     public int operationTicks() {
         if (overclockers == 0) {
-            return BASE_SMELT_TICKS;
+            return baseSmeltTicks;
         }
-        double scaled = BASE_SMELT_TICKS * Math.pow(GiantUpgradeProfile.OVERCLOCKER_TIME_FACTOR, overclockers);
+        double scaled = baseSmeltTicks * Math.pow(GiantUpgradeProfile.OVERCLOCKER_TIME_FACTOR, overclockers);
         return Math.max(1, (int) Math.round(scaled));
     }
 
@@ -166,7 +186,7 @@ public final class GasFurnaceEngine {
         return progress;
     }
 
-    /** Returns cumulative gas (in mB, {@code 0..50}) already spent on the current in-progress item. */
+    /** Returns cumulative gas (in mB, {@code 0..gasPerItemMb}) already spent on the current in-progress item. */
     public int gasSpentOnCurrentItem() {
         return gasSpentOnCurrentItem;
     }
@@ -197,7 +217,7 @@ public final class GasFurnaceEngine {
         this.gasMb = (fuel != null && clampedGas > 0) ? clampedGas : 0;
         this.currentFuel = this.gasMb > 0 ? fuel : null;
         this.progress = Math.max(0, Math.min(operationTicks(), progress));
-        this.gasSpentOnCurrentItem = Math.max(0, Math.min(GAS_PER_ITEM_MB, gasSpentOnCurrentItem));
+        this.gasSpentOnCurrentItem = Math.max(0, Math.min(gasPerItemMb, gasSpentOnCurrentItem));
         this.active = false;
     }
 }

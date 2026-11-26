@@ -1,6 +1,7 @@
 package com.ecocraft2.solar;
 
 import com.ecocraft2.common.solar.MolecularTransformerEngine;
+import com.industrialage.ia2.access.MachineAccess;
 import com.industrialage.ia2.access.MachineAccessTarget;
 import com.industrialage.ia2.energy.graph.EnergyGraph;
 import com.industrialage.ia2.platform.CapabilityFacade.Face;
@@ -41,6 +42,7 @@ public final class MolecularTransformerBlockEntity extends Ecc2SaveBlockEntity
     private static final int[] SLOTS_INPUT = {SLOT_INPUT};
     private static final int[] SLOTS_OUTPUT = {SLOT_OUTPUT};
     private static final int[] SLOTS_ALL = {SLOT_INPUT, SLOT_OUTPUT};
+    private static final int[] EMPTY_SLOTS = new int[0];
     private static final Set<Face> ALL_FACES = Set.of(Face.values());
     private static final EnergyGraph.Ports SINK_PORTS =
             new EnergyGraph.Ports(ALL_FACES, Set.of(), false);
@@ -309,6 +311,9 @@ public final class MolecularTransformerBlockEntity extends Ecc2SaveBlockEntity
 
     @Override
     public int[] getSlotsForFace(Direction side) {
+        if (!MachineAccess.connects(this, side)) {
+            return EMPTY_SLOTS;
+        }
         if (side == Direction.DOWN) {
             return SLOTS_OUTPUT;
         }
@@ -320,12 +325,14 @@ public final class MolecularTransformerBlockEntity extends Ecc2SaveBlockEntity
 
     @Override
     public boolean canPlaceItemThroughFace(int index, ItemStack stack, Direction direction) {
-        return index == SLOT_INPUT && !stack.isEmpty();
+        return MachineAccess.allowsInput(this, direction)
+                && index == SLOT_INPUT
+                && !stack.isEmpty();
     }
 
     @Override
     public boolean canTakeItemThroughFace(int index, ItemStack stack, Direction direction) {
-        return index == SLOT_OUTPUT;
+        return MachineAccess.allowsOutput(this, direction) && index == SLOT_OUTPUT;
     }
 
     @Override

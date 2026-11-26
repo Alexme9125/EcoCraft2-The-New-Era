@@ -3,12 +3,14 @@ package com.ecocraft2.gas;
 import com.ecocraft2.common.config.Ecc2Ids;
 import com.ecocraft2.common.gas.GasMachineOutcome;
 import com.ecocraft2.common.gas.OrganicFermenterEngine;
+import com.ecocraft2.config.Ecc2Config;
 import com.ecocraft2.giant.Ecc2DataReader;
 import com.ecocraft2.giant.Ecc2DataWriter;
 import com.ecocraft2.giant.Ecc2FluidTankView;
 import com.ecocraft2.giant.Ecc2UpgradeHelper;
 import com.ecocraft2.giant.GiantGasModule;
 import com.ecocraft2.giant.GiantGasPlatform;
+import com.industrialage.ia2.access.MachineAccess;
 import com.industrialage.ia2.energy.graph.EnergyGraph;
 import com.industrialage.ia2.gameplay.PortableGear;
 import com.industrialage.ia2.logistics.FluidContents;
@@ -48,6 +50,7 @@ public final class OrganicFermenterBlockEntity extends GasMachineBlockEntityBase
     public static final int INVENTORY_SIZE = 11;
 
     private static final int[] ALL_AUTOMATED_SLOTS = {0, 1, 2, 3, 4, 5, 6};
+    private static final int[] EMPTY_SLOTS = new int[0];
     private static final int[] INPUT_SLOTS = {SLOT_FOOD_INPUT};
     private static final int[] OUTPUT_SLOTS = {
         SLOT_CONTAINER_RETURN, SLOT_CULTURE_CELL_OUT, SLOT_BIOGAS_CELL_OUT
@@ -108,6 +111,9 @@ public final class OrganicFermenterBlockEntity extends GasMachineBlockEntityBase
                         amt -> engine.drainBiogas(amt, false));
 
         // Ferment food + culture_medium -> ic2:biogas + container remainder
+        engine.configure(
+                Ecc2Config.organicFermenterBiogasPerHunger(),
+                Ecc2Config.organicFermenterCulturePerOp());
         boolean redstoneBlocked =
                 Ecc2UpgradeHelper.hasRedstoneInverter(upgrades)
                         && !level.hasNeighborSignal(worldPosition);
@@ -287,7 +293,7 @@ public final class OrganicFermenterBlockEntity extends GasMachineBlockEntityBase
 
     @Override
     public int[] getSlotsForFace(Direction side) {
-        return ALL_AUTOMATED_SLOTS;
+        return MachineAccess.connects(this, side) ? ALL_AUTOMATED_SLOTS : EMPTY_SLOTS;
     }
 
     @Override
@@ -308,6 +314,9 @@ public final class OrganicFermenterBlockEntity extends GasMachineBlockEntityBase
 
     @Override
     public boolean canPlaceItemThroughFace(int slot, ItemStack stack, Direction side) {
+        if (!MachineAccess.allowsInput(this, side)) {
+            return false;
+        }
         if (slot == SLOT_BATTERY) {
             return PortableGear.canSupplyCharge(stack, engine.inputTier())
                     || stack.is(Items.REDSTONE);
@@ -320,9 +329,10 @@ public final class OrganicFermenterBlockEntity extends GasMachineBlockEntityBase
 
     @Override
     public boolean canTakeItemThroughFace(int slot, ItemStack stack, Direction side) {
-        return slot == SLOT_CONTAINER_RETURN
-                || slot == SLOT_CULTURE_CELL_OUT
-                || slot == SLOT_BIOGAS_CELL_OUT;
+        return MachineAccess.allowsOutput(this, side)
+                && (slot == SLOT_CONTAINER_RETURN
+                        || slot == SLOT_CULTURE_CELL_OUT
+                        || slot == SLOT_BIOGAS_CELL_OUT);
     }
 
     @Override

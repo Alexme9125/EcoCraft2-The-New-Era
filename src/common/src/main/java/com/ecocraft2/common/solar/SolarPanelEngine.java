@@ -25,6 +25,7 @@ public final class SolarPanelEngine {
     private final int checkSkyInterval;
 
     private double storage;
+    private double tickDischargedEu;
     private SkyCondition skyCondition = SkyCondition.NONE;
     private int currentGenerating;
     private int tickCounter;
@@ -122,6 +123,7 @@ public final class SolarPanelEngine {
             boolean canRain,
             List<? extends ChargeSink> chargeSinks
     ) {
+        this.tickDischargedEu = 0.0;
         if (tickCounter == 0) {
             refreshSky(hasSky, seesSky, isDay, isRaining, canRain);
         }
@@ -134,7 +136,7 @@ public final class SolarPanelEngine {
         double chargedTotal = 0.0;
         if (chargeSinks != null && !chargeSinks.isEmpty() && storage > 0.0) {
             for (ChargeSink sink : chargeSinks) {
-                if (sink == null || storage <= 0.0) {
+                if (sink == null || storage <= 0.0 || remainingTickBudget() <= 0.0) {
                     continue;
                 }
                 chargedTotal += chargeSlot(sink);
@@ -160,7 +162,8 @@ public final class SolarPanelEngine {
     }
 
     /**
-     * Charges a single electric item slot using up to {@link #offeredEnergy()} at this panel's tier.
+     * Charges a single electric item slot using up to {@link #offeredEnergy()} at this panel's tier,
+     * consuming from the shared per-tick discharge budget ({@link #packetSize()}).
      *
      * @param sink target charging slot
      * @return actual EU transferred and deducted from storage
@@ -174,14 +177,16 @@ public final class SolarPanelEngine {
         double rawAccepted = sink.charge(offer, tier);
         double accepted = sanitizeTransfer(rawAccepted, offer);
         storage = clampStorage(storage - accepted);
+        tickDischargedEu = Math.min(packetSize(), tickDischargedEu + accepted);
         return accepted;
     }
 
     /**
-     * Returns the maximum EU available for grid emission this tick: {@code min(storage, packetSize(tier))}.
+     * Returns the maximum EU available for grid emission this tick, bounded by both internal storage
+     * and the remaining shared per-tick discharge budget ({@code packetSize(tier) - tickDischargedEu}).
      */
     public double offeredEnergy() {
-        return Math.min(storage, packetSize());
+        return Math.min(storage, remainingTickBudget());
     }
 
     /**
@@ -194,9 +199,14 @@ public final class SolarPanelEngine {
         if (amount <= 0.0 || !Double.isFinite(amount)) {
             return 0.0;
         }
-        double drawn = Math.min(storage, amount);
+        double drawn = Math.min(offeredEnergy(), amount);
         storage = clampStorage(storage - drawn);
+        tickDischargedEu = Math.min(packetSize(), tickDischargedEu + drawn);
         return drawn;
+    }
+
+    private double remainingTickBudget() {
+        return Math.max(0.0, packetSize() - tickDischargedEu);
     }
 
     /** Returns the single-packet EU limit for this panel's voltage tier. */
@@ -216,6 +226,7 @@ public final class SolarPanelEngine {
      */
     public void setStorage(double eu) {
         this.storage = clampStorage(eu);
+        this.tickDischargedEu = 0.0;
     }
 
     /** Returns the configured daytime EU/t. */

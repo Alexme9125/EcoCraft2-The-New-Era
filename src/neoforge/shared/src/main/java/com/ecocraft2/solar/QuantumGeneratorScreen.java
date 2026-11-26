@@ -97,7 +97,7 @@ public final class QuantumGeneratorScreen extends Ecc2ScreenBase<QuantumGenerato
                 false);
 
         // Button captions
-        String[] prodLabels = SolarPlatform.hasShiftDown() ? SHIFT_LABELS : NORMAL_LABELS;
+        String[] prodLabels = SolarClientPlatform.hasShiftDown() ? SHIFT_LABELS : NORMAL_LABELS;
         for (int i = 0; i < 6; i++) {
             canvas.centeredText(
                     Component.literal(prodLabels[i]),
@@ -123,17 +123,17 @@ public final class QuantumGeneratorScreen extends Ecc2ScreenBase<QuantumGenerato
         if (button != 0) {
             return false;
         }
-        boolean shift = SolarPlatform.hasShiftDown();
+        boolean shift = SolarClientPlatform.hasShiftDown();
         for (int i = 0; i < 6; i++) {
             if (hit(relMouseX, relMouseY, BTN_X[i], PROD_Y, BTN_W, BTN_H)) {
                 int eventId = (shift ? QuantumGeneratorEngine.EVENT_SUB_500 : QuantumGeneratorEngine.EVENT_SUB_100) + i;
-                SolarPlatform.sendToServer(
+                SolarClientPlatform.sendToServer(
                         new QuantumGeneratorButtonPayload(menu.blockPos(), eventId));
                 return true;
             }
             if (hit(relMouseX, relMouseY, BTN_X[i], TIER_Y, BTN_W, BTN_H)) {
                 int eventId = QuantumGeneratorEngine.EVENT_TIER_1 + i;
-                SolarPlatform.sendToServer(
+                SolarClientPlatform.sendToServer(
                         new QuantumGeneratorButtonPayload(menu.blockPos(), eventId));
                 return true;
             }

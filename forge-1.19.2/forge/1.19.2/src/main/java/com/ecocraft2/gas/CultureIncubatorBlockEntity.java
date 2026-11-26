@@ -229,6 +229,9 @@ public final class CultureIncubatorBlockEntity extends BlockEntity
                 }
             };
 
+    private static final int[] UPGRADE_IN_SLOTS = {SLOT_BONEMEAL};
+    private static final int[] UPGRADE_OUT_SLOTS = {SLOT_WATER_OUT, SLOT_CULTURE_OUT};
+
     public CultureIncubatorBlockEntity(BlockPos pos, BlockState state) {
         super(GasRegistry.CULTURE_INCUBATOR_BE.get(), pos, state);
     }
@@ -256,7 +259,8 @@ public final class CultureIncubatorBlockEntity extends BlockEntity
             return;
         }
         lastTick = serverLevel.getGameTime();
-        refreshUpgrades();
+        List<ItemStack> upgrades = collectUpgrades();
+        engine.setUpgrades(Ecc2EnergyHelper.readUpgradeProfile(upgrades));
 
         ItemStack battery = inventory.getStackInSlot(SLOT_BATTERY);
         if (!battery.isEmpty() && engine.demandedEu() > 0.0) {
@@ -291,13 +295,45 @@ public final class CultureIncubatorBlockEntity extends BlockEntity
             setChanged();
         }
 
-        boolean hasBonemeal = inventory.getStackInSlot(SLOT_BONEMEAL).is(Items.BONE_MEAL);
+        boolean hasBonemeal =
+                GasUpgradeAutomation.isRunAllowed(serverLevel, worldPosition, upgrades)
+                        && inventory.getStackInSlot(SLOT_BONEMEAL).is(Items.BONE_MEAL);
         var outcome = engine.tick(hasBonemeal);
         if (outcome == GasMachineOutcome.COMPLETED) {
             inventory.extractItem(SLOT_BONEMEAL, 1, false);
             setChanged();
         } else if (outcome == GasMachineOutcome.WORKING) {
             setChanged();
+        }
+
+        if ((lastTick & 3L) == 0L && !upgrades.isEmpty()) {
+            boolean moved =
+                    GasUpgradeAutomation.executeItemUpgrades(
+                            serverLevel,
+                            this,
+                            inventory,
+                            upgrades,
+                            UPGRADE_IN_SLOTS,
+                            UPGRADE_OUT_SLOTS,
+                            s -> s.is(Items.BONE_MEAL));
+            moved |=
+                    GasUpgradeAutomation.executeFluidUpgrades(
+                            serverLevel,
+                            this,
+                            upgrades,
+                            fs -> fs.getFluid() == Fluids.WATER,
+                            () -> CultureIncubatorEngine.WATER_TANK_CAPACITY_MB - engine.waterMb(),
+                            fs -> engine.fillWater(fs.getAmount(), false),
+                            () ->
+                                    engine.cultureMb() > 0
+                                            ? new FluidStack(
+                                                    GasRegistry.CULTURE_MEDIUM.get(),
+                                                    engine.cultureMb())
+                                            : FluidStack.EMPTY,
+                            drained -> engine.drainCulture(drained, false));
+            if (moved) {
+                setChanged();
+            }
         }
 
         BlockState state = getBlockState();
@@ -310,7 +346,7 @@ public final class CultureIncubatorBlockEntity extends BlockEntity
         }
     }
 
-    private void refreshUpgrades() {
+    private List<ItemStack> collectUpgrades() {
         List<ItemStack> upgrades = new ArrayList<>(4);
         for (int i = 0; i < 4; i++) {
             ItemStack u = inventory.getStackInSlot(SLOT_UPGRADE_START + i);
@@ -318,7 +354,11 @@ public final class CultureIncubatorBlockEntity extends BlockEntity
                 upgrades.add(u);
             }
         }
-        engine.setUpgrades(Ecc2EnergyHelper.readUpgradeProfile(upgrades));
+        return upgrades;
+    }
+
+    private void refreshUpgrades() {
+        engine.setUpgrades(Ecc2EnergyHelper.readUpgradeProfile(collectUpgrades()));
     }
 
     @Override

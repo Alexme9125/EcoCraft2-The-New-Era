@@ -463,7 +463,7 @@ public final class GiantMachineScreen extends Ecc2ScreenBase<GiantMachineMenu> {
                         PortAccessMode cur = menu.portMode(tile.port());
                         modeArg = (cur.code() + 3) & 3;
                     }
-                    GiantGasPlatform.sendToServer(
+                    GiantGasClientPlatform.sendToServer(
                             new GiantPortTogglePayload(
                                     menu.corePos(), tile.port().ordinal(), modeArg));
                     return true;

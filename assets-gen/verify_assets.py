@@ -312,7 +312,7 @@ class Verifier:
                             self.fail(f"[{target}] {target} shaped key {k} in {rf.name} must be item/tag dict")
                         elif "item" in v:
                             check_item_id(v["item"], rf.name)
-            elif doc.get("type") == "minecraft:crafting_shapeless":
+            elif doc.get("type") in ("minecraft:crafting_shapeless", "ecc2:solar_helmet_upgrade"):
                 for ing in doc.get("ingredients", []):
                     if cfg.is_26x:
                         if not isinstance(ing, str):

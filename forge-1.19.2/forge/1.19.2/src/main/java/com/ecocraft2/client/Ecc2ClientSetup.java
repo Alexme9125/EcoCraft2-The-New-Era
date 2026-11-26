@@ -66,6 +66,8 @@ public final class Ecc2ClientSetup {
                             GasRegistry.CULTURE_MEDIUM.get(), RenderType.translucent());
                     ItemBlockRenderTypes.setRenderLayer(
                             GasRegistry.FLOWING_CULTURE_MEDIUM.get(), RenderType.translucent());
+                    ItemBlockRenderTypes.setRenderLayer(
+                            GasRegistry.METHANE_ICE_CLUSTER.get(), RenderType.translucent());
                 });
     }
 

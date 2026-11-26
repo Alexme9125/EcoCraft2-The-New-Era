@@ -1,20 +1,23 @@
 package com.ecocraft2.solar;
 
+import com.industrialage.ia2.gui.DeviceAccessMenu;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.inventory.SimpleContainerData;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.ItemStackHandler;
 import net.minecraftforge.items.SlotItemHandler;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /** Menu for the Molecular Transformer aligned to {@code assets-gen/gui_coordinates.json}. */
-public final class MolecularTransformerMenu extends AbstractContainerMenu {
+public final class MolecularTransformerMenu extends DeviceAccessMenu {
 
     private final BlockPos pos;
     private final ContainerData data;
@@ -24,7 +27,8 @@ public final class MolecularTransformerMenu extends AbstractContainerMenu {
                 id,
                 playerInv,
                 buf.readBlockPos(),
-                new ItemStackHandler(2),
+                null,
+                createClientHandler(),
                 new SimpleContainerData(8));
     }
 
@@ -33,19 +37,21 @@ public final class MolecularTransformerMenu extends AbstractContainerMenu {
             Inventory playerInv,
             MolecularTransformerBlockEntity mt,
             ContainerData data) {
-        this(id, playerInv, mt.getBlockPos(), mt.rawInventory(), data);
+        this(id, playerInv, mt.getBlockPos(), mt, mt.rawInventory(), data);
     }
 
     private MolecularTransformerMenu(
             int id,
             Inventory playerInv,
             BlockPos pos,
+            @Nullable BlockEntity device,
             IItemHandler handler,
             ContainerData data) {
-        super(SolarKineticRegistry.MOLECULAR_TRANSFORMER_MENU.get(), id);
+        super(SolarKineticRegistry.MOLECULAR_TRANSFORMER_MENU.get(), id, playerInv, device);
         this.pos = pos;
         this.data = data;
         addDataSlots(data);
+        addAccessData();
 
         // Input slot (20, 26), Output slot (20, 68)
         addSlot(new SlotItemHandler(handler, 0, 20, 26));
@@ -131,6 +137,15 @@ public final class MolecularTransformerMenu extends AbstractContainerMenu {
             slot.setChanged();
         }
         return copy;
+    }
+
+    private static ItemStackHandler createClientHandler() {
+        return new ItemStackHandler(2) {
+            @Override
+            public boolean isItemValid(int slot, @NotNull ItemStack stack) {
+                return slot == 0;
+            }
+        };
     }
 
     @Override

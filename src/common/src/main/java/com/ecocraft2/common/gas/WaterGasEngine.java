@@ -28,6 +28,7 @@ public final class WaterGasEngine {
     public static final int BASE_EU_CAPACITY = Ecc2ConfigDefaults.WATER_GAS_BASE_EU_CAPACITY;
 
     private GiantUpgradeProfile upgrades = GiantUpgradeProfile.NONE;
+    private int solarEuPerTick = SOLAR_EU_PER_TICK;
     private double storedEu;
     private int waterMb;
     private int waterGasMb;
@@ -35,6 +36,16 @@ public final class WaterGasEngine {
     private SkyCondition skyCondition = SkyCondition.NONE;
     private boolean solarActive;
     private boolean active;
+
+    /** Returns the configured built-in top solar EU/t output. */
+    public int solarEuPerTick() {
+        return solarEuPerTick;
+    }
+
+    /** Configures the built-in top solar EU/t output ({@code >= 0}). */
+    public void setSolarEuPerTick(int solarEuPerTick) {
+        this.solarEuPerTick = Math.max(0, solarEuPerTick);
+    }
 
     /**
      * Advances the Water Gas Machine by one tick.
@@ -57,9 +68,9 @@ public final class WaterGasEngine {
             boolean canRain
     ) {
         this.skyCondition = SkyCondition.evaluate(hasSky, seesSky, isDay, isRaining, canRain);
-        this.solarActive = this.skyCondition.isFullSun();
+        this.solarActive = this.skyCondition.isFullSun() && this.solarEuPerTick > 0;
         if (this.solarActive) {
-            this.storedEu = Math.min(energyCapacity(), this.storedEu + SOLAR_EU_PER_TICK);
+            this.storedEu = Math.min(energyCapacity(), this.storedEu + this.solarEuPerTick);
         }
 
         if (!hasCoalDust || waterMb < WATER_PER_OP_MB) {
