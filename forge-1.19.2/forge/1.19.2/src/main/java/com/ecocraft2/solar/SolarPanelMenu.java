@@ -1,5 +1,6 @@
 package com.ecocraft2.solar;
 
+import com.ecocraft2.bridge.Ecc2EnergyHelper;
 import com.ecocraft2.common.solar.SkyCondition;
 import com.ecocraft2.common.solar.SolarTier;
 import net.minecraft.core.BlockPos;
@@ -14,6 +15,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.ItemStackHandler;
 import net.minecraftforge.items.SlotItemHandler;
+import org.jetbrains.annotations.NotNull;
 
 /** Menu for the 4 ASP 2 Solar Panels aligned to {@code assets-gen/gui_coordinates.json}. */
 public final class SolarPanelMenu extends AbstractContainerMenu {
@@ -26,7 +28,22 @@ public final class SolarPanelMenu extends AbstractContainerMenu {
     private final ContainerData data;
 
     public SolarPanelMenu(int id, Inventory playerInv, FriendlyByteBuf buf) {
-        this(id, playerInv, buf.readBlockPos(), new ItemStackHandler(CHARGE_SLOTS), new SimpleContainerData(7));
+        this(
+                id,
+                playerInv,
+                buf.readBlockPos(),
+                new ItemStackHandler(CHARGE_SLOTS) {
+                    @Override
+                    public int getSlotLimit(int slot) {
+                        return 1;
+                    }
+
+                    @Override
+                    public boolean isItemValid(int slot, @NotNull ItemStack stack) {
+                        return Ecc2EnergyHelper.acceptsCharge(stack, 14, true);
+                    }
+                },
+                new SimpleContainerData(7));
     }
 
     public SolarPanelMenu(

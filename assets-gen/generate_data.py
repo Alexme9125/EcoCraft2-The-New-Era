@@ -168,6 +168,12 @@ class TargetConfig:
             },
         }
 
+    def config_flag_condition(self, flag: str) -> Dict[str, Any]:
+        return {
+            "type": f"{MOD_ID}:config_flag",
+            "flag": flag,
+        }
+
 
 def write_json(path: Path, data: Any) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -398,24 +404,27 @@ def generate_assets(out_root: Path, cfg: TargetConfig) -> int:
                 particle=f"{MOD_ID}:block/giant_casing_side",
             ),
         )
-        # Complete state matrix for facing (H4) x formed x active x role (unformed/core/corner/shell)
+        # Complete state matrix for facing (H4) x formed x active x role x port_mode
         variants: Dict[str, Any] = {}
         for d, rot in [("north", 0), ("east", 90), ("south", 180), ("west", 270)]:
             for formed in ("false", "true"):
                 for active in ("false", "true"):
                     for role in ("unformed", "core", "corner", "shell"):
-                        if formed == "false" or role == "unformed":
-                            m = f"{MOD_ID}:block/{unit_id}"
-                        elif role == "core":
-                            m = f"{MOD_ID}:block/giant_core_{kind}_active" if active == "true" else f"{MOD_ID}:block/giant_core_{kind}"
-                        elif role == "corner":
-                            m = f"{MOD_ID}:block/giant_port_full"
-                        else:
-                            m = f"{MOD_ID}:block/giant_casing"
-                        entry: Dict[str, Any] = {"model": m}
-                        if rot and role == "core" and formed == "true":
-                            entry["y"] = rot
-                        variants[f"facing={d},formed={formed},active={active},role={role}"] = entry
+                        for port_mode in ("full", "input", "output", "blocked"):
+                            if formed == "false" or role == "unformed":
+                                m = f"{MOD_ID}:block/{unit_id}"
+                            elif role == "core":
+                                m = f"{MOD_ID}:block/giant_core_{kind}_active" if active == "true" else f"{MOD_ID}:block/giant_core_{kind}"
+                            elif role == "corner":
+                                m = f"{MOD_ID}:block/giant_port_{port_mode}"
+                            else:
+                                m = f"{MOD_ID}:block/giant_casing"
+                            entry: Dict[str, Any] = {"model": m}
+                            if rot and role == "core" and formed == "true":
+                                entry["y"] = rot
+                            variants[
+                                f"facing={d},formed={formed},active={active},role={role},port_mode={port_mode}"
+                            ] = entry
         emit(f"blockstates/{unit_id}.json", {"variants": variants})
         emit(f"models/item/{unit_id}.json", {"parent": f"{MOD_ID}:block/{unit_id}"})
 
@@ -450,14 +459,14 @@ def generate_assets(out_root: Path, cfg: TargetConfig) -> int:
 
     # --- 1.7 Methane Ice Cluster ---
     emit("blockstates/methane_ice_cluster.json", {"variants": {"": {"model": f"{MOD_ID}:block/methane_ice_cluster"}}})
-    emit(
-        "models/block/methane_ice_cluster.json",
-        {
-            "parent": "minecraft:block/cube_all",
-            "render_type": "minecraft:translucent",
-            "textures": {"all": f"{MOD_ID}:block/methane_ice_cluster"},
-        },
-    )
+    methane_ice_model: Dict[str, Any] = {
+        "parent": "minecraft:block/cube_all",
+        "textures": {"all": f"{MOD_ID}:block/methane_ice_cluster"},
+    }
+    if not cfg.is_26x:
+        # MC 26.x infers ChunkSectionLayer.TRANSLUCENT directly from PNG alpha transparency.
+        methane_ice_model["render_type"] = "minecraft:translucent"
+    emit("models/block/methane_ice_cluster.json", methane_ice_model)
     emit("models/item/methane_ice_cluster.json", {"parent": f"{MOD_ID}:block/methane_ice_cluster"})
 
     # --- 1.8 Fluid Blocks (3) ---
@@ -635,6 +644,7 @@ def generate_crafting_recipes(out_root: Path, cfg: TargetConfig) -> int:
         cfg, ["MFM", "CTC", "MFM"],
         {"M": "ic2:advanced_machine", "F": "ic2:ev_transformer", "C": "ic2:advanced_circuit", "T": "ecc2:mt_core"},
         "ecc2:molecular_transformer",
+        conditions=[cfg.config_flag_condition("molecular_transformer")],
     ))
 
     # --- ASP Solar Panels (NO recipe for creative-only quantum_generator!) ---
@@ -648,6 +658,19 @@ def generate_crafting_recipes(out_root: Path, cfg: TargetConfig) -> int:
             "M": "ic2:advanced_machine",
         },
         "ecc2:advanced_solar_panel",
+        conditions=[cfg.config_flag_condition("advanced_solar_panel")],
+    ))
+    emit("advanced_solar_panel_easy", shaped(
+        cfg, ["GGG", "ASA", "CMC"],
+        {
+            "G": "ic2:reinforced_glass",
+            "A": "ic2:alloy",
+            "S": "ic2:solar_generator",
+            "C": "ic2:circuit",
+            "M": "ic2:machine",
+        },
+        "ecc2:advanced_solar_panel",
+        conditions=[cfg.config_flag_condition("advanced_solar_panel_easy")],
     ))
     emit("hybrid_solar_panel", shaped(
         cfg, ["CLC", "PAP", "EKE"],
@@ -660,6 +683,20 @@ def generate_crafting_recipes(out_root: Path, cfg: TargetConfig) -> int:
             "K": "ic2:lapotron_crystal",
         },
         "ecc2:hybrid_solar_panel",
+        conditions=[cfg.config_flag_condition("hybrid_solar_panel")],
+    ))
+    emit("hybrid_solar_panel_normal", shaped(
+        cfg, ["CLC", "SAS", "EIE"],
+        {
+            "C": "ic2:carbon_plate",
+            "L": "minecraft:lapis_block",
+            "S": "ecc2:sunnarium",
+            "A": "ecc2:advanced_solar_panel",
+            "E": "ic2:advanced_circuit",
+            "I": "ic2:iridium",
+        },
+        "ecc2:hybrid_solar_panel",
+        conditions=[cfg.config_flag_condition("hybrid_solar_panel_normal")],
     ))
     emit("ultimate_hybrid_solar_panel", shaped(
         cfg, ["GCG", "SHS", "ECE"],
@@ -671,41 +708,63 @@ def generate_crafting_recipes(out_root: Path, cfg: TargetConfig) -> int:
             "E": "ic2:advanced_circuit",
         },
         "ecc2:ultimate_hybrid_solar_panel",
+        conditions=[cfg.config_flag_condition("ultimate_hybrid_solar_panel")],
+    ))
+    emit("ultimate_hybrid_solar_panel_normal", shaped(
+        cfg, ["GCG", "SHS", "ECE"],
+        {
+            "G": "minecraft:lapis_block",
+            "C": "ic2:coal_chunk",
+            "S": "ecc2:sunnarium_alloy",
+            "H": "ecc2:hybrid_solar_panel",
+            "E": "ic2:advanced_circuit",
+        },
+        "ecc2:ultimate_hybrid_solar_panel",
+        conditions=[cfg.config_flag_condition("ultimate_hybrid_solar_panel_normal")],
     ))
     emit("ultimate_hybrid_solar_panel_8x", shaped(
         cfg, ["HHH", "HCH", "HHH"],
         {"H": "ecc2:hybrid_solar_panel", "C": "ic2:advanced_circuit"},
         "ecc2:ultimate_hybrid_solar_panel",
+        conditions=[cfg.config_flag_condition("ultimate_hybrid_solar_panel_any")],
     ))
     emit("hybrid_solar_panel_split", shapeless(
         cfg, ["ecc2:ultimate_hybrid_solar_panel"], "ecc2:hybrid_solar_panel", 8,
+        conditions=[cfg.config_flag_condition("hybrid_solar_panel_any")],
     ))
     emit("quantum_solar_panel", shaped(
         cfg, ["UUU", "UQU", "UUU"],
         {"U": "ecc2:ultimate_hybrid_solar_panel", "Q": "ecc2:quantum_core"},
         "ecc2:quantum_solar_panel",
+        conditions=[cfg.config_flag_condition("quantum_solar_panel")],
     ))
 
-    # --- ASP Solar Helmets (3 + shapeless color-preserving upgrade from Hybrid -> Ultimate) ---
+    # --- ASP Solar Helmets (3 + custom EU/dye-preserving upgrade from Hybrid -> Ultimate) ---
     emit("advanced_solar_helmet", shaped(
         cfg, [" S ", "CNC", "GGG"],
         {"S": "ecc2:advanced_solar_panel", "C": "ic2:advanced_circuit", "N": "ic2:nano_helmet", "G": "ic2:glass_fibre_cable"},
         "ecc2:advanced_solar_helmet",
+        conditions=[cfg.config_flag_condition("advanced_solar_helmet")],
     ))
     emit("hybrid_solar_helmet", shaped(
         cfg, [" S ", "CQC", "GGG"],
         {"S": "ecc2:hybrid_solar_panel", "C": "ic2:advanced_circuit", "Q": "ic2:quantum_helmet", "G": "ic2:glass_fibre_cable"},
         "ecc2:hybrid_solar_helmet",
+        conditions=[cfg.config_flag_condition("hybrid_solar_helmet")],
     ))
     emit("ultimate_hybrid_solar_helmet", shaped(
         cfg, [" S ", "CQC", "GGG"],
         {"S": "ecc2:ultimate_hybrid_solar_panel", "C": "ic2:advanced_circuit", "Q": "ic2:quantum_helmet", "G": "ic2:glass_fibre_cable"},
         "ecc2:ultimate_hybrid_solar_helmet",
+        conditions=[cfg.config_flag_condition("ultimate_hybrid_solar_helmet")],
     ))
-    emit("ultimate_hybrid_solar_helmet_upgrade", shapeless(
+    helmet_upgrade = shapeless(
         cfg, ["ecc2:hybrid_solar_helmet", "ecc2:ultimate_hybrid_solar_panel"],
         "ecc2:ultimate_hybrid_solar_helmet",
-    ))
+        conditions=[cfg.config_flag_condition("ultimate_hybrid_solar_helmet")],
+    )
+    helmet_upgrade["type"] = f"{MOD_ID}:solar_helmet_upgrade"
+    emit("ultimate_hybrid_solar_helmet_upgrade", helmet_upgrade)
 
     # --- 6 Advanced Wind & Water Kinetic Generators (8 recipes incl. durable/overclocked -> precision) ---
     for kind, base_id in [("wind", "ic2:wind_kinetic_generator"), ("water", "ic2:water_kinetic_generator")]:

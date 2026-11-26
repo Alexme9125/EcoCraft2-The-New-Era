@@ -1,7 +1,6 @@
 package com.ecocraft2.giant;
 
 import com.ecocraft2.EcoCraft2;
-import com.ecocraft2.gas.Ecc2FluidSpec;
 import com.industrialage.ia2.access.MachineAccess;
 import com.industrialage.ia2.access.MachinePorts;
 import com.industrialage.ia2.access.ProcessingItemPort;
@@ -39,14 +38,11 @@ import net.minecraft.world.level.material.Fluids;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
-import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtensions;
-import net.neoforged.neoforge.client.extensions.common.RegisterClientExtensionsEvent;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.FluidUtil;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.items.ItemHandlerHelper;
-import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.handling.IPayloadHandler;
 import net.neoforged.neoforge.network.registration.HandlerThread;
@@ -95,35 +91,6 @@ public final class GiantGasPlatform {
 
     public static BlockBehaviour.Properties fluidNonSolid(BlockBehaviour.Properties properties) {
         return properties.noCollission();
-    }
-
-    public static void registerFluidClientExtensions(IEventBus modBus, List<Ecc2FluidSpec> specs) {
-        modBus.addListener(
-                RegisterClientExtensionsEvent.class,
-                event -> {
-                    for (var spec : specs) {
-                        event.registerFluidType(
-                                new IClientFluidTypeExtensions() {
-                                    @Override
-                                    public ResourceLocation getStillTexture() {
-                                        return ResourceLocation.fromNamespaceAndPath(
-                                                EcoCraft2.MOD_ID, spec.stillTexturePath());
-                                    }
-
-                                    @Override
-                                    public ResourceLocation getFlowingTexture() {
-                                        return ResourceLocation.fromNamespaceAndPath(
-                                                EcoCraft2.MOD_ID, spec.flowTexturePath());
-                                    }
-
-                                    @Override
-                                    public int getTintColor() {
-                                        return spec.tintArgb();
-                                    }
-                                },
-                                spec.fluidType().get());
-                    }
-                });
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
@@ -190,10 +157,6 @@ public final class GiantGasPlatform {
                             event.registrar(NETWORK_VERSION).executesOn(HandlerThread.MAIN);
                     registrar.playToServer(type, codec, handler);
                 });
-    }
-
-    public static void sendToServer(CustomPacketPayload payload) {
-        PacketDistributor.sendToServer(payload);
     }
 
     public static Item findItem(String id) {

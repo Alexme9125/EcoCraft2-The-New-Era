@@ -7,8 +7,10 @@ import com.ecocraft2.config.Ecc2Config;
 import com.ecocraft2.kinetic.AdvancedKineticBlock;
 import com.industrialage.ia2.gameplay.PortableGear;
 import com.industrialage.ia2.industrial.Radiation;
+import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import net.minecraft.ChatFormatting;
@@ -19,12 +21,14 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.EquipmentSlotGroup;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.neoforged.bus.api.IEventBus;
+import net.neoforged.fml.ModList;
 import net.neoforged.neoforge.event.ItemAttributeModifierEvent;
 import net.neoforged.neoforge.event.entity.player.ItemTooltipEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
@@ -45,19 +49,21 @@ import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 public final class SolarHelmetHandler {
 
     private static final Map<UUID, TrackedHelmet> PLAYER_ENGINES = new ConcurrentHashMap<>();
+    private static volatile boolean curiosProbeAttempted;
+    private static volatile Method curiosGetInventory;
+    private static volatile Method curiosGetEquipped;
 
     private record TrackedHelmet(
             SolarHelmetSpec spec, int dayPower, int nightPower, SolarHelmetEngine engine) {}
 
     private SolarHelmetHandler() {}
 
-    /** Subscribes solar helmet gameplay, crafting, attribute, and tooltip listeners. */
+    /** Subscribes solar helmet gameplay, attribute, and tooltip listeners. */
     public static void install(IEventBus gameBus) {
         gameBus.addListener(PlayerTickEvent.Post.class, SolarHelmetHandler::onPlayerTick);
         gameBus.addListener(
                 PlayerEvent.PlayerLoggedOutEvent.class,
                 event -> PLAYER_ENGINES.remove(event.getEntity().getUUID()));
-        gameBus.addListener(PlayerEvent.ItemCraftedEvent.class, SolarHelmetHandler::onItemCrafted);
         gameBus.addListener(
                 ItemAttributeModifierEvent.class, SolarHelmetHandler::onArmorAttributes);
         gameBus.addListener(ItemTooltipEvent.class, SolarHelmetHandler::onItemTooltip);
@@ -154,6 +160,9 @@ public final class SolarHelmetHandler {
 
     private static double chargeMainInventory(ServerPlayer player, double offerEu, int tier) {
         double remaining = offerEu;
+        if (remaining > 0.0) {
+            remaining -= chargeOptionalCurios(player, remaining, tier);
+        }
         var inv = player.getInventory();
         int mainSize = Math.min(36, inv.getContainerSize());
         for (int i = 0; i < mainSize && remaining > 0.0; i++) {
@@ -166,6 +175,59 @@ public final class SolarHelmetHandler {
             }
         }
         return offerEu - remaining;
+    }
+
+    /** Optionally charges electric items equipped in Curios slots when Curios is installed. */
+    private static double chargeOptionalCurios(ServerPlayer player, double offerEu, int tier) {
+        if (offerEu <= 0.0 || !ModList.get().isLoaded("curios")) {
+            return 0.0;
+        }
+        if (!curiosProbeAttempted) {
+            curiosProbeAttempted = true;
+            try {
+                Class<?> api = Class.forName("top.theillusivec4.curios.api.CuriosApi");
+                curiosGetInventory = api.getMethod("getCuriosInventory", LivingEntity.class);
+            } catch (Throwable ignored) {
+                curiosGetInventory = null;
+            }
+        }
+        Method getInv = curiosGetInventory;
+        if (getInv == null) {
+            return 0.0;
+        }
+        try {
+            Object optObj = getInv.invoke(null, player);
+            if (!(optObj instanceof Optional<?> opt) || opt.isEmpty()) {
+                return 0.0;
+            }
+            Object handler = opt.get();
+            Method getEquipped = curiosGetEquipped;
+            if (getEquipped == null) {
+                getEquipped = handler.getClass().getMethod("getEquippedCurios");
+                curiosGetEquipped = getEquipped;
+            }
+            Object equipped = getEquipped.invoke(handler);
+            if (equipped == null) {
+                return 0.0;
+            }
+            Method getSlots = equipped.getClass().getMethod("getSlots");
+            Method getStack = equipped.getClass().getMethod("getStackInSlot", int.class);
+            int slots = (int) getSlots.invoke(equipped);
+            double remaining = offerEu;
+            for (int i = 0; i < slots && remaining > 0.0; i++) {
+                Object rawStack = getStack.invoke(equipped, i);
+                if (rawStack instanceof ItemStack stack && !stack.isEmpty()) {
+                    double accepted = PortableGear.charge(stack, remaining, tier);
+                    if (accepted > 0.0) {
+                        remaining -= accepted;
+                    }
+                }
+            }
+            return offerEu - remaining;
+        } catch (Throwable ignored) {
+            curiosGetInventory = null;
+            return 0.0;
+        }
     }
 
     private static void applyQuantumAbilities(
@@ -253,29 +315,29 @@ public final class SolarHelmetHandler {
         return ItemStack.EMPTY;
     }
 
-    private static void onItemCrafted(PlayerEvent.ItemCraftedEvent event) {
-        ItemStack output = event.getCrafting();
-        if (!(output.getItem() instanceof SolarHelmetItem outHelmet)
+    /**
+     * Copies stored EU and leather dye color from a Hybrid Solar Helmet onto a freshly assembled
+     * Ultimate Hybrid Solar Helmet inside {@link SolarHelmetUpgradeRecipe}.
+     */
+    public static void copyHelmetUpgradeData(ItemStack inputHybrid, ItemStack outputUltimate) {
+        if (inputHybrid.isEmpty() || outputUltimate.isEmpty()) {
+            return;
+        }
+        if (!(inputHybrid.getItem() instanceof SolarHelmetItem inHelmet)
+                || inHelmet.spec() != SolarHelmetSpec.HYBRID) {
+            return;
+        }
+        if (!(outputUltimate.getItem() instanceof SolarHelmetItem outHelmet)
                 || outHelmet.spec() != SolarHelmetSpec.ULTIMATE_HYBRID) {
             return;
         }
-        var matrix = event.getInventory();
-        for (int i = 0; i < matrix.getContainerSize(); i++) {
-            ItemStack ingredient = matrix.getItem(i);
-            if (ingredient.getItem() instanceof SolarHelmetItem inHelmet
-                    && inHelmet.spec() == SolarHelmetSpec.HYBRID) {
-                // Preserve leather dye color across Hybrid -> Ultimate shapeless upgrade.
-                var dyed = ingredient.get(DataComponents.DYED_COLOR);
-                if (dyed != null) {
-                    output.set(DataComponents.DYED_COLOR, dyed);
-                }
-                // Preserve accumulated EU charge cleanly as well.
-                double priorEu = inHelmet.ecc2Stored(ingredient);
-                if (priorEu > 0.0) {
-                    outHelmet.ecc2SetStored(output, priorEu);
-                }
-                break;
-            }
+        var dyed = inputHybrid.get(DataComponents.DYED_COLOR);
+        if (dyed != null) {
+            outputUltimate.set(DataComponents.DYED_COLOR, dyed);
+        }
+        double priorEu = inHelmet.ecc2Stored(inputHybrid);
+        if (priorEu > 0.0) {
+            outHelmet.ecc2SetStored(outputUltimate, priorEu);
         }
     }
 

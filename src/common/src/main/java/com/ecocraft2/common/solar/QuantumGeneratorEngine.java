@@ -18,6 +18,12 @@ public final class QuantumGeneratorEngine {
     /** Maximum configurable voltage tier (Tier 6 = MAX = 32,768 EU/packet). */
     public static final int MAX_TIER = 6;
 
+    /** Hard upper bound on packets emitted per tick to prevent IC2 EnergyNetwork main-thread stalls. */
+    public static final int MAX_PACKETS_PER_TICK = 64;
+
+    /** Hard upper bound on configured EU/t production (64 packets * Tier 6 32,768 EU/packet). */
+    public static final int MAX_PRODUCTION = MAX_PACKETS_PER_TICK * 32_768;
+
     // Normal click production buttons (0..5)
     public static final int EVENT_SUB_100 = 0;
     public static final int EVENT_SUB_10 = 1;
@@ -65,27 +71,27 @@ public final class QuantumGeneratorEngine {
      * @param tier       initial output tier (clamped to {@code 1..6})
      */
     public QuantumGeneratorEngine(int production, int tier) {
-        this.production = Math.max(0, production);
+        this.production = clampProduction(production);
         this.tier = clampTier(tier);
         this.active = true;
     }
 
-    /** Returns the configured EU/t production (always {@code >= 0}). */
+    /** Returns the configured EU/t production (always in {@code [0, MAX_PRODUCTION]}). */
     public int production() {
         return production;
     }
 
     /**
-     * Sets total EU/t production, clamped {@code >= 0}.
+     * Sets total EU/t production, clamped to {@code [0, MAX_PRODUCTION]}.
      *
      * @param production new EU/t production
      */
     public void setProduction(int production) {
-        this.production = Math.max(0, production);
+        this.production = clampProduction(production);
     }
 
     /**
-     * Adjusts EU/t production by {@code delta}, saturating cleanly within {@code [0, Integer.MAX_VALUE]}.
+     * Adjusts EU/t production by {@code delta}, saturating cleanly within {@code [0, MAX_PRODUCTION]}.
      *
      * @param delta signed EU/t adjustment
      */
@@ -93,8 +99,8 @@ public final class QuantumGeneratorEngine {
         long next = (long) this.production + delta;
         if (next <= 0L) {
             this.production = 0;
-        } else if (next >= Integer.MAX_VALUE) {
-            this.production = Integer.MAX_VALUE;
+        } else if (next >= MAX_PRODUCTION) {
+            this.production = MAX_PRODUCTION;
         } else {
             this.production = (int) next;
         }
@@ -143,25 +149,25 @@ public final class QuantumGeneratorEngine {
     }
 
     /**
-     * Computes the exact number of packets emitted per tick:
-     * {@code production > packetSize(tier) ? ceil(production / packetSize(tier)) : 1}.
+     * Computes the number of packets emitted per tick, bounded by {@link #MAX_PACKETS_PER_TICK}:
+     * {@code min(MAX_PACKETS_PER_TICK, production > packetSize(tier) ? ceil(production / packetSize(tier)) : 1)}.
      *
-     * @return packet count ({@code >= 1})
+     * @return packet count in {@code [1, MAX_PACKETS_PER_TICK]}
      */
     public int packetCount() {
         long packetCap = (long) tierPacketSize();
         if (production > packetCap) {
-            return (int) (((long) production + packetCap - 1L) / packetCap);
+            long raw = ((long) production + packetCap - 1L) / packetCap;
+            return (int) Math.min(MAX_PACKETS_PER_TICK, raw);
         }
         return 1;
     }
 
     /**
      * Computes the exact EU carried by each emitted packet:
-     * {@code active ? (double) production / packetCount() : 0.0}.
+     * {@code active ? min(tierPacketSize(), (double) production / packetCount()) : 0.0}.
      *
-     * <p>Guaranteed to satisfy {@code offeredPerPacket() <= tierPacketSize()} and
-     * {@code offeredPerPacket() * packetCount() == production} when active.
+     * <p>Guaranteed to satisfy {@code offeredPerPacket() <= tierPacketSize()}.
      *
      * @return EU per packet
      */
@@ -169,14 +175,15 @@ public final class QuantumGeneratorEngine {
         if (!active || production <= 0) {
             return 0.0;
         }
-        return (double) production / packetCount();
+        return Math.min(tierPacketSize(), (double) production / packetCount());
     }
 
     /**
-     * Returns total EU offered per tick across all packets ({@code active ? production : 0.0}).
+     * Returns total EU offered per tick across all packets, respecting both the tier packet limit
+     * and {@link #MAX_PACKETS_PER_TICK}.
      */
     public double totalOfferedEnergy() {
-        return active ? production : 0.0;
+        return active ? offeredPerPacket() * packetCount() : 0.0;
     }
 
     /**
@@ -264,5 +271,9 @@ public final class QuantumGeneratorEngine {
 
     private static int clampTier(int tier) {
         return Math.max(MIN_TIER, Math.min(MAX_TIER, tier));
+    }
+
+    private static int clampProduction(int production) {
+        return Math.max(0, Math.min(MAX_PRODUCTION, production));
     }
 }

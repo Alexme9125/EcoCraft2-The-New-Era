@@ -6,6 +6,7 @@ import com.ecocraft2.giant.Ecc2SyncData;
 import com.ecocraft2.giant.Ecc2UpgradeHelper;
 import com.ecocraft2.giant.GiantGasModule;
 import com.ecocraft2.giant.GiantGasPlatform;
+import com.industrialage.ia2.gameplay.PortableGear;
 import com.industrialage.ia2.gui.DeviceAccessMenu;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.Container;
@@ -16,6 +17,7 @@ import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.inventory.SimpleContainerData;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 
 /** Container menu for {@code ecc2:water_gas_machine} aligned to {@code water_gas_machine.png}. */
 public final class WaterGasMachineMenu extends DeviceAccessMenu {
@@ -34,11 +36,33 @@ public final class WaterGasMachineMenu extends DeviceAccessMenu {
     public static WaterGasMachineMenu fromNetwork(
             int containerId, Inventory playerInventory, FriendlyByteBuf buf) {
         buf.readBlockPos();
+        SimpleContainer clientContainer =
+                new SimpleContainer(WaterGasMachineBlockEntity.INVENTORY_SIZE) {
+                    @Override
+                    public boolean canPlaceItem(int slot, ItemStack stack) {
+                        return switch (slot) {
+                            case WaterGasMachineBlockEntity.SLOT_COAL_DUST ->
+                                    WaterGasMachineBlockEntity.isCoalDust(stack);
+                            case WaterGasMachineBlockEntity.SLOT_WATER_CELL_IN ->
+                                    GiantGasPlatform.isDrainableContainer(
+                                            stack, Ecc2Ids.MINECRAFT_WATER_ID::equals);
+                            case WaterGasMachineBlockEntity.SLOT_GAS_CELL_IN ->
+                                    GiantGasPlatform.isFillableContainer(
+                                            stack, Ecc2Ids.WATER_GAS_ID);
+                            case WaterGasMachineBlockEntity.SLOT_BATTERY ->
+                                    PortableGear.canDischarge(stack, 14)
+                                            || stack.is(Items.REDSTONE);
+                            case 6, 7, 8, 9 ->
+                                    Ecc2UpgradeHelper.isAcceptedUpgrade(stack, true, true);
+                            default -> false;
+                        };
+                    }
+                };
         return new WaterGasMachineMenu(
                 containerId,
                 playerInventory,
                 null,
-                new SimpleContainer(WaterGasMachineBlockEntity.INVENTORY_SIZE),
+                clientContainer,
                 new SimpleContainerData(DATA_COUNT));
     }
 

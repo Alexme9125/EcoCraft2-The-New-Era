@@ -6,6 +6,7 @@ import com.ecocraft2.giant.Ecc2SyncData;
 import com.ecocraft2.giant.Ecc2UpgradeHelper;
 import com.ecocraft2.giant.GiantGasModule;
 import com.ecocraft2.giant.GiantGasPlatform;
+import com.industrialage.ia2.gameplay.PortableGear;
 import com.industrialage.ia2.gui.DeviceAccessMenu;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.Container;
@@ -16,6 +17,7 @@ import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.inventory.SimpleContainerData;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 
 /** Container menu for {@code ecc2:organic_fermenter} aligned to {@code organic_fermenter.png}. */
 public final class OrganicFermenterMenu extends DeviceAccessMenu {
@@ -34,11 +36,33 @@ public final class OrganicFermenterMenu extends DeviceAccessMenu {
     public static OrganicFermenterMenu fromNetwork(
             int containerId, Inventory playerInventory, FriendlyByteBuf buf) {
         buf.readBlockPos();
+        SimpleContainer clientContainer =
+                new SimpleContainer(OrganicFermenterBlockEntity.INVENTORY_SIZE) {
+                    @Override
+                    public boolean canPlaceItem(int slot, ItemStack stack) {
+                        return switch (slot) {
+                            case OrganicFermenterBlockEntity.SLOT_FOOD_INPUT ->
+                                    GiantGasPlatform.foodNutrition(stack) > 0;
+                            case OrganicFermenterBlockEntity.SLOT_CULTURE_CELL_IN ->
+                                    GiantGasPlatform.isDrainableContainer(
+                                            stack, Ecc2Ids.CULTURE_MEDIUM_ID::equals);
+                            case OrganicFermenterBlockEntity.SLOT_BIOGAS_CELL_IN ->
+                                    GiantGasPlatform.isFillableContainer(
+                                            stack, Ecc2Ids.IC2_BIOGAS_ID);
+                            case OrganicFermenterBlockEntity.SLOT_BATTERY ->
+                                    PortableGear.canDischarge(stack, 14)
+                                            || stack.is(Items.REDSTONE);
+                            case 7, 8, 9, 10 ->
+                                    Ecc2UpgradeHelper.isAcceptedUpgrade(stack, true, true);
+                            default -> false;
+                        };
+                    }
+                };
         return new OrganicFermenterMenu(
                 containerId,
                 playerInventory,
                 null,
-                new SimpleContainer(OrganicFermenterBlockEntity.INVENTORY_SIZE),
+                clientContainer,
                 new SimpleContainerData(DATA_COUNT));
     }
 

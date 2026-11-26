@@ -5,6 +5,7 @@ import com.ecocraft2.bridge.Ecc2EnergyHelper;
 import com.ecocraft2.common.gas.GasFuelSpec;
 import com.ecocraft2.common.gas.GasFurnaceEngine;
 import com.ecocraft2.common.gas.GasMachineOutcome;
+import com.ecocraft2.config.Ecc2Config;
 import com.industrialage.ia2.access.MachineAccess;
 import com.industrialage.ia2.access.MachineAccessTarget;
 import com.industrialage.ia2.access.MachinePortCache;
@@ -207,8 +208,12 @@ public final class GasFurnaceBlockEntity extends BlockEntity
                 }
             };
 
+    private static final int[] UPGRADE_IN_SLOTS = {SLOT_INPUT};
+    private static final int[] UPGRADE_OUT_SLOTS = {SLOT_OUTPUT, SLOT_GAS_OUT};
+
     public GasFurnaceBlockEntity(BlockPos pos, BlockState state) {
         super(GasRegistry.GAS_FURNACE_BE.get(), pos, state);
+        engine.configure(Ecc2Config.gasFurnaceGasPerItem(), Ecc2Config.gasFurnaceBaseTicks());
     }
 
     public GasFurnaceEngine engine() {
@@ -233,7 +238,9 @@ public final class GasFurnaceBlockEntity extends BlockEntity
         if (!(level instanceof ServerLevel serverLevel)) {
             return;
         }
-        refreshUpgrades();
+        engine.configure(Ecc2Config.gasFurnaceGasPerItem(), Ecc2Config.gasFurnaceBaseTicks());
+        List<ItemStack> upgrades = collectUpgrades();
+        engine.setOverclockers(Ecc2EnergyHelper.readUpgradeProfile(upgrades).overclockers());
 
         if (GasContainerHelper.drainItemIntoTank(
                 inventory,
@@ -249,9 +256,10 @@ public final class GasFurnaceBlockEntity extends BlockEntity
             setChanged();
         }
 
+        boolean runAllowed = GasUpgradeAutomation.isRunAllowed(serverLevel, worldPosition, upgrades);
         ItemStack input = inventory.getStackInSlot(SLOT_INPUT);
         ItemStack result = ItemStack.EMPTY;
-        if (!input.isEmpty()) {
+        if (runAllowed && !input.isEmpty()) {
             SimpleContainer probe = new SimpleContainer(1);
             probe.setItem(0, input);
             result =
@@ -273,6 +281,43 @@ public final class GasFurnaceBlockEntity extends BlockEntity
             setChanged();
         }
 
+        if ((serverLevel.getGameTime() & 3L) == 0L && !upgrades.isEmpty()) {
+            boolean moved =
+                    GasUpgradeAutomation.executeItemUpgrades(
+                            serverLevel,
+                            this,
+                            inventory,
+                            upgrades,
+                            UPGRADE_IN_SLOTS,
+                            UPGRADE_OUT_SLOTS,
+                            stack -> {
+                                SimpleContainer probe = new SimpleContainer(1);
+                                probe.setItem(0, stack);
+                                return serverLevel
+                                        .getRecipeManager()
+                                        .getRecipeFor(RecipeType.SMELTING, probe, serverLevel)
+                                        .isPresent();
+                            });
+            moved |=
+                    GasUpgradeAutomation.executeFluidUpgrades(
+                            serverLevel,
+                            this,
+                            upgrades,
+                            fs ->
+                                    GasContainerHelper.fuelOf(fs)
+                                            .map(f -> engine.fillGas(f, fs.getAmount(), true) > 0)
+                                            .orElse(false),
+                            () -> GasFurnaceEngine.GAS_TANK_CAPACITY_MB - engine.gasMb(),
+                            fs ->
+                                    GasContainerHelper.fuelOf(fs)
+                                            .ifPresent(f -> engine.fillGas(f, fs.getAmount(), false)),
+                            null,
+                            null);
+            if (moved) {
+                setChanged();
+            }
+        }
+
         BlockState state = getBlockState();
         if (state.hasProperty(GasMachineBlock.ACTIVE)
                 && state.getValue(GasMachineBlock.ACTIVE) != engine.isActive()) {
@@ -283,7 +328,7 @@ public final class GasFurnaceBlockEntity extends BlockEntity
         }
     }
 
-    private void refreshUpgrades() {
+    private List<ItemStack> collectUpgrades() {
         List<ItemStack> upgrades = new ArrayList<>(4);
         for (int i = 0; i < 4; i++) {
             ItemStack u = inventory.getStackInSlot(SLOT_UPGRADE_START + i);
@@ -291,7 +336,11 @@ public final class GasFurnaceBlockEntity extends BlockEntity
                 upgrades.add(u);
             }
         }
-        engine.setOverclockers(Ecc2EnergyHelper.readUpgradeProfile(upgrades).overclockers());
+        return upgrades;
+    }
+
+    private void refreshUpgrades() {
+        engine.setOverclockers(Ecc2EnergyHelper.readUpgradeProfile(collectUpgrades()).overclockers());
     }
 
     @Override

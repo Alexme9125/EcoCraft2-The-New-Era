@@ -5,6 +5,7 @@ import com.ecocraft2.bridge.Ecc2EnergyHelper;
 import com.ecocraft2.common.config.Ecc2Ids;
 import com.ecocraft2.common.gas.GasMachineOutcome;
 import com.ecocraft2.common.gas.OrganicFermenterEngine;
+import com.ecocraft2.config.Ecc2Config;
 import com.industrialage.ia2.access.MachineAccess;
 import com.industrialage.ia2.access.MachineAccessTarget;
 import com.industrialage.ia2.access.MachinePortCache;
@@ -28,7 +29,11 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerData;
+import net.minecraft.world.item.BowlFoodItem;
+import net.minecraft.world.item.HoneyBottleItem;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.SuspiciousStewItem;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
@@ -238,8 +243,34 @@ public final class OrganicFermenterBlockEntity extends BlockEntity
                 }
             };
 
+    private static final int[] UPGRADE_IN_SLOTS = {SLOT_FOOD};
+    private static final int[] UPGRADE_OUT_SLOTS = {
+        SLOT_CONTAINER_RETURN, SLOT_CULTURE_OUT, SLOT_BIOGAS_OUT
+    };
+
     public OrganicFermenterBlockEntity(BlockPos pos, BlockState state) {
         super(GasRegistry.ORGANIC_FERMENTER_BE.get(), pos, state);
+        engine.configure(
+                Ecc2Config.organicFermenterBiogasPerHunger(),
+                Ecc2Config.organicFermenterCulturePerOp());
+    }
+
+    private static ItemStack resolveFoodContainerRemainder(ItemStack foodStack) {
+        if (foodStack.isEmpty()) {
+            return ItemStack.EMPTY;
+        }
+        ItemStack craftingRem = foodStack.getCraftingRemainingItem();
+        if (!craftingRem.isEmpty()) {
+            return craftingRem;
+        }
+        if (foodStack.getItem() instanceof BowlFoodItem
+                || foodStack.getItem() instanceof SuspiciousStewItem) {
+            return new ItemStack(Items.BOWL);
+        }
+        if (foodStack.getItem() instanceof HoneyBottleItem) {
+            return new ItemStack(Items.GLASS_BOTTLE);
+        }
+        return ItemStack.EMPTY;
     }
 
     public static int foodNutrition(ItemStack stack) {
@@ -277,7 +308,11 @@ public final class OrganicFermenterBlockEntity extends BlockEntity
             return;
         }
         lastTick = serverLevel.getGameTime();
-        refreshUpgrades();
+        engine.configure(
+                Ecc2Config.organicFermenterBiogasPerHunger(),
+                Ecc2Config.organicFermenterCulturePerOp());
+        List<ItemStack> upgrades = collectUpgrades();
+        engine.setUpgrades(Ecc2EnergyHelper.readUpgradeProfile(upgrades));
 
         ItemStack battery = inventory.getStackInSlot(SLOT_BATTERY);
         if (!battery.isEmpty() && engine.demandedEu() > 0.0) {
@@ -314,10 +349,10 @@ public final class OrganicFermenterBlockEntity extends BlockEntity
             setChanged();
         }
 
+        boolean runAllowed = GasUpgradeAutomation.isRunAllowed(serverLevel, worldPosition, upgrades);
         ItemStack foodStack = inventory.getStackInSlot(SLOT_FOOD);
-        int nutrition = foodNutrition(foodStack);
-        ItemStack containerRemainder =
-                foodStack.isEmpty() ? ItemStack.EMPTY : foodStack.getCraftingRemainingItem();
+        int nutrition = runAllowed ? foodNutrition(foodStack) : 0;
+        ItemStack containerRemainder = resolveFoodContainerRemainder(foodStack);
         boolean canAcceptReturn =
                 containerRemainder.isEmpty()
                         || GasContainerHelper.canFitSlot(
@@ -335,6 +370,37 @@ public final class OrganicFermenterBlockEntity extends BlockEntity
             setChanged();
         }
 
+        if ((lastTick & 3L) == 0L && !upgrades.isEmpty()) {
+            boolean moved =
+                    GasUpgradeAutomation.executeItemUpgrades(
+                            serverLevel,
+                            this,
+                            inventory,
+                            upgrades,
+                            UPGRADE_IN_SLOTS,
+                            UPGRADE_OUT_SLOTS,
+                            s -> foodNutrition(s) > 0);
+            Fluid biogasOut = biogasFluid();
+            moved |=
+                    GasUpgradeAutomation.executeFluidUpgrades(
+                            serverLevel,
+                            this,
+                            upgrades,
+                            fs -> fs.getFluid() == GasRegistry.CULTURE_MEDIUM.get(),
+                            () ->
+                                    OrganicFermenterEngine.CULTURE_TANK_CAPACITY_MB
+                                            - engine.cultureMb(),
+                            fs -> engine.fillCulture(fs.getAmount(), false),
+                            () ->
+                                    engine.biogasMb() > 0 && biogasOut != Fluids.EMPTY
+                                            ? new FluidStack(biogasOut, engine.biogasMb())
+                                            : FluidStack.EMPTY,
+                            drained -> engine.drainBiogas(drained, false));
+            if (moved) {
+                setChanged();
+            }
+        }
+
         BlockState state = getBlockState();
         if (state.hasProperty(GasMachineBlock.ACTIVE)
                 && state.getValue(GasMachineBlock.ACTIVE) != engine.isActive()) {
@@ -345,7 +411,7 @@ public final class OrganicFermenterBlockEntity extends BlockEntity
         }
     }
 
-    private void refreshUpgrades() {
+    private List<ItemStack> collectUpgrades() {
         List<ItemStack> upgrades = new ArrayList<>(4);
         for (int i = 0; i < 4; i++) {
             ItemStack u = inventory.getStackInSlot(SLOT_UPGRADE_START + i);
@@ -353,7 +419,11 @@ public final class OrganicFermenterBlockEntity extends BlockEntity
                 upgrades.add(u);
             }
         }
-        engine.setUpgrades(Ecc2EnergyHelper.readUpgradeProfile(upgrades));
+        return upgrades;
+    }
+
+    private void refreshUpgrades() {
+        engine.setUpgrades(Ecc2EnergyHelper.readUpgradeProfile(collectUpgrades()));
     }
 
     @Override

@@ -9,6 +9,7 @@ import com.ecocraft2.giant.Ecc2FluidTankView;
 import com.ecocraft2.giant.Ecc2UpgradeHelper;
 import com.ecocraft2.giant.GiantGasModule;
 import com.ecocraft2.giant.GiantGasPlatform;
+import com.industrialage.ia2.access.MachineAccess;
 import com.industrialage.ia2.energy.graph.EnergyGraph;
 import com.industrialage.ia2.gameplay.PortableGear;
 import com.industrialage.ia2.logistics.FluidContents;
@@ -48,6 +49,7 @@ public final class CultureIncubatorBlockEntity extends GasMachineBlockEntityBase
     public static final int INVENTORY_SIZE = 10;
 
     private static final int[] ALL_AUTOMATED_SLOTS = {0, 1, 2, 3, 4, 5};
+    private static final int[] EMPTY_SLOTS = new int[0];
     private static final int[] INPUT_SLOTS = {SLOT_BONEMEAL};
     private static final int[] OUTPUT_SLOTS = {SLOT_WATER_CELL_OUT, SLOT_CULTURE_CELL_OUT};
     private static final EnergyGraph.Ports SINK_PORTS =
@@ -276,7 +278,7 @@ public final class CultureIncubatorBlockEntity extends GasMachineBlockEntityBase
 
     @Override
     public int[] getSlotsForFace(Direction side) {
-        return ALL_AUTOMATED_SLOTS;
+        return MachineAccess.connects(this, side) ? ALL_AUTOMATED_SLOTS : EMPTY_SLOTS;
     }
 
     @Override
@@ -297,6 +299,9 @@ public final class CultureIncubatorBlockEntity extends GasMachineBlockEntityBase
 
     @Override
     public boolean canPlaceItemThroughFace(int slot, ItemStack stack, Direction side) {
+        if (!MachineAccess.allowsInput(this, side)) {
+            return false;
+        }
         if (slot == SLOT_BATTERY) {
             return PortableGear.canSupplyCharge(stack, engine.inputTier())
                     || stack.is(Items.REDSTONE);
@@ -309,7 +314,8 @@ public final class CultureIncubatorBlockEntity extends GasMachineBlockEntityBase
 
     @Override
     public boolean canTakeItemThroughFace(int slot, ItemStack stack, Direction side) {
-        return slot == SLOT_WATER_CELL_OUT || slot == SLOT_CULTURE_CELL_OUT;
+        return MachineAccess.allowsOutput(this, side)
+                && (slot == SLOT_WATER_CELL_OUT || slot == SLOT_CULTURE_CELL_OUT);
     }
 
     @Override

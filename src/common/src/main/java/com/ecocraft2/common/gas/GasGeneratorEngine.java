@@ -27,12 +27,51 @@ public final class GasGeneratorEngine {
 
     private static final double EPSILON = 1e-12;
 
+    private final int[] fuelEuPerBucket;
+    private final int[] fuelEuPerTick;
+
     private GasFuelSpec currentFuel;
     private int gasMb;
     private double pendingEu;
     private double storedEu;
     private double lastTickGeneratedEu;
     private boolean active;
+
+    /** Creates a Gas Generator engine initialized with default fuel parameters. */
+    public GasGeneratorEngine() {
+        GasFuelSpec[] specs = GasFuelSpec.values();
+        this.fuelEuPerBucket = new int[specs.length];
+        this.fuelEuPerTick = new int[specs.length];
+        for (GasFuelSpec spec : specs) {
+            this.fuelEuPerBucket[spec.ordinal()] = spec.euPerBucket();
+            this.fuelEuPerTick[spec.ordinal()] = spec.euPerTick();
+        }
+    }
+
+    /** Overrides the EU/bucket energy density and EU/t burn rate for a fuel type. */
+    public void configureFuel(GasFuelSpec fuel, int euPerBucket, int euPerTick) {
+        Objects.requireNonNull(fuel, "fuel");
+        int idx = fuel.ordinal();
+        this.fuelEuPerBucket[idx] = Math.max(1, euPerBucket);
+        this.fuelEuPerTick[idx] = Math.max(1, euPerTick);
+    }
+
+    /** Returns the configured EU per 1,000 mB bucket for {@code fuel}. */
+    public int euPerBucket(GasFuelSpec fuel) {
+        Objects.requireNonNull(fuel, "fuel");
+        return fuelEuPerBucket[fuel.ordinal()];
+    }
+
+    /** Returns the configured EU/t output rate for {@code fuel}. */
+    public int euPerTick(GasFuelSpec fuel) {
+        Objects.requireNonNull(fuel, "fuel");
+        return fuelEuPerTick[fuel.ordinal()];
+    }
+
+    /** Returns the configured exact EU per 1 mB for {@code fuel}. */
+    public double euPerMb(GasFuelSpec fuel) {
+        return euPerBucket(fuel) / 1_000.0;
+    }
 
     /**
      * Advances the Gas Generator by one tick without charging an internal battery slot.
@@ -53,10 +92,10 @@ public final class GasGeneratorEngine {
     public double tick(ChargeSink chargeSlot) {
         double generated = 0.0;
         if (currentFuel != null && storedEu < EU_CAPACITY - EPSILON) {
-            double euPerMb = currentFuel.euPerMb();
+            double euPerMb = euPerMb(currentFuel);
             double totalAvailableEu = pendingEu + gasMb * euPerMb;
             double room = EU_CAPACITY - storedEu;
-            double desiredEu = Math.min(currentFuel.euPerTick(), room);
+            double desiredEu = Math.min(euPerTick(currentFuel), room);
             double actualEu = Math.min(desiredEu, totalAvailableEu);
 
             if (actualEu > EPSILON) {
@@ -199,7 +238,7 @@ public final class GasGeneratorEngine {
         if (currentFuel == null || pendingEu <= 0.0) {
             return 0.0;
         }
-        return pendingEu / currentFuel.euPerMb();
+        return pendingEu / euPerMb(currentFuel);
     }
 
     /** Returns total remaining EU potential across both tank and combustion chamber. */
@@ -207,7 +246,7 @@ public final class GasGeneratorEngine {
         if (currentFuel == null) {
             return 0.0;
         }
-        return pendingEu + gasMb * currentFuel.euPerMb();
+        return pendingEu + gasMb * euPerMb(currentFuel);
     }
 
     /** Returns current EU stored in the 16,000 EU buffer. */
@@ -235,6 +274,28 @@ public final class GasGeneratorEngine {
     }
 
     /**
+     * Restores only the fluid tank portion of state (e.g. during Transfer API transaction rollback),
+     * preserving any combustion-chamber {@code pendingEu} and active fuel identity when the tank is
+     * momentarily empty.
+     *
+     * @param fuel  tank fuel type ({@code null} when tank is empty)
+     * @param gasMb tank volume in mB
+     */
+    public void restoreTankState(GasFuelSpec fuel, int gasMb) {
+        int clampedGas = Math.max(0, Math.min(GAS_TANK_CAPACITY_MB, gasMb));
+        if (fuel != null && clampedGas > 0) {
+            this.currentFuel = fuel;
+            this.gasMb = clampedGas;
+        } else {
+            this.gasMb = 0;
+            if (this.pendingEu <= EPSILON) {
+                this.pendingEu = 0.0;
+                this.currentFuel = null;
+            }
+        }
+    }
+
+    /**
      * Restores persisted generator state from NBT/serialization.
      *
      * @param fuel      saved gas fuel type
@@ -246,7 +307,7 @@ public final class GasGeneratorEngine {
         setStoredEu(storedEu);
         int clampedGas = Math.max(0, Math.min(GAS_TANK_CAPACITY_MB, gasMb));
         double clampedPending = (fuel != null && Double.isFinite(pendingEu) && pendingEu > 0.0)
-                ? Math.min(pendingEu, fuel.euPerMb())
+                ? Math.min(pendingEu, euPerMb(fuel))
                 : 0.0;
         if (fuel != null && (clampedGas > 0 || clampedPending > EPSILON)) {
             this.currentFuel = fuel;

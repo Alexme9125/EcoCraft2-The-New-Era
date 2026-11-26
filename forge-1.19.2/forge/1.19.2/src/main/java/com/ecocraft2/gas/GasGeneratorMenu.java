@@ -1,22 +1,28 @@
 package com.ecocraft2.gas;
 
+import com.ecocraft2.bridge.Ecc2BridgePlatform;
+import com.ecocraft2.bridge.Ecc2EnergyHelper;
 import com.ecocraft2.common.gas.GasFuelSpec;
+import com.ecocraft2.common.gas.GasGeneratorEngine;
+import com.industrialage.ia2.gui.DeviceAccessMenu;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.inventory.SimpleContainerData;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraftforge.fluids.FluidUtil;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.ItemStackHandler;
 import net.minecraftforge.items.SlotItemHandler;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /** Menu for the Gas Generator aligned to {@code assets-gen/gui_coordinates.json}. */
-public final class GasGeneratorMenu extends AbstractContainerMenu {
+public final class GasGeneratorMenu extends DeviceAccessMenu {
 
     private final BlockPos pos;
     private final ContainerData data;
@@ -26,25 +32,28 @@ public final class GasGeneratorMenu extends AbstractContainerMenu {
                 id,
                 playerInv,
                 buf.readBlockPos(),
-                new ItemStackHandler(GasGeneratorBlockEntity.TOTAL_SLOTS),
+                null,
+                createClientHandler(),
                 new SimpleContainerData(5));
     }
 
     public GasGeneratorMenu(
             int id, Inventory playerInv, GasGeneratorBlockEntity be, ContainerData data) {
-        this(id, playerInv, be.getBlockPos(), be.inventory(), data);
+        this(id, playerInv, be.getBlockPos(), be, be.inventory(), data);
     }
 
     private GasGeneratorMenu(
             int id,
             Inventory playerInv,
             BlockPos pos,
+            @Nullable BlockEntity device,
             IItemHandler handler,
             ContainerData data) {
-        super(GasRegistry.GAS_GENERATOR_MENU.get(), id);
+        super(GasRegistry.GAS_GENERATOR_MENU.get(), id, playerInv, device);
         this.pos = pos;
         this.data = data;
         addDataSlots(data);
+        addAccessData();
 
         addSlot(new SlotItemHandler(handler, GasGeneratorBlockEntity.SLOT_GAS_IN, 45, 21));
         addSlot(
@@ -113,6 +122,28 @@ public final class GasGeneratorMenu extends AbstractContainerMenu {
             slot.setChanged();
         }
         return copy;
+    }
+
+    private static ItemStackHandler createClientHandler() {
+        return new ItemStackHandler(GasGeneratorBlockEntity.TOTAL_SLOTS) {
+            @Override
+            public int getSlotLimit(int slot) {
+                return slot == GasGeneratorBlockEntity.SLOT_CHARGE ? 1 : super.getSlotLimit(slot);
+            }
+
+            @Override
+            public boolean isItemValid(int slot, @NotNull ItemStack stack) {
+                return switch (slot) {
+                    case GasGeneratorBlockEntity.SLOT_GAS_IN ->
+                            FluidUtil.getFluidHandler(Ecc2BridgePlatform.copyWithCount(stack, 1))
+                                    .isPresent();
+                    case GasGeneratorBlockEntity.SLOT_CHARGE ->
+                            Ecc2EnergyHelper.acceptsCharge(
+                                    stack, GasGeneratorEngine.OUTPUT_TIER, false);
+                    default -> false;
+                };
+            }
+        };
     }
 
     @Override

@@ -2,11 +2,13 @@ package com.ecocraft2.gas;
 
 import com.ecocraft2.common.gas.GasFuelSpec;
 import com.ecocraft2.common.gas.GasGeneratorEngine;
+import com.ecocraft2.config.Ecc2Config;
 import com.ecocraft2.giant.Ecc2DataReader;
 import com.ecocraft2.giant.Ecc2DataWriter;
 import com.ecocraft2.giant.Ecc2FluidTankView;
 import com.ecocraft2.giant.GiantGasModule;
 import com.ecocraft2.giant.GiantGasPlatform;
+import com.industrialage.ia2.access.MachineAccess;
 import com.industrialage.ia2.energy.graph.EnergyGraph;
 import com.industrialage.ia2.gameplay.PortableGear;
 import com.industrialage.ia2.logistics.FluidContents;
@@ -39,6 +41,7 @@ public final class GasGeneratorBlockEntity extends GasMachineBlockEntityBase
     public static final int INVENTORY_SIZE = 3;
 
     private static final int[] ALL_AUTOMATED_SLOTS = {0, 1, 2};
+    private static final int[] EMPTY_SLOTS = new int[0];
     private static final EnergyGraph.Ports SOURCE_PORTS =
             new EnergyGraph.Ports(Set.of(), Set.of(CapabilityFacade.Face.values()), false);
 
@@ -52,6 +55,8 @@ public final class GasGeneratorBlockEntity extends GasMachineBlockEntityBase
     protected void serverTick(ServerLevel level, BlockState state) {
         lastTick = level.getServer().getTickCount();
         boolean changed = false;
+
+        applyFuelConfig();
 
         // Drain gas cell/bucket into 16,000 mB tank
         changed |=
@@ -193,8 +198,7 @@ public final class GasGeneratorBlockEntity extends GasMachineBlockEntityBase
             public void restoreSnapshot(Snapshot snapshot) {
                 if (snapshot.amounts().length > 0 && snapshot.fluidIds().length > 0) {
                     GasFuelSpec spec = GasFuelSpec.byFluidId(snapshot.fluidIds()[0]).orElse(null);
-                    engine.restoreState(
-                            spec, snapshot.amounts()[0], engine.pendingEu(), engine.storedEu());
+                    engine.restoreTankState(spec, snapshot.amounts()[0]);
                 }
             }
 
@@ -207,7 +211,7 @@ public final class GasGeneratorBlockEntity extends GasMachineBlockEntityBase
 
     @Override
     public int[] getSlotsForFace(Direction side) {
-        return ALL_AUTOMATED_SLOTS;
+        return MachineAccess.connects(this, side) ? ALL_AUTOMATED_SLOTS : EMPTY_SLOTS;
     }
 
     @Override
@@ -222,6 +226,9 @@ public final class GasGeneratorBlockEntity extends GasMachineBlockEntityBase
 
     @Override
     public boolean canPlaceItemThroughFace(int slot, ItemStack stack, Direction side) {
+        if (!MachineAccess.allowsInput(this, side)) {
+            return false;
+        }
         if (slot == SLOT_CHARGE) {
             return canPlaceItem(slot, stack)
                     && !PortableGear.chargeComplete(stack, GasGeneratorEngine.OUTPUT_TIER);
@@ -231,6 +238,9 @@ public final class GasGeneratorBlockEntity extends GasMachineBlockEntityBase
 
     @Override
     public boolean canTakeItemThroughFace(int slot, ItemStack stack, Direction side) {
+        if (!MachineAccess.allowsOutput(this, side)) {
+            return false;
+        }
         if (slot == SLOT_CHARGE) {
             return PortableGear.chargeComplete(stack, GasGeneratorEngine.OUTPUT_TIER);
         }
@@ -265,12 +275,28 @@ public final class GasGeneratorBlockEntity extends GasMachineBlockEntityBase
     @Override
     protected void loadState(Ecc2DataReader in) {
         in.loadItems("ecc2_items", items);
+        applyFuelConfig();
         GasFuelSpec fuel = GasFuelSpec.byFluidId(in.getString("ecc2_fuel", "")).orElse(null);
         engine.restoreState(
                 fuel,
                 in.getInt("ecc2_gas", 0),
                 in.getDouble("ecc2_pending_eu", 0.0),
                 in.getDouble("ecc2_eu", 0.0));
+    }
+
+    private void applyFuelConfig() {
+        engine.configureFuel(
+                GasFuelSpec.WATER_GAS,
+                Ecc2Config.waterGasEnergyPerBucket(),
+                Ecc2Config.waterGasOutputEuPerTick());
+        engine.configureFuel(
+                GasFuelSpec.NATURAL_GAS,
+                Ecc2Config.naturalGasEnergyPerBucket(),
+                Ecc2Config.naturalGasOutputEuPerTick());
+        engine.configureFuel(
+                GasFuelSpec.BIOGAS,
+                Ecc2Config.biogasEnergyPerBucket(),
+                Ecc2Config.biogasOutputEuPerTick());
     }
 
     // ---- Public Getters ----

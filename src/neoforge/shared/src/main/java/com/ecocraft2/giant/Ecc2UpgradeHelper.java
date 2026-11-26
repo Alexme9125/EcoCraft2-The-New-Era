@@ -266,53 +266,77 @@ public final class Ecc2UpgradeHelper {
             int[] inputSlots,
             int limit,
             Predicate<ItemStack> validInput) {
-        if (inputSlots.length == 0) {
+        if (inputSlots.length == 0 || limit <= 0) {
             return false;
         }
-        // Prefer merging into existing matching stacks first, then empty slots (balanced round-robin).
-        int targetSlot = -1;
-        int minCount = Integer.MAX_VALUE;
+        // Collect partially filled slots sorted by ascending stack size so multi-lane machines
+        // top up existing matching lanes evenly, while falling back to any empty lane so a single
+        // partial lane never starves other empty lanes when different valid inputs exist.
+        int[] partialSlots = new int[inputSlots.length];
+        int partialCount = 0;
+        int firstEmptySlot = -1;
         for (int slot : inputSlots) {
             ItemStack existing = inventory.getItem(slot);
             if (existing.isEmpty()) {
-                if (targetSlot < 0) {
-                    targetSlot = slot;
+                if (firstEmptySlot < 0) {
+                    firstEmptySlot = slot;
                 }
-            } else if (existing.getCount() < existing.getMaxStackSize()
-                    && existing.getCount() < minCount) {
-                minCount = existing.getCount();
-                targetSlot = slot;
+            } else {
+                int cap = Math.min(inventory.getMaxStackSize(), existing.getMaxStackSize());
+                if (existing.getCount() < cap) {
+                    partialSlots[partialCount++] = slot;
+                }
             }
         }
-        if (targetSlot < 0) {
+        // Insertion sort partial slots by ascending count.
+        for (int i = 1; i < partialCount; i++) {
+            int keySlot = partialSlots[i];
+            int keyCount = inventory.getItem(keySlot).getCount();
+            int j = i - 1;
+            while (j >= 0 && inventory.getItem(partialSlots[j]).getCount() > keyCount) {
+                partialSlots[j + 1] = partialSlots[j];
+                j--;
+            }
+            partialSlots[j + 1] = keySlot;
+        }
+
+        for (int i = 0; i < partialCount; i++) {
+            int slot = partialSlots[i];
+            ItemStack existing = inventory.getItem(slot);
+            int space =
+                    Math.min(inventory.getMaxStackSize(), existing.getMaxStackSize())
+                            - existing.getCount();
+            if (space <= 0) {
+                continue;
+            }
+            Predicate<ItemStack> matchExisting =
+                    candidate ->
+                            validInput.test(candidate)
+                                    && ItemStack.isSameItemSameComponents(candidate, existing);
+            ItemStack pulled =
+                    GiantGasPlatform.pullItemFromNeighbor(
+                            level, neighbor, targetFace, Math.min(space, limit), matchExisting);
+            if (!pulled.isEmpty()) {
+                existing.grow(pulled.getCount());
+                inventory.setChanged();
+                return true;
+            }
+        }
+
+        if (firstEmptySlot < 0) {
             return false;
         }
-        final ItemStack existing = inventory.getItem(targetSlot);
-        int space =
-                existing.isEmpty()
-                        ? inventory.getMaxStackSize()
-                        : Math.min(inventory.getMaxStackSize(), existing.getMaxStackSize())
-                                - existing.getCount();
+        int space = inventory.getMaxStackSize();
         if (space <= 0) {
             return false;
         }
-        Predicate<ItemStack> filter =
-                candidate ->
-                        validInput.test(candidate)
-                                && (existing.isEmpty()
-                                        || ItemStack.isSameItemSameComponents(candidate, existing));
         ItemStack pulled =
                 GiantGasPlatform.pullItemFromNeighbor(
-                        level, neighbor, targetFace, Math.min(space, limit), filter);
+                        level, neighbor, targetFace, Math.min(space, limit), validInput);
         if (pulled.isEmpty()) {
             return false;
         }
-        if (existing.isEmpty()) {
-            inventory.setItem(targetSlot, pulled);
-        } else {
-            existing.grow(pulled.getCount());
-            inventory.setChanged();
-        }
+        inventory.setItem(firstEmptySlot, pulled);
         return true;
     }
 

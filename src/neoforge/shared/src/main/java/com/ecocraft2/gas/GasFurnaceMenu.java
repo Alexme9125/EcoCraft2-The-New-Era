@@ -32,11 +32,26 @@ public final class GasFurnaceMenu extends DeviceAccessMenu {
     public static GasFurnaceMenu fromNetwork(
             int containerId, Inventory playerInventory, FriendlyByteBuf buf) {
         buf.readBlockPos();
+        SimpleContainer clientContainer =
+                new SimpleContainer(GasFurnaceBlockEntity.INVENTORY_SIZE) {
+                    @Override
+                    public boolean canPlaceItem(int slot, ItemStack stack) {
+                        return switch (slot) {
+                            case GasFurnaceBlockEntity.SLOT_INPUT -> !stack.isEmpty();
+                            case GasFurnaceBlockEntity.SLOT_GAS_CELL_IN ->
+                                    GiantGasPlatform.isDrainableContainer(
+                                            stack, id -> GasFuelSpec.byFluidId(id).isPresent());
+                            case 4, 5, 6, 7 ->
+                                    Ecc2UpgradeHelper.isAcceptedUpgrade(stack, false, true);
+                            default -> false;
+                        };
+                    }
+                };
         return new GasFurnaceMenu(
                 containerId,
                 playerInventory,
                 null,
-                new SimpleContainer(GasFurnaceBlockEntity.INVENTORY_SIZE),
+                clientContainer,
                 new SimpleContainerData(DATA_COUNT));
     }
 

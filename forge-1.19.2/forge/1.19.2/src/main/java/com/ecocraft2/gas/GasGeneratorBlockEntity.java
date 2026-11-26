@@ -4,6 +4,7 @@ import com.ecocraft2.bridge.Ecc2BridgePlatform;
 import com.ecocraft2.bridge.Ecc2EnergyHelper;
 import com.ecocraft2.common.gas.GasFuelSpec;
 import com.ecocraft2.common.gas.GasGeneratorEngine;
+import com.ecocraft2.config.Ecc2Config;
 import com.industrialage.ia2.access.MachineAccess;
 import com.industrialage.ia2.access.MachineAccessTarget;
 import com.industrialage.ia2.access.MachinePortCache;
@@ -216,6 +217,22 @@ public final class GasGeneratorBlockEntity extends BlockEntity
 
     public GasGeneratorBlockEntity(BlockPos pos, BlockState state) {
         super(GasRegistry.GAS_GENERATOR_BE.get(), pos, state);
+        applyFuelConfig();
+    }
+
+    private void applyFuelConfig() {
+        engine.configureFuel(
+                GasFuelSpec.WATER_GAS,
+                Ecc2Config.waterGasEnergyPerBucket(),
+                Ecc2Config.waterGasOutputEuPerTick());
+        engine.configureFuel(
+                GasFuelSpec.NATURAL_GAS,
+                Ecc2Config.naturalGasEnergyPerBucket(),
+                Ecc2Config.naturalGasOutputEuPerTick());
+        engine.configureFuel(
+                GasFuelSpec.BIOGAS,
+                Ecc2Config.biogasEnergyPerBucket(),
+                Ecc2Config.biogasOutputEuPerTick());
     }
 
     public GasGeneratorEngine engine() {
@@ -241,6 +258,7 @@ public final class GasGeneratorBlockEntity extends BlockEntity
             return;
         }
         lastTick = serverLevel.getGameTime();
+        applyFuelConfig();
 
         if (GasContainerHelper.drainItemIntoTank(
                 inventory,

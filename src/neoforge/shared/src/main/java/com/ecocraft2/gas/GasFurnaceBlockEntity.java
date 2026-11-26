@@ -3,12 +3,14 @@ package com.ecocraft2.gas;
 import com.ecocraft2.common.gas.GasFuelSpec;
 import com.ecocraft2.common.gas.GasFurnaceEngine;
 import com.ecocraft2.common.gas.GasMachineOutcome;
+import com.ecocraft2.config.Ecc2Config;
 import com.ecocraft2.giant.Ecc2DataReader;
 import com.ecocraft2.giant.Ecc2DataWriter;
 import com.ecocraft2.giant.Ecc2FluidTankView;
 import com.ecocraft2.giant.Ecc2UpgradeHelper;
 import com.ecocraft2.giant.GiantGasModule;
 import com.ecocraft2.giant.GiantGasPlatform;
+import com.industrialage.ia2.access.MachineAccess;
 import com.industrialage.ia2.logistics.FluidContents;
 import java.util.List;
 import net.minecraft.core.BlockPos;
@@ -36,6 +38,7 @@ public final class GasFurnaceBlockEntity extends GasMachineBlockEntityBase {
     public static final int INVENTORY_SIZE = 8;
 
     private static final int[] ALL_AUTOMATED_SLOTS = {0, 1, 2, 3};
+    private static final int[] EMPTY_SLOTS = new int[0];
     private static final int[] INPUT_SLOTS = {SLOT_INPUT};
     private static final int[] OUTPUT_SLOTS = {SLOT_OUTPUT, SLOT_GAS_CELL_OUT};
 
@@ -49,6 +52,8 @@ public final class GasFurnaceBlockEntity extends GasMachineBlockEntityBase {
     protected void serverTick(ServerLevel level, BlockState state) {
         lastTick = level.getServer().getTickCount();
         boolean changed = false;
+
+        engine.configure(Ecc2Config.gasFurnaceGasPerItem(), Ecc2Config.gasFurnaceBaseTicks());
 
         var upgrades = items.subList(UPGRADE_START, UPGRADE_START + UPGRADE_COUNT);
         int oc = Ecc2UpgradeHelper.readProfile(upgrades).overclockers();
@@ -206,7 +211,7 @@ public final class GasFurnaceBlockEntity extends GasMachineBlockEntityBase {
 
     @Override
     public int[] getSlotsForFace(Direction side) {
-        return ALL_AUTOMATED_SLOTS;
+        return MachineAccess.connects(this, side) ? ALL_AUTOMATED_SLOTS : EMPTY_SLOTS;
     }
 
     @Override
@@ -224,12 +229,15 @@ public final class GasFurnaceBlockEntity extends GasMachineBlockEntityBase {
 
     @Override
     public boolean canPlaceItemThroughFace(int slot, ItemStack stack, Direction side) {
-        return (slot == SLOT_INPUT || slot == SLOT_GAS_CELL_IN) && canPlaceItem(slot, stack);
+        return MachineAccess.allowsInput(this, side)
+                && (slot == SLOT_INPUT || slot == SLOT_GAS_CELL_IN)
+                && canPlaceItem(slot, stack);
     }
 
     @Override
     public boolean canTakeItemThroughFace(int slot, ItemStack stack, Direction side) {
-        return slot == SLOT_OUTPUT || slot == SLOT_GAS_CELL_OUT;
+        return MachineAccess.allowsOutput(this, side)
+                && (slot == SLOT_OUTPUT || slot == SLOT_GAS_CELL_OUT);
     }
 
     @Override
@@ -255,6 +263,7 @@ public final class GasFurnaceBlockEntity extends GasMachineBlockEntityBase {
     @Override
     protected void loadState(Ecc2DataReader in) {
         in.loadItems("ecc2_items", items);
+        engine.configure(Ecc2Config.gasFurnaceGasPerItem(), Ecc2Config.gasFurnaceBaseTicks());
         engine.setOverclockers(
                 Ecc2UpgradeHelper.readProfile(
                                 items.subList(UPGRADE_START, UPGRADE_START + UPGRADE_COUNT))

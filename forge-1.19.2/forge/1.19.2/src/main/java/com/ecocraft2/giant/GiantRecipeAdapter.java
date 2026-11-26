@@ -63,6 +63,16 @@ public final class GiantRecipeAdapter {
         };
     }
 
+    /** Returns whether {@code input} is accepted by any live recipe for {@code kind} (ignoring count). */
+    public static boolean acceptsInput(GiantMachineKind kind, ItemStack input) {
+        if (input == null || input.isEmpty()) {
+            return false;
+        }
+        ItemStack probe =
+                input.getCount() >= 64 ? input : Ecc2BridgePlatform.copyWithCount(input, 64);
+        return match(kind, probe) != null;
+    }
+
     private static ResolvedRecipe matchProcessing(
             String machineName, boolean rejectFilledCells, ItemStack input) {
         if (rejectFilledCells && TransportPlatform.cellContainsFluid(input)) {

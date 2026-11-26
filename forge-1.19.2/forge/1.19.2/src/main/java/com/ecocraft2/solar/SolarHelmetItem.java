@@ -35,6 +35,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.biome.Biome;
+import net.minecraftforge.fml.ModList;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -48,6 +49,13 @@ public class SolarHelmetItem extends ArmorItem implements Ecc2ElectricItem, Ecc2
 
     private static final Map<UUID, Map<SolarHelmetSpec, SolarHelmetEngine>> PLAYER_ENGINES =
             new ConcurrentHashMap<>();
+
+    /** Releases cached per-player sky/tick state on player disconnect to prevent memory growth. */
+    public static void clearPlayerEngine(UUID playerId) {
+        if (playerId != null) {
+            PLAYER_ENGINES.remove(playerId);
+        }
+    }
 
     private final SolarHelmetSpec spec;
     private final String texturePath;
@@ -166,7 +174,15 @@ public class SolarHelmetItem extends ArmorItem implements Ecc2ElectricItem, Ecc2
         return switch (targetSlot) {
             case FEET -> chargeIfValid(player.getItemBySlot(EquipmentSlot.FEET), offerEu, helmetTier);
             case LEGS -> chargeIfValid(player.getItemBySlot(EquipmentSlot.LEGS), offerEu, helmetTier);
-            case CHEST -> chargeIfValid(player.getItemBySlot(EquipmentSlot.CHEST), offerEu, helmetTier);
+            case CHEST -> {
+                double accepted =
+                        chargeIfValid(
+                                player.getItemBySlot(EquipmentSlot.CHEST), offerEu, helmetTier);
+                if (accepted < offerEu) {
+                    accepted += chargeCuriosSlots(player, helmetStack, offerEu - accepted, helmetTier);
+                }
+                yield accepted;
+            }
             case OFFHAND -> chargeIfValid(player.getOffhandItem(), offerEu, helmetTier);
             case MAIN -> {
                 double remaining = offerEu;
@@ -184,6 +200,43 @@ public class SolarHelmetItem extends ArmorItem implements Ecc2ElectricItem, Ecc2
             }
             case SELF -> ecc2Charge(helmetStack, offerEu, helmetTier, false, false);
         };
+    }
+
+    private static double chargeCuriosSlots(
+            Player player, ItemStack helmetStack, double offerEu, int helmetTier) {
+        if (offerEu <= 0.0 || !ModList.get().isLoaded("curios")) {
+            return 0.0;
+        }
+        try {
+            Class<?> api = Class.forName("top.theillusivec4.curios.api.CuriosApi");
+            Object helper = api.getMethod("getCuriosHelper").invoke(null);
+            Object optHandler =
+                    helper.getClass()
+                            .getMethod("getEquippedCurios", LivingEntity.class)
+                            .invoke(helper, player);
+            Object resolved = optHandler.getClass().getMethod("resolve").invoke(optHandler);
+            if (!(resolved instanceof java.util.Optional<?> optional) || optional.isEmpty()) {
+                return 0.0;
+            }
+            Object itemHandler = optional.get();
+            if (!(itemHandler instanceof net.minecraftforge.items.IItemHandler curiosInv)) {
+                return 0.0;
+            }
+            double remaining = offerEu;
+            double total = 0.0;
+            for (int i = 0; i < curiosInv.getSlots() && remaining > 0.0; i++) {
+                ItemStack stack = curiosInv.getStackInSlot(i);
+                if (stack.isEmpty() || stack == helmetStack || stack.getCount() != 1) {
+                    continue;
+                }
+                double accepted = chargeIfValid(stack, remaining, helmetTier);
+                remaining -= accepted;
+                total += accepted;
+            }
+            return total;
+        } catch (Throwable ignored) {
+            return 0.0;
+        }
     }
 
     private static double chargeIfValid(ItemStack target, double offerEu, int helmetTier) {
@@ -208,7 +261,7 @@ public class SolarHelmetItem extends ArmorItem implements Ecc2ElectricItem, Ecc2
                         hasPoison,
                         hasRadiation,
                         player.getFoodData().getFoodLevel(),
-                        foodSlot >= 0);
+                        foodSlot != Integer.MIN_VALUE);
 
         if (!plan.hasAnyAction()) {
             return;
@@ -231,30 +284,31 @@ public class SolarHelmetItem extends ArmorItem implements Ecc2ElectricItem, Ecc2
         if (plan.cureRadiation()) {
             Radiation.clear(player);
         }
-        if (plan.autoFeed() && foodSlot >= 0) {
+        if (plan.autoFeed() && foodSlot != Integer.MIN_VALUE) {
             consumeOneFoodCan(player, foodSlot);
         }
     }
 
     private static int findFilledFoodCanSlot(Player player) {
+        ItemStack offhand = player.getOffhandItem();
+        if (!offhand.isEmpty() && "ic2:filled_tin_can".equals(Ecc2BridgePlatform.itemId(offhand))) {
+            return -1;
+        }
         for (int i = 0; i < player.getInventory().items.size(); i++) {
             ItemStack item = player.getInventory().items.get(i);
             if (!item.isEmpty() && "ic2:filled_tin_can".equals(Ecc2BridgePlatform.itemId(item))) {
                 return i;
             }
         }
-        return -1;
+        return Integer.MIN_VALUE;
     }
 
     private static void consumeOneFoodCan(ServerPlayer player, int slot) {
-        ItemStack stack = player.getInventory().items.get(slot);
+        ItemStack stack = slot == -1 ? player.getOffhandItem() : player.getInventory().items.get(slot);
         if (stack.isEmpty()) {
             return;
         }
-        var food = stack.getFoodProperties(player);
-        int nutrition = food != null ? Math.max(2, food.getNutrition()) : 2;
-        float saturation = food != null ? Math.max(0.2f, food.getSaturationModifier()) : 0.2f;
-        player.getFoodData().eat(nutrition, saturation);
+        player.getFoodData().eat(1, 0.6f);
         stack.shrink(1);
         var emptyCan = Ecc2BridgePlatform.findItem("ic2:tin_can");
         if (emptyCan != null) {

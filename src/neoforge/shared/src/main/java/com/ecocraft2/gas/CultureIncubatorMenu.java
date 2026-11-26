@@ -6,6 +6,7 @@ import com.ecocraft2.giant.Ecc2SyncData;
 import com.ecocraft2.giant.Ecc2UpgradeHelper;
 import com.ecocraft2.giant.GiantGasModule;
 import com.ecocraft2.giant.GiantGasPlatform;
+import com.industrialage.ia2.gameplay.PortableGear;
 import com.industrialage.ia2.gui.DeviceAccessMenu;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.Container;
@@ -35,11 +36,33 @@ public final class CultureIncubatorMenu extends DeviceAccessMenu {
     public static CultureIncubatorMenu fromNetwork(
             int containerId, Inventory playerInventory, FriendlyByteBuf buf) {
         buf.readBlockPos();
+        SimpleContainer clientContainer =
+                new SimpleContainer(CultureIncubatorBlockEntity.INVENTORY_SIZE) {
+                    @Override
+                    public boolean canPlaceItem(int slot, ItemStack stack) {
+                        return switch (slot) {
+                            case CultureIncubatorBlockEntity.SLOT_BONEMEAL ->
+                                    stack.is(Items.BONE_MEAL);
+                            case CultureIncubatorBlockEntity.SLOT_WATER_CELL_IN ->
+                                    GiantGasPlatform.isDrainableContainer(
+                                            stack, Ecc2Ids.MINECRAFT_WATER_ID::equals);
+                            case CultureIncubatorBlockEntity.SLOT_CULTURE_CELL_IN ->
+                                    GiantGasPlatform.isFillableContainer(
+                                            stack, Ecc2Ids.CULTURE_MEDIUM_ID);
+                            case CultureIncubatorBlockEntity.SLOT_BATTERY ->
+                                    PortableGear.canDischarge(stack, 14)
+                                            || stack.is(Items.REDSTONE);
+                            case 6, 7, 8, 9 ->
+                                    Ecc2UpgradeHelper.isAcceptedUpgrade(stack, true, true);
+                            default -> false;
+                        };
+                    }
+                };
         return new CultureIncubatorMenu(
                 containerId,
                 playerInventory,
                 null,
-                new SimpleContainer(CultureIncubatorBlockEntity.INVENTORY_SIZE),
+                clientContainer,
                 new SimpleContainerData(DATA_COUNT));
     }
 

@@ -229,7 +229,11 @@ public final class Ecc2EmiPlugin implements EmiPlugin {
                     0xFF1A5A6E,
                     false);
             widgets.addText(
-                    Component.literal("Tier 14 · Unlimited EU/t"), 36, 44, 0xFF556677, false);
+                    Component.translatable("jei.ecc2.mt.unlimited_short"),
+                    36,
+                    44,
+                    0xFF556677,
+                    false);
         }
     }
 
@@ -298,8 +302,8 @@ public final class Ecc2EmiPlugin implements EmiPlugin {
                     0xFF1E3A52,
                     false);
             widgets.addText(
-                    Component.literal(
-                            entry.mbPerOp() + " mB / smelt (" + entry.baseTicks() + "t · 0 EU)"),
+                    Component.translatable(
+                            "jei.ecc2.gas_furnace.rate", entry.mbPerOp(), entry.baseTicks()),
                     52,
                     22,
                     0xFF445566,
@@ -367,24 +371,20 @@ public final class Ecc2EmiPlugin implements EmiPlugin {
                 widgets.addSlot(outputs.get(1), 112, 6).recipeContext(this);
             }
             widgets.addText(
-                    Component.literal(
-                            "H = "
-                                    + entry.nutrition()
-                                    + " → "
-                                    + Ecc2DataSync.formatInt(entry.biogasMb())
-                                    + " mB Biogas (20×H)"),
+                    Component.translatable(
+                            "jei.ecc2.fermenter.yield",
+                            entry.nutrition(),
+                            Ecc2DataSync.formatInt(entry.biogasMb())),
                     8,
                     30,
                     0xFF1A5A6E,
                     false);
             widgets.addText(
-                    Component.literal(
-                            entry.cultureMb()
-                                    + " mB Culture · "
-                                    + entry.euCost()
-                                    + " EU / "
-                                    + entry.ticks()
-                                    + "t"),
+                    Component.translatable(
+                            "jei.ecc2.fermenter.cost",
+                            entry.cultureMb(),
+                            entry.euCost(),
+                            entry.ticks()),
                     8,
                     41,
                     0xFF445566,

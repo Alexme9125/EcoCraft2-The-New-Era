@@ -38,17 +38,30 @@ public final class GiantMachineEngine {
          * bounded by input item count / recipe requirement and output slot space.
          *
          * @param lane     lane index ({@code 0..8})
-         * @param maxBatch upper bound ({@code 1..3})
+         * @param maxBatch upper bound ({@code 1..maxBatchPerLane})
          * @return runnable operations count ({@code 0..maxBatch})
          */
         int availableBatch(int lane, int maxBatch);
+
+        /**
+         * Returns how many operations in {@code [0, maxBatch]} lane {@code lane} still have valid
+         * inputs for, ignoring transient output slot fullness so an in-progress lane pauses instead
+         * of resetting progress and wasting EU when the output grid fills up.
+         *
+         * @param lane     lane index ({@code 0..8})
+         * @param maxBatch upper bound ({@code 1..maxBatchPerLane})
+         * @return input-supported operations count ({@code 0..maxBatch})
+         */
+        default int availableInputBatch(int lane, int maxBatch) {
+            return availableBatch(lane, maxBatch);
+        }
 
         /**
          * Executes completion for {@code completedOps} operations on {@code lane},
          * consuming inputs and inserting outputs.
          *
          * @param lane         lane index ({@code 0..8})
-         * @param completedOps number of completed operations ({@code 1..3})
+         * @param completedOps number of completed operations ({@code 1..maxBatchPerLane})
          */
         void completeOperations(int lane, int completedOps);
     }
@@ -82,6 +95,9 @@ public final class GiantMachineEngine {
     private final GiantPortPermissions portPermissions = new GiantPortPermissions();
 
     private GiantUpgradeProfile upgrades = GiantUpgradeProfile.NONE;
+    private int baseTier;
+    private int maxBatchPerLane = MAX_BATCH_PER_LANE;
+    private int waterTankCapacityMb;
     private double storedEu;
     private int waterMb;
     private double lastTickEuConsumed;
@@ -104,6 +120,34 @@ public final class GiantMachineEngine {
      */
     public GiantMachineEngine(GiantMachineSpec spec) {
         this.spec = Objects.requireNonNull(spec, "spec");
+        this.baseTier = spec.baseTier();
+        this.waterTankCapacityMb = spec.waterTankCapacityMb();
+    }
+
+    /** Returns the configured maximum batch size per lane ({@code 1..64}). */
+    public int maxBatchPerLane() {
+        return maxBatchPerLane;
+    }
+
+    /** Sets the configured maximum batch size per lane (clamped to {@code [1, 64]}). */
+    public void setMaxBatchPerLane(int maxBatchPerLane) {
+        this.maxBatchPerLane = Math.max(1, Math.min(64, maxBatchPerLane));
+    }
+
+    /** Configures the base IC2 voltage tier (clamped to {@code [1, 14]}). */
+    public void setBaseTier(int baseTier) {
+        this.baseTier = Math.max(1, Math.min(14, baseTier));
+    }
+
+    /** Configures the water tank capacity in mB (effective only for water-using specs). */
+    public void setWaterTankCapacityMb(int capacityMb) {
+        if (!spec.usesWater()) {
+            this.waterTankCapacityMb = 0;
+            this.waterMb = 0;
+            return;
+        }
+        this.waterTankCapacityMb = Math.max(spec.waterPerOperationMb(), capacityMb);
+        this.waterMb = Math.min(this.waterMb, this.waterTankCapacityMb);
     }
 
     /**
@@ -120,18 +164,19 @@ public final class GiantMachineEngine {
         int waterPerOp = spec.waterPerOperationMb();
         boolean usesWater = spec.usesWater();
 
-        // Pass 1: validate already-running lanes and compute already-committed water.
+        // Pass 1: validate already-running lanes against input availability and compute already-committed water.
+        // Transient output fullness pauses the lane instead of resetting progress and wasting EU.
         int committedWater = 0;
         for (int i = 0; i < LANE_COUNT; i++) {
             laneActive[i] = false;
             if (batchSize[i] > 0) {
-                int stillAvailable = clampBatch(handler.availableBatch(i, batchSize[i]), batchSize[i]);
-                if (stillAvailable == 0) {
+                int inputAvail = clampBatch(handler.availableInputBatch(i, batchSize[i]), batchSize[i]);
+                if (inputAvail == 0) {
                     batchSize[i] = 0;
                     progress[i] = 0;
                 } else {
-                    if (stillAvailable < batchSize[i]) {
-                        batchSize[i] = stillAvailable;
+                    if (inputAvail < batchSize[i]) {
+                        batchSize[i] = inputAvail;
                     }
                     if (usesWater) {
                         committedWater += batchSize[i] * waterPerOp;
@@ -143,7 +188,7 @@ public final class GiantMachineEngine {
         // Pass 2: start idle lanes that have inputs, output space, and uncommitted water.
         for (int i = 0; i < LANE_COUNT; i++) {
             if (batchSize[i] == 0) {
-                int avail = clampBatch(handler.availableBatch(i, MAX_BATCH_PER_LANE), MAX_BATCH_PER_LANE);
+                int avail = clampBatch(handler.availableBatch(i, maxBatchPerLane), maxBatchPerLane);
                 if (avail <= 0) {
                     continue;
                 }
@@ -163,7 +208,8 @@ public final class GiantMachineEngine {
             }
         }
 
-        // Pass 3: advance lanes that can afford their EU cost (or finalize already-finished lanes waiting on water).
+        // Pass 3: advance lanes that have output space and can afford their EU cost
+        // (or finalize already-finished lanes waiting on output space or water).
         int activeLanesCount = 0;
         int activeBatchSum = 0;
         int completedOpsTotal = 0;
@@ -177,6 +223,10 @@ public final class GiantMachineEngine {
             }
 
             if (progress[i] < opTicks) {
+                if (clampBatch(handler.availableBatch(i, batch), batch) <= 0) {
+                    // Output full while inputs still exist: pause and preserve progress/EU.
+                    continue;
+                }
                 double laneCost = batch * euPerOp;
                 if (storedEu + 1e-12 < laneCost) {
                     continue;
@@ -204,10 +254,11 @@ public final class GiantMachineEngine {
                             progress[i] = 0;
                             batchSize[i] = 0;
                         }
-                    } else {
+                    } else if (clampBatch(handler.availableInputBatch(i, batch), batch) <= 0) {
                         progress[i] = 0;
                         batchSize[i] = 0;
                     }
+                    // Otherwise inputs remain intact and only output space is full: hold at progress == opTicks.
                 }
             }
         }
@@ -236,7 +287,7 @@ public final class GiantMachineEngine {
 
     /** Returns the effective IC2 input tier ({@code baseTier + transformerUpgrades}, capped at 14). */
     public int inputTier() {
-        return upgrades.effectiveTier(spec.baseTier());
+        return upgrades.effectiveTier(baseTier);
     }
 
     /** Returns the maximum single-packet EU input voltage for the current tier. */
@@ -287,7 +338,7 @@ public final class GiantMachineEngine {
 
     /** Returns the water tank capacity in mB ({@code 0} if machine does not use water). */
     public int waterTankCapacityMb() {
-        return spec.waterTankCapacityMb();
+        return waterTankCapacityMb;
     }
 
     /** Returns the current stored water in mB. */
@@ -297,7 +348,7 @@ public final class GiantMachineEngine {
 
     /** Sets stored water in mB, clamped to {@code [0, waterTankCapacityMb()]}. */
     public void setWaterMb(int mb) {
-        this.waterMb = Math.max(0, Math.min(spec.waterTankCapacityMb(), mb));
+        this.waterMb = Math.max(0, Math.min(waterTankCapacityMb, mb));
     }
 
     /**
@@ -311,7 +362,7 @@ public final class GiantMachineEngine {
         if (!spec.usesWater() || amountMb <= 0) {
             return 0;
         }
-        int room = Math.max(0, spec.waterTankCapacityMb() - waterMb);
+        int room = Math.max(0, waterTankCapacityMb - waterMb);
         int accepted = Math.min(room, amountMb);
         if (!simulate) {
             waterMb += accepted;
@@ -439,7 +490,7 @@ public final class GiantMachineEngine {
         }
         int opTicks = operationTicks();
         for (int i = 0; i < LANE_COUNT; i++) {
-            int b = Math.max(0, Math.min(MAX_BATCH_PER_LANE, savedBatchSize[i]));
+            int b = Math.max(0, Math.min(maxBatchPerLane, savedBatchSize[i]));
             batchSize[i] = b;
             progress[i] = b > 0 ? Math.max(0, Math.min(opTicks, savedProgress[i])) : 0;
             laneActive[i] = false;

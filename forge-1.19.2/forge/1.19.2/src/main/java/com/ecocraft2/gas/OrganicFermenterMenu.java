@@ -1,20 +1,26 @@
 package com.ecocraft2.gas;
 
+import com.ecocraft2.bridge.Ecc2BridgePlatform;
+import com.ecocraft2.bridge.Ecc2EnergyHelper;
+import com.industrialage.ia2.gui.DeviceAccessMenu;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.inventory.SimpleContainerData;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraftforge.fluids.FluidUtil;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.ItemStackHandler;
 import net.minecraftforge.items.SlotItemHandler;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /** Menu for the Organic Fermenter aligned to {@code assets-gen/gui_coordinates.json}. */
-public final class OrganicFermenterMenu extends AbstractContainerMenu {
+public final class OrganicFermenterMenu extends DeviceAccessMenu {
 
     private final BlockPos pos;
     private final ContainerData data;
@@ -24,7 +30,8 @@ public final class OrganicFermenterMenu extends AbstractContainerMenu {
                 id,
                 playerInv,
                 buf.readBlockPos(),
-                new ItemStackHandler(OrganicFermenterBlockEntity.TOTAL_SLOTS),
+                null,
+                createClientHandler(),
                 new SimpleContainerData(8));
     }
 
@@ -33,19 +40,21 @@ public final class OrganicFermenterMenu extends AbstractContainerMenu {
             Inventory playerInv,
             OrganicFermenterBlockEntity be,
             ContainerData data) {
-        this(id, playerInv, be.getBlockPos(), be.inventory(), data);
+        this(id, playerInv, be.getBlockPos(), be, be.inventory(), data);
     }
 
     private OrganicFermenterMenu(
             int id,
             Inventory playerInv,
             BlockPos pos,
+            @Nullable BlockEntity device,
             IItemHandler handler,
             ContainerData data) {
-        super(GasRegistry.ORGANIC_FERMENTER_MENU.get(), id);
+        super(GasRegistry.ORGANIC_FERMENTER_MENU.get(), id, playerInv, device);
         this.pos = pos;
         this.data = data;
         addDataSlots(data);
+        addAccessData();
 
         addSlot(new SlotItemHandler(handler, OrganicFermenterBlockEntity.SLOT_FOOD, 61, 21));
         addSlot(
@@ -143,6 +152,26 @@ public final class OrganicFermenterMenu extends AbstractContainerMenu {
             slot.setChanged();
         }
         return copy;
+    }
+
+    private static ItemStackHandler createClientHandler() {
+        return new ItemStackHandler(OrganicFermenterBlockEntity.TOTAL_SLOTS) {
+            @Override
+            public boolean isItemValid(int slot, @NotNull ItemStack stack) {
+                return switch (slot) {
+                    case OrganicFermenterBlockEntity.SLOT_FOOD ->
+                            OrganicFermenterBlockEntity.foodNutrition(stack) > 0;
+                    case OrganicFermenterBlockEntity.SLOT_CULTURE_IN,
+                            OrganicFermenterBlockEntity.SLOT_BIOGAS_IN ->
+                            FluidUtil.getFluidHandler(Ecc2BridgePlatform.copyWithCount(stack, 1))
+                                    .isPresent();
+                    case OrganicFermenterBlockEntity.SLOT_BATTERY ->
+                            Ecc2EnergyHelper.canDischarge(stack, 14);
+                    case 7, 8, 9, 10 -> Ecc2EnergyHelper.isUpgradeItem(stack);
+                    default -> false;
+                };
+            }
+        };
     }
 
     @Override

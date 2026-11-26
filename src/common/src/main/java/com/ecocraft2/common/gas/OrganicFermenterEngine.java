@@ -26,6 +26,8 @@ public final class OrganicFermenterEngine {
     public static final int BASE_EU_CAPACITY = Ecc2ConfigDefaults.ORGANIC_FERMENTER_BASE_EU_CAPACITY;
 
     private GiantUpgradeProfile upgrades = GiantUpgradeProfile.NONE;
+    private int biogasPerNutritionMb = BIOGAS_PER_NUTRITION_MB;
+    private int culturePerOpMb = CULTURE_PER_OP_MB;
     private double storedEu;
     private int cultureMb;
     private int biogasMb;
@@ -33,6 +35,31 @@ public final class OrganicFermenterEngine {
     private int activeNutrition;
     private int lastCompletedBiogasMb;
     private boolean active;
+
+    /** Configures runtime biogas yield per hunger point and culture medium cost per operation. */
+    public void configure(int biogasPerNutritionMb, int culturePerOpMb) {
+        this.biogasPerNutritionMb = Math.max(1, biogasPerNutritionMb);
+        this.culturePerOpMb = Math.max(1, Math.min(CULTURE_TANK_CAPACITY_MB, culturePerOpMb));
+    }
+
+    /** Returns configured biogas yield in mB per hunger nutrition point. */
+    public int biogasPerNutritionMb() {
+        return biogasPerNutritionMb;
+    }
+
+    /** Returns configured culture medium consumed per operation in mB. */
+    public int culturePerOpMb() {
+        return culturePerOpMb;
+    }
+
+    /** Computes biogas yield in mB using this engine's configured yield multiplier. */
+    public int biogasYield(int foodNutrition) {
+        if (foodNutrition <= 0) {
+            return 0;
+        }
+        long yield = (long) foodNutrition * biogasPerNutritionMb;
+        return (int) Math.min(BIOGAS_TANK_CAPACITY_MB, yield);
+    }
 
     /**
      * Computes biogas yield in mB for a food item with hunger nutrition value {@code H}.
@@ -69,7 +96,7 @@ public final class OrganicFermenterEngine {
     public GasMachineOutcome tick(int foodNutrition, boolean canAcceptContainerReturn) {
         this.lastCompletedBiogasMb = 0;
 
-        if (foodNutrition <= 0 || cultureMb < CULTURE_PER_OP_MB) {
+        if (foodNutrition <= 0 || cultureMb < culturePerOpMb) {
             progress = 0;
             activeNutrition = 0;
             active = false;
@@ -82,7 +109,7 @@ public final class OrganicFermenterEngine {
         }
         activeNutrition = foodNutrition;
 
-        int yieldMb = biogasYieldForNutrition(foodNutrition);
+        int yieldMb = biogasYield(foodNutrition);
         if (!canAcceptContainerReturn || biogasMb + yieldMb > BIOGAS_TANK_CAPACITY_MB) {
             active = false;
             return GasMachineOutcome.OUTPUT_FULL;
@@ -101,7 +128,7 @@ public final class OrganicFermenterEngine {
         if (progress >= operationTicks()) {
             progress = 0;
             activeNutrition = 0;
-            cultureMb -= CULTURE_PER_OP_MB;
+            cultureMb -= culturePerOpMb;
             biogasMb += yieldMb;
             lastCompletedBiogasMb = yieldMb;
             return GasMachineOutcome.COMPLETED;

@@ -199,6 +199,12 @@ public final class SolarKineticRegistry {
                             Ecc2Ids.RECIPE_MOLECULAR_TRANSFORMER,
                             MolecularTransformerRecipe.Serializer::new);
 
+    public static final RegistryObject<RecipeSerializer<SolarHelmetUpgradeRecipe>>
+            SOLAR_HELMET_UPGRADE_SERIALIZER =
+                    Ecc2Registries.RECIPE_SERIALIZERS.register(
+                            "solar_helmet_upgrade",
+                            SolarHelmetUpgradeRecipe.Serializer::new);
+
     private SolarKineticRegistry() {}
 
     /** Ensures class initialization so all registry entries are queued before bus registration. */

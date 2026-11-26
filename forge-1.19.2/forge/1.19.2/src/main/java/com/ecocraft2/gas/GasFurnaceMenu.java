@@ -1,22 +1,27 @@
 package com.ecocraft2.gas;
 
+import com.ecocraft2.bridge.Ecc2BridgePlatform;
+import com.ecocraft2.bridge.Ecc2EnergyHelper;
 import com.ecocraft2.common.gas.GasFuelSpec;
+import com.industrialage.ia2.gui.DeviceAccessMenu;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.inventory.SimpleContainerData;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraftforge.fluids.FluidUtil;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.ItemStackHandler;
 import net.minecraftforge.items.SlotItemHandler;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /** Menu for the Gas Furnace aligned to {@code assets-gen/gui_coordinates.json}. */
-public final class GasFurnaceMenu extends AbstractContainerMenu {
+public final class GasFurnaceMenu extends DeviceAccessMenu {
 
     private final BlockPos pos;
     private final ContainerData data;
@@ -26,25 +31,28 @@ public final class GasFurnaceMenu extends AbstractContainerMenu {
                 id,
                 playerInv,
                 buf.readBlockPos(),
-                new ItemStackHandler(GasFurnaceBlockEntity.TOTAL_SLOTS),
+                null,
+                createClientHandler(),
                 new SimpleContainerData(4));
     }
 
     public GasFurnaceMenu(
             int id, Inventory playerInv, GasFurnaceBlockEntity be, ContainerData data) {
-        this(id, playerInv, be.getBlockPos(), be.inventory(), data);
+        this(id, playerInv, be.getBlockPos(), be, be.inventory(), data);
     }
 
     private GasFurnaceMenu(
             int id,
             Inventory playerInv,
             BlockPos pos,
+            @Nullable BlockEntity device,
             IItemHandler handler,
             ContainerData data) {
-        super(GasRegistry.GAS_FURNACE_MENU.get(), id);
+        super(GasRegistry.GAS_FURNACE_MENU.get(), id, playerInv, device);
         this.pos = pos;
         this.data = data;
         addDataSlots(data);
+        addAccessData();
 
         addSlot(new SlotItemHandler(handler, GasFurnaceBlockEntity.SLOT_INPUT, 67, 21));
         addSlot(
@@ -122,6 +130,22 @@ public final class GasFurnaceMenu extends AbstractContainerMenu {
             slot.setChanged();
         }
         return copy;
+    }
+
+    private static ItemStackHandler createClientHandler() {
+        return new ItemStackHandler(GasFurnaceBlockEntity.TOTAL_SLOTS) {
+            @Override
+            public boolean isItemValid(int slot, @NotNull ItemStack stack) {
+                return switch (slot) {
+                    case GasFurnaceBlockEntity.SLOT_INPUT -> true;
+                    case GasFurnaceBlockEntity.SLOT_GAS_IN ->
+                            FluidUtil.getFluidHandler(Ecc2BridgePlatform.copyWithCount(stack, 1))
+                                    .isPresent();
+                    case 4, 5, 6, 7 -> Ecc2EnergyHelper.isUpgradeItem(stack);
+                    default -> false;
+                };
+            }
+        };
     }
 
     @Override

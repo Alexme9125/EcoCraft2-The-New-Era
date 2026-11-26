@@ -27,7 +27,16 @@
 | 1.21.1 | NeoForge 21.1.265 | 21 | `./gradlew :neoforge:1.21.1:jar` |
 | 26.1.2 | NeoForge 26.1.2.128 | 25 | `./gradlew :neoforge:26.1.2:jar` |
 | 26.2 | NeoForge 26.2.0.95 | 25 | `./gradlew :neoforge:26.2:jar` |
-| 1.19.2 | Forge 43.5.0 | 17 | `cd forge-1.19.2 && ./gradlew :forge:1.19.2:reobfJar` |
+| 1.19.2 | Forge 43.5.0 | 17 | `cd forge-1.19.2 && ./gradlew :forge:1.19.2:build` |
+
+## 正式发布（v1.0.0）
+
+前往 [GitHub Releases (`v1.0.0`)](https://github.com/Alexme9125/EcoCraft2-The-New-Era/releases/tag/v1.0.0) 获取对应平台构建产物（需前置 **IC2NE v1.0.6+**，推荐 **v1.0.7**）：
+
+- `ecc2-neoforge-1.21.1-1.0.0.jar`
+- `ecc2-neoforge-26.1.2-1.0.0.jar`
+- `ecc2-neoforge-26.2-1.0.0.jar`
+- `ecc2-forge-1.19.2-1.0.0.jar`
 
 ## 授权
 

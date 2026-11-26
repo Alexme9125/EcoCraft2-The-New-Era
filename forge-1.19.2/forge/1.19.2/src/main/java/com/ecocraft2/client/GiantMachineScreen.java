@@ -3,6 +3,7 @@ package com.ecocraft2.client;
 import com.ecocraft2.bridge.Ecc2BridgePlatform;
 import com.ecocraft2.common.giant.GiantCornerPort;
 import com.ecocraft2.common.giant.PortAccessMode;
+import com.ecocraft2.config.Ecc2Config;
 import com.ecocraft2.giant.GiantMachineMenu;
 import com.ecocraft2.network.Ecc2Network;
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -192,9 +193,10 @@ public final class GiantMachineScreen extends AbstractContainerScreen<GiantMachi
                 0x7FFFB0);
 
         // Active batch LCD (99, 23) & EU draw LCD (99, 64)
+        int maxTotalOps = 9 * Math.max(1, Ecc2Config.giantMaxBatchPerLane());
         font.draw(
                 poseStack,
-                menu.activeTotalBatch() + "/27",
+                menu.activeTotalBatch() + "/" + maxTotalOps,
                 (int) (102 / 0.7f),
                 (int) (28 / 0.7f),
                 0x8DF0FF);

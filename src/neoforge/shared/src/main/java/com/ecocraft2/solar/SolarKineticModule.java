@@ -344,6 +344,13 @@ public final class SolarKineticModule {
                             SolarPlatform::createMolecularTransformerSerializer);
 
     public static final DeferredHolder<
+                    RecipeSerializer<?>, RecipeSerializer<SolarHelmetUpgradeRecipe>>
+            SOLAR_HELMET_UPGRADE_SERIALIZER =
+                    RECIPE_SERIALIZERS.register(
+                            "solar_helmet_upgrade",
+                            SolarPlatform::createSolarHelmetUpgradeSerializer);
+
+    public static final DeferredHolder<
                     MapCodec<? extends ICondition>, MapCodec<SolarConfigRecipeCondition>>
             CONFIG_RECIPE_CONDITION =
                     CONDITIONS.register("config_flag", () -> SolarConfigRecipeCondition.CODEC);
@@ -369,7 +376,7 @@ public final class SolarKineticModule {
         SolarHelmetHandler.install(gameBus);
 
         if (dist == Dist.CLIENT) {
-            SolarPlatform.registerClient(modBus, gameBus);
+            SolarClientPlatform.registerClient(modBus, gameBus);
         }
 
         EcoCraft2.addCreativeTabItems(

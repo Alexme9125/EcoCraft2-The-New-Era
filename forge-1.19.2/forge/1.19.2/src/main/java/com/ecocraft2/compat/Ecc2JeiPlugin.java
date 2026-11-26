@@ -3,6 +3,7 @@ package com.ecocraft2.compat;
 import com.ecocraft2.bridge.Ecc2BridgePlatform;
 import com.ecocraft2.common.config.Ecc2Ids;
 import com.ecocraft2.common.gas.GasFuelSpec;
+import com.ecocraft2.config.Ecc2Config;
 import com.ecocraft2.gas.GasRegistry;
 import com.ecocraft2.solar.MolecularTransformerRecipe;
 import com.ecocraft2.solar.SolarKineticRegistry;
@@ -105,9 +106,19 @@ public final class Ecc2JeiPlugin implements IModPlugin {
         for (GasFuelSpec spec : GasFuelSpec.values()) {
             Fluid fluid = Ecc2BridgePlatform.findFluid(spec.fluidId());
             if (fluid != Fluids.EMPTY) {
-                fuels.add(
-                        new GasFuelEntry(
-                                new FluidStack(fluid, 1000), spec.euPerBucket(), spec.euPerTick()));
+                int euPerBucket =
+                        switch (spec) {
+                            case WATER_GAS -> Ecc2Config.waterGasEnergyPerBucket();
+                            case NATURAL_GAS -> Ecc2Config.naturalGasEnergyPerBucket();
+                            case BIOGAS -> Ecc2Config.biogasEnergyPerBucket();
+                        };
+                int euPerTick =
+                        switch (spec) {
+                            case WATER_GAS -> Ecc2Config.waterGasOutputEuPerTick();
+                            case NATURAL_GAS -> Ecc2Config.naturalGasOutputEuPerTick();
+                            case BIOGAS -> Ecc2Config.biogasOutputEuPerTick();
+                        };
+                fuels.add(new GasFuelEntry(new FluidStack(fluid, 1000), euPerBucket, euPerTick));
             }
         }
         registration.addRecipes(GAS_GEN_TYPE, fuels);
@@ -133,23 +144,25 @@ public final class Ecc2JeiPlugin implements IModPlugin {
 
         Fluid biogas = Ecc2BridgePlatform.findFluid(Ecc2Ids.IC2_BIOGAS_ID);
         if (biogas != Fluids.EMPTY) {
+            int cultureCost = Ecc2Config.organicFermenterCulturePerOp();
+            int perHunger = Ecc2Config.organicFermenterBiogasPerHunger();
             registration.addRecipes(
                     FERMENTER_TYPE,
                     List.of(
                             new SimpleProcessEntry(
                                     new ItemStack(Items.APPLE),
-                                    new FluidStack(GasRegistry.CULTURE_MEDIUM.get(), 50),
-                                    new FluidStack(biogas, 80),
+                                    new FluidStack(GasRegistry.CULTURE_MEDIUM.get(), cultureCost),
+                                    new FluidStack(biogas, 4 * perHunger),
                                     200),
                             new SimpleProcessEntry(
                                     new ItemStack(Items.BREAD),
-                                    new FluidStack(GasRegistry.CULTURE_MEDIUM.get(), 50),
-                                    new FluidStack(biogas, 100),
+                                    new FluidStack(GasRegistry.CULTURE_MEDIUM.get(), cultureCost),
+                                    new FluidStack(biogas, 5 * perHunger),
                                     200),
                             new SimpleProcessEntry(
                                     new ItemStack(Items.COOKED_BEEF),
-                                    new FluidStack(GasRegistry.CULTURE_MEDIUM.get(), 50),
-                                    new FluidStack(biogas, 160),
+                                    new FluidStack(GasRegistry.CULTURE_MEDIUM.get(), cultureCost),
+                                    new FluidStack(biogas, 8 * perHunger),
                                     200)));
         }
     }

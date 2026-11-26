@@ -108,9 +108,8 @@ public final class QuantumGeneratorBlockEntity extends Ecc2SaveBlockEntity
     @Override
     public void onLoad() {
         super.onLoad();
-        if (level != null && !SolarPlatform.isClient(level)) {
-            syncRedstone(level);
-        }
+        // Defer redstone / blockstate synchronization to the first serverTick() so chunk loading
+        // never mutates world blockstates or queries neighbor chunks mid-load.
         WorldEnergy.connect(this);
     }
 

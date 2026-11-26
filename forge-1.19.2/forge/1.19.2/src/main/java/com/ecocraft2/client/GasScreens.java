@@ -13,10 +13,10 @@ import com.ecocraft2.gas.GasFurnaceMenu;
 import com.ecocraft2.gas.GasGeneratorMenu;
 import com.ecocraft2.gas.OrganicFermenterMenu;
 import com.ecocraft2.gas.WaterGasMachineMenu;
+import com.industrialage.ia2.gui.DeviceScreen;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.gui.GuiComponent;
-import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -54,7 +54,7 @@ public final class GasScreens {
     }
 
     // ---- 1. Water Gas Machine Screen (176x180) ----
-    public static final class WaterGasScreen extends AbstractContainerScreen<WaterGasMachineMenu> {
+    public static final class WaterGasScreen extends DeviceScreen<WaterGasMachineMenu> {
         private static final ResourceLocation TEX =
                 Ecc2BridgePlatform.rl("textures/gui/water_gas_machine.png");
 
@@ -69,9 +69,9 @@ public final class GasScreens {
         }
 
         @Override
-        public void render(PoseStack poseStack, int mouseX, int mouseY, float partialTick) {
+        protected void renderPanel(PoseStack poseStack, int mouseX, int mouseY, float partialTick) {
             renderBackground(poseStack);
-            super.render(poseStack, mouseX, mouseY, partialTick);
+            super.renderPanel(poseStack, mouseX, mouseY, partialTick);
             renderTooltip(poseStack, mouseX, mouseY);
             if (isHovering(14, 22, 16, 50, mouseX, mouseY)) {
                 renderTooltip(
@@ -162,7 +162,7 @@ public final class GasScreens {
     }
 
     // ---- 2. Gas Furnace Screen (176x166) ----
-    public static final class GasFurnaceScreen extends AbstractContainerScreen<GasFurnaceMenu> {
+    public static final class GasFurnaceScreen extends DeviceScreen<GasFurnaceMenu> {
         private static final ResourceLocation TEX =
                 Ecc2BridgePlatform.rl("textures/gui/gas_furnace.png");
 
@@ -177,9 +177,9 @@ public final class GasScreens {
         }
 
         @Override
-        public void render(PoseStack poseStack, int mouseX, int mouseY, float partialTick) {
+        protected void renderPanel(PoseStack poseStack, int mouseX, int mouseY, float partialTick) {
             renderBackground(poseStack);
-            super.render(poseStack, mouseX, mouseY, partialTick);
+            super.renderPanel(poseStack, mouseX, mouseY, partialTick);
             renderTooltip(poseStack, mouseX, mouseY);
             if (isHovering(16, 22, 16, 50, mouseX, mouseY)) {
                 renderTooltip(
@@ -225,7 +225,7 @@ public final class GasScreens {
     }
 
     // ---- 3. Gas Generator Screen (176x166) ----
-    public static final class GasGeneratorScreen extends AbstractContainerScreen<GasGeneratorMenu> {
+    public static final class GasGeneratorScreen extends DeviceScreen<GasGeneratorMenu> {
         private static final ResourceLocation TEX =
                 Ecc2BridgePlatform.rl("textures/gui/gas_generator.png");
 
@@ -240,9 +240,9 @@ public final class GasScreens {
         }
 
         @Override
-        public void render(PoseStack poseStack, int mouseX, int mouseY, float partialTick) {
+        protected void renderPanel(PoseStack poseStack, int mouseX, int mouseY, float partialTick) {
             renderBackground(poseStack);
-            super.render(poseStack, mouseX, mouseY, partialTick);
+            super.renderPanel(poseStack, mouseX, mouseY, partialTick);
             renderTooltip(poseStack, mouseX, mouseY);
             if (isHovering(20, 22, 16, 50, mouseX, mouseY)) {
                 renderTooltip(
@@ -310,8 +310,7 @@ public final class GasScreens {
     }
 
     // ---- 4. Culture Incubator Screen (176x180) ----
-    public static final class CultureIncubatorScreen
-            extends AbstractContainerScreen<CultureIncubatorMenu> {
+    public static final class CultureIncubatorScreen extends DeviceScreen<CultureIncubatorMenu> {
         private static final ResourceLocation TEX =
                 Ecc2BridgePlatform.rl("textures/gui/culture_incubator.png");
 
@@ -326,9 +325,9 @@ public final class GasScreens {
         }
 
         @Override
-        public void render(PoseStack poseStack, int mouseX, int mouseY, float partialTick) {
+        protected void renderPanel(PoseStack poseStack, int mouseX, int mouseY, float partialTick) {
             renderBackground(poseStack);
-            super.render(poseStack, mouseX, mouseY, partialTick);
+            super.renderPanel(poseStack, mouseX, mouseY, partialTick);
             renderTooltip(poseStack, mouseX, mouseY);
             if (isHovering(14, 22, 16, 50, mouseX, mouseY)) {
                 renderTooltip(
@@ -402,8 +401,7 @@ public final class GasScreens {
     }
 
     // ---- 5. Organic Fermenter Screen (176x180) ----
-    public static final class OrganicFermenterScreen
-            extends AbstractContainerScreen<OrganicFermenterMenu> {
+    public static final class OrganicFermenterScreen extends DeviceScreen<OrganicFermenterMenu> {
         private static final ResourceLocation TEX =
                 Ecc2BridgePlatform.rl("textures/gui/organic_fermenter.png");
 
@@ -418,9 +416,9 @@ public final class GasScreens {
         }
 
         @Override
-        public void render(PoseStack poseStack, int mouseX, int mouseY, float partialTick) {
+        protected void renderPanel(PoseStack poseStack, int mouseX, int mouseY, float partialTick) {
             renderBackground(poseStack);
-            super.render(poseStack, mouseX, mouseY, partialTick);
+            super.renderPanel(poseStack, mouseX, mouseY, partialTick);
             renderTooltip(poseStack, mouseX, mouseY);
             if (isHovering(14, 22, 16, 50, mouseX, mouseY)) {
                 renderTooltip(

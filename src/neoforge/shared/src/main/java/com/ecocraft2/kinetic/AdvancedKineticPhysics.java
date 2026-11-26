@@ -51,12 +51,14 @@ public final class AdvancedKineticPhysics {
             return Sample.inactive(Status.OBSTRUCTED);
         }
 
-        // Exact IC2NE wind altitude + periodic variation formula (MCW)
+        // Exact IC2NE wind altitude + periodic variation + weather multiplier formula (MCW)
         long sampled = level.getGameTime() / 200L;
         int variation =
                 10 * Math.floorMod(sampled + machinePos.getX() + machinePos.getZ(), 4) - 10;
         int altitude = Math.max(0, Math.min(200, hub.getY() - 64));
-        int windMcw = Math.max(0, altitude + variation);
+        double weatherMultiplier =
+                level.isThundering() ? 1.5 : (level.isRaining() ? 1.2 : 1.0);
+        int windMcw = Math.max(0, (int) Math.round((altitude + variation) * weatherMultiplier));
 
         double baseKu = Math.max(0.0, (windMcw * (double) rotor.rating()) / 100.0);
         boolean overWind = windMcw > rotor.maxSafeWind();
@@ -82,10 +84,15 @@ public final class AdvancedKineticPhysics {
             return Sample.inactive(Status.NO_WATER);
         }
 
-        // Periodic ocean/river current modulation (90..110 base flow, centered on 100)
+        // Biome-aware river/ocean current modulation (deep ocean 100..120, ocean 90..110, river 80..100)
+        var biome = level.getBiome(hub);
+        int biomeBase =
+                biome.is(BiomeTags.IS_DEEP_OCEAN)
+                        ? 100
+                        : (biome.is(BiomeTags.IS_OCEAN) ? 90 : 80);
         long phase = level.getGameTime() / 200L;
         int flow =
-                90 + 10 * Math.floorMod(phase + machinePos.getX() + machinePos.getZ(), 3);
+                biomeBase + 10 * Math.floorMod(phase + machinePos.getX() + machinePos.getZ(), 3);
         double baseKu = Math.max(0.0, (flow * (double) rotor.rating()) / 100.0);
         return new Sample(Status.RUNNING, flow, baseKu, false);
     }

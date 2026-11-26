@@ -1,5 +1,7 @@
 package com.ecocraft2.giant;
 
+import com.ecocraft2.bridge.Ecc2BridgePlatform;
+import com.ecocraft2.bridge.Ecc2EnergyHelper;
 import com.ecocraft2.common.giant.GiantCornerPort;
 import com.ecocraft2.common.giant.GiantPortPermissions;
 import com.ecocraft2.common.giant.PortAccessMode;
@@ -13,9 +15,12 @@ import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.inventory.SimpleContainerData;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.material.Fluids;
+import net.minecraftforge.fluids.FluidUtil;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.ItemStackHandler;
 import net.minecraftforge.items.SlotItemHandler;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Menu for all 5 3x3x3 Giant Machines aligned pixel-for-pixel to {@code gui_coordinates.json}
@@ -38,9 +43,34 @@ public final class GiantMachineMenu extends AbstractContainerMenu {
                 id,
                 playerInv,
                 buf.readBlockPos(),
-                new ItemStackHandler(GiantMachineBlockEntity.TOTAL_SLOTS),
+                createClientHandler(),
                 new SimpleContainerData(GiantMachineBlockEntity.SYNC_DATA_COUNT),
                 true);
+    }
+
+    private static ItemStackHandler createClientHandler() {
+        return new ItemStackHandler(GiantMachineBlockEntity.TOTAL_SLOTS) {
+            @Override
+            public boolean isItemValid(int slot, @NotNull ItemStack stack) {
+                if (slot >= GiantMachineBlockEntity.INPUT_START
+                        && slot < GiantMachineBlockEntity.INPUT_START + GiantMachineBlockEntity.INPUT_COUNT) {
+                    return true;
+                }
+                if (slot == GiantMachineBlockEntity.BATTERY_SLOT) {
+                    return Ecc2EnergyHelper.canDischarge(stack, 14);
+                }
+                if (slot >= GiantMachineBlockEntity.UPGRADE_START
+                        && slot < GiantMachineBlockEntity.UPGRADE_START + GiantMachineBlockEntity.UPGRADE_COUNT) {
+                    return Ecc2EnergyHelper.isUpgradeItem(stack);
+                }
+                if (slot == GiantMachineBlockEntity.WASHER_IN_SLOT) {
+                    return FluidUtil.getFluidContained(Ecc2BridgePlatform.copyWithCount(stack, 1))
+                            .map(fs -> !fs.isEmpty() && fs.getFluid() == Fluids.WATER)
+                            .orElse(false);
+                }
+                return false;
+            }
+        };
     }
 
     public GiantMachineMenu(
@@ -174,7 +204,7 @@ public final class GiantMachineMenu extends AbstractContainerMenu {
     }
 
     public int laneBatchSize(int lane) {
-        return Math.max(0, Math.min(3, data.get(21 + lane)));
+        return Math.max(0, Math.min(64, data.get(21 + lane)));
     }
 
     public boolean usesWater() {

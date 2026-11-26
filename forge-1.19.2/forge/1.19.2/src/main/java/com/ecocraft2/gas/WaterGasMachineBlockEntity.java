@@ -4,6 +4,7 @@ import com.ecocraft2.bridge.Ecc2BridgePlatform;
 import com.ecocraft2.bridge.Ecc2EnergyHelper;
 import com.ecocraft2.common.gas.GasMachineOutcome;
 import com.ecocraft2.common.gas.WaterGasEngine;
+import com.ecocraft2.config.Ecc2Config;
 import com.industrialage.ia2.access.MachineAccess;
 import com.industrialage.ia2.access.MachineAccessTarget;
 import com.industrialage.ia2.access.MachinePortCache;
@@ -231,8 +232,12 @@ public final class WaterGasMachineBlockEntity extends BlockEntity
                 }
             };
 
+    private static final int[] UPGRADE_IN_SLOTS = {SLOT_COAL_DUST};
+    private static final int[] UPGRADE_OUT_SLOTS = {SLOT_WATER_OUT, SLOT_GAS_OUT};
+
     public WaterGasMachineBlockEntity(BlockPos pos, BlockState state) {
         super(GasRegistry.WATER_GAS_MACHINE_BE.get(), pos, state);
+        engine.setSolarEuPerTick(Ecc2Config.waterGasSolarEuPerTick());
     }
 
     public static boolean isCoalDust(ItemStack stack) {
@@ -266,7 +271,9 @@ public final class WaterGasMachineBlockEntity extends BlockEntity
             return;
         }
         lastTick = serverLevel.getGameTime();
-        refreshUpgrades();
+        engine.setSolarEuPerTick(Ecc2Config.waterGasSolarEuPerTick());
+        List<ItemStack> upgrades = collectUpgrades();
+        engine.setUpgrades(Ecc2EnergyHelper.readUpgradeProfile(upgrades));
 
         // Discharge battery
         ItemStack battery = inventory.getStackInSlot(SLOT_BATTERY);
@@ -311,13 +318,45 @@ public final class WaterGasMachineBlockEntity extends BlockEntity
         Biome biome = serverLevel.getBiome(above).value();
         boolean canRain = biome.getPrecipitation() != Biome.Precipitation.NONE;
 
-        boolean hasCoal = isCoalDust(inventory.getStackInSlot(SLOT_COAL_DUST));
+        boolean hasCoal =
+                GasUpgradeAutomation.isRunAllowed(serverLevel, worldPosition, upgrades)
+                        && isCoalDust(inventory.getStackInSlot(SLOT_COAL_DUST));
         var outcome = engine.tick(hasCoal, hasSky, seesSky, isDay, isRaining, canRain);
         if (outcome == GasMachineOutcome.COMPLETED) {
             inventory.extractItem(SLOT_COAL_DUST, 1, false);
             setChanged();
         } else if (outcome == GasMachineOutcome.WORKING || engine.isSolarActive()) {
             setChanged();
+        }
+
+        if ((lastTick & 3L) == 0L && !upgrades.isEmpty()) {
+            boolean moved =
+                    GasUpgradeAutomation.executeItemUpgrades(
+                            serverLevel,
+                            this,
+                            inventory,
+                            upgrades,
+                            UPGRADE_IN_SLOTS,
+                            UPGRADE_OUT_SLOTS,
+                            WaterGasMachineBlockEntity::isCoalDust);
+            moved |=
+                    GasUpgradeAutomation.executeFluidUpgrades(
+                            serverLevel,
+                            this,
+                            upgrades,
+                            fs -> fs.getFluid() == Fluids.WATER,
+                            () -> WaterGasEngine.WATER_TANK_CAPACITY_MB - engine.waterMb(),
+                            fs -> engine.fillWater(fs.getAmount(), false),
+                            () ->
+                                    engine.waterGasMb() > 0
+                                            ? new FluidStack(
+                                                    GasRegistry.WATER_GAS.get(),
+                                                    engine.waterGasMb())
+                                            : FluidStack.EMPTY,
+                            drained -> engine.drainWaterGas(drained, false));
+            if (moved) {
+                setChanged();
+            }
         }
 
         BlockState state = getBlockState();
@@ -330,7 +369,7 @@ public final class WaterGasMachineBlockEntity extends BlockEntity
         }
     }
 
-    private void refreshUpgrades() {
+    private List<ItemStack> collectUpgrades() {
         List<ItemStack> upgrades = new ArrayList<>(4);
         for (int i = 0; i < 4; i++) {
             ItemStack u = inventory.getStackInSlot(SLOT_UPGRADE_START + i);
@@ -338,7 +377,11 @@ public final class WaterGasMachineBlockEntity extends BlockEntity
                 upgrades.add(u);
             }
         }
-        engine.setUpgrades(Ecc2EnergyHelper.readUpgradeProfile(upgrades));
+        return upgrades;
+    }
+
+    private void refreshUpgrades() {
+        engine.setUpgrades(Ecc2EnergyHelper.readUpgradeProfile(collectUpgrades()));
     }
 
     @Override

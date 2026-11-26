@@ -7,22 +7,35 @@ import com.ecocraft2.common.giant.BlockPos3;
 import com.ecocraft2.common.giant.GiantCornerPort;
 import com.ecocraft2.common.giant.GiantMachineEngine;
 import com.ecocraft2.common.giant.GiantMachineKind;
+import com.ecocraft2.common.giant.GiantPortPermissions;
 import com.ecocraft2.common.giant.MultiblockBounds;
 import com.ecocraft2.common.giant.MultiblockGeometry;
 import com.ecocraft2.common.giant.PortAccessMode;
 import com.ecocraft2.config.Ecc2Config;
+import com.ecocraft2.gas.GasUpgradeAutomation;
 import com.industrialage.ia2.access.MachineAccessTarget;
+import com.industrialage.ia2.content.ProcessingUpgrades;
 import com.industrialage.ia2.energy.graph.EnergyGraph;
+import com.industrialage.ia2.logistics.TransportBlock;
+import com.industrialage.ia2.platform.CapabilityFacade;
 import com.industrialage.ia2.power.EuBuffer;
 import com.industrialage.ia2.power.WorldEnergy;
 import com.industrialage.ia2.power.WorldPowerPort;
+import com.industrialage.ia2.world.MachineAutomation;
 import java.util.ArrayList;
+import java.util.EnumMap;
+import java.util.EnumSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.IntStream;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.Containers;
 import net.minecraft.world.InteractionHand;
@@ -44,7 +57,6 @@ import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.FluidUtil;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.items.IItemHandler;
-import net.minecraftforge.items.ItemHandlerHelper;
 import net.minecraftforge.items.ItemStackHandler;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -72,6 +84,11 @@ public final class GiantMachineBlockEntity extends BlockEntity
 
     public static final int SYNC_DATA_COUNT = 31;
 
+    private static final int[] INPUT_SLOTS = IntStream.range(INPUT_START, INPUT_START + INPUT_COUNT).toArray();
+    private static final int[] OUTPUT_SLOTS_STANDARD =
+            IntStream.range(OUTPUT_START, OUTPUT_START + OUTPUT_COUNT).toArray();
+    private static final int[] OUTPUT_SLOTS_WASHER = {9, 10, 11, 12, 13, 14, 15, 16, 17, WASHER_OUT_SLOT};
+
     private final GiantMachineKind kind;
     private final GiantMachineEngine engine;
 
@@ -80,14 +97,20 @@ public final class GiantMachineBlockEntity extends BlockEntity
     private BlockPos corePos = BlockPos.ZERO;
     private Direction structureFacing = Direction.NORTH;
     private boolean dissolving;
+    private boolean pendingPortVisualSync;
     private long lastTick = Long.MIN_VALUE;
+
+    private final Map<Direction, LazyOptional<IItemHandler>> itemPortCaps =
+            new EnumMap<>(Direction.class);
+    private final Map<Direction, LazyOptional<IFluidHandler>> fluidPortCaps =
+            new EnumMap<>(Direction.class);
 
     private final ItemStackHandler inventory =
             new ItemStackHandler(TOTAL_SLOTS) {
                 @Override
                 public boolean isItemValid(int slot, @NotNull ItemStack stack) {
                     if (slot >= INPUT_START && slot < INPUT_START + INPUT_COUNT) {
-                        return true;
+                        return GiantRecipeAdapter.acceptsInput(kind, stack);
                     }
                     if (slot == BATTERY_SLOT) {
                         return Ecc2EnergyHelper.canDischarge(stack, engine.inputTier());
@@ -164,6 +187,15 @@ public final class GiantMachineBlockEntity extends BlockEntity
         super(GiantRegistry.GIANT_MACHINE_BE.get(), pos, state);
         this.kind = kind;
         this.engine = new GiantMachineEngine(kind);
+        applyConfigToEngine();
+    }
+
+    private void applyConfigToEngine() {
+        engine.setBaseTier(Ecc2Config.giantBaseTier());
+        engine.setMaxBatchPerLane(Ecc2Config.giantMaxBatchPerLane());
+        if (kind.spec().usesWater()) {
+            engine.setWaterTankCapacityMb(Ecc2Config.giantWasherWaterCapacity());
+        }
     }
 
     public GiantMachineKind kind() {
@@ -191,9 +223,7 @@ public final class GiantMachineBlockEntity extends BlockEntity
     }
 
     public int configuredWaterCapacity() {
-        return kind.spec().usesWater()
-                ? Math.min(engine.waterTankCapacityMb(), Ecc2Config.giantWasherWaterCapacity())
-                : 0;
+        return kind.spec().usesWater() ? engine.waterTankCapacityMb() : 0;
     }
 
     /** Resolves the core BlockEntity for either the core itself or any of the 26 proxy blocks. */
@@ -223,10 +253,85 @@ public final class GiantMachineBlockEntity extends BlockEntity
         engine.portPermissions().cycle(port);
         setChanged();
         if (level instanceof ServerLevel serverLevel) {
-            BlockPos3 offset = port.cornerOffset(toBlockFace(structureFacing));
+            refreshAllCorners(serverLevel);
+        }
+    }
+
+    private void refreshAllCorners(ServerLevel serverLevel) {
+        BlockFace facing = toBlockFace(structureFacing);
+        GiantPortPermissions perms = engine.portPermissions();
+        Map<BlockPos, List<PortAccessMode>> cornerModes = new LinkedHashMap<>(4);
+        for (GiantCornerPort port : GiantCornerPort.values()) {
+            BlockPos3 offset = port.cornerOffset(facing);
             BlockPos cornerPos = worldPosition.offset(offset.x(), offset.y(), offset.z());
+            cornerModes.computeIfAbsent(cornerPos, ignored -> new ArrayList<>(2)).add(perms.get(port));
+        }
+        for (var entry : cornerModes.entrySet()) {
+            BlockPos cornerPos = entry.getKey();
+            if (!serverLevel.hasChunkAt(cornerPos)) {
+                continue;
+            }
+            List<PortAccessMode> modes = entry.getValue();
+            PortAccessMode first = modes.isEmpty() ? PortAccessMode.BLOCKED : modes.get(0);
+            PortAccessMode second = modes.size() > 1 ? modes.get(1) : first;
+            GiantPortVisual visual = GiantPortVisual.combine(first, second);
+            BlockState cornerState = serverLevel.getBlockState(cornerPos);
+            if (cornerState.getBlock() instanceof GiantMachineBlock
+                    && cornerState.getValue(GiantMachineBlock.FORMED)
+                    && cornerState.getValue(GiantMachineBlock.ROLE) == GiantUnitRole.CORNER
+                    && cornerState.getValue(GiantMachineBlock.PORT_MODE) != visual) {
+                serverLevel.setBlock(
+                        cornerPos,
+                        cornerState.setValue(GiantMachineBlock.PORT_MODE, visual),
+                        Block.UPDATE_CLIENTS);
+            }
+            if (serverLevel.getBlockEntity(cornerPos) instanceof GiantMachineBlockEntity cornerBe) {
+                cornerBe.invalidateCornerCaps();
+                TransportBlock.refreshConnections(serverLevel, cornerPos);
+            }
             serverLevel.updateNeighborsAt(cornerPos, getBlockState().getBlock());
         }
+    }
+
+    private void invalidateCornerCaps() {
+        List<LazyOptional<IItemHandler>> itemsCopy = List.copyOf(itemPortCaps.values());
+        List<LazyOptional<IFluidHandler>> fluidsCopy = List.copyOf(fluidPortCaps.values());
+        itemPortCaps.clear();
+        fluidPortCaps.clear();
+        itemsCopy.forEach(LazyOptional::invalidate);
+        fluidsCopy.forEach(LazyOptional::invalidate);
+    }
+
+    /**
+     * Resets an orphaned formed non-core block when its core's chunk is loaded and the core is
+     * missing or no longer formed for this kind.
+     */
+    public boolean tryRecoverOrphan(ServerLevel serverLevel, BlockState state) {
+        if (!formed || isCore) {
+            return false;
+        }
+        if (!serverLevel.hasChunkAt(corePos)) {
+            return false;
+        }
+        if (resolveCore() != null) {
+            return false;
+        }
+        WorldEnergy.disconnect(this);
+        formed = false;
+        isCore = false;
+        corePos = BlockPos.ZERO;
+        invalidateCornerCaps();
+        setChanged();
+        if (state.getBlock() instanceof GiantMachineBlock) {
+            BlockState reset =
+                    state.setValue(GiantMachineBlock.FORMED, Boolean.FALSE)
+                            .setValue(GiantMachineBlock.ACTIVE, Boolean.FALSE)
+                            .setValue(GiantMachineBlock.ROLE, GiantUnitRole.UNFORMED)
+                            .setValue(GiantMachineBlock.PORT_MODE, GiantPortVisual.FULL);
+            serverLevel.setBlock(worldPosition, reset, Block.UPDATE_ALL);
+            serverLevel.sendBlockUpdated(worldPosition, state, reset, Block.UPDATE_CLIENTS);
+        }
+        return true;
     }
 
     /** Attempts to detect and form a valid 3x3x3 cube containing {@code origin}. */
@@ -264,17 +369,23 @@ public final class GiantMachineBlockEntity extends BlockEntity
                     current.setValue(GiantMachineBlock.FACING, horizontalFacing)
                             .setValue(GiantMachineBlock.FORMED, Boolean.TRUE)
                             .setValue(GiantMachineBlock.ACTIVE, Boolean.FALSE)
-                            .setValue(GiantMachineBlock.ROLE, role);
+                            .setValue(GiantMachineBlock.ROLE, role)
+                            .setValue(GiantMachineBlock.PORT_MODE, GiantPortVisual.FULL);
             level.setBlock(bp, updated, Block.UPDATE_ALL);
             if (level.getBlockEntity(bp) instanceof GiantMachineBlockEntity unit) {
                 unit.formed = true;
                 unit.isCore = bp.equals(coreWorldPos);
                 unit.corePos = coreWorldPos;
                 unit.structureFacing = horizontalFacing;
+                unit.invalidateCornerCaps();
                 unit.setChanged();
+                level.sendBlockUpdated(bp, current, updated, Block.UPDATE_CLIENTS);
                 WorldEnergy.disconnect(unit);
                 WorldEnergy.connect(unit);
             }
+        }
+        if (level.getBlockEntity(coreWorldPos) instanceof GiantMachineBlockEntity core) {
+            core.refreshAllCorners(level);
         }
         return true;
     }
@@ -312,19 +423,23 @@ public final class GiantMachineBlockEntity extends BlockEntity
                 unit.formed = false;
                 unit.isCore = false;
                 unit.corePos = BlockPos.ZERO;
+                unit.invalidateCornerCaps();
                 unit.setChanged();
             }
             BlockState st = level.getBlockState(bp);
             if (st.getBlock() instanceof GiantMachineBlock) {
-                level.setBlock(
-                        bp,
+                BlockState reset =
                         st.setValue(GiantMachineBlock.FORMED, Boolean.FALSE)
                                 .setValue(GiantMachineBlock.ACTIVE, Boolean.FALSE)
-                                .setValue(GiantMachineBlock.ROLE, GiantUnitRole.UNFORMED),
-                        Block.UPDATE_ALL);
+                                .setValue(GiantMachineBlock.ROLE, GiantUnitRole.UNFORMED)
+                                .setValue(GiantMachineBlock.PORT_MODE, GiantPortVisual.FULL);
+                level.setBlock(bp, reset, Block.UPDATE_ALL);
+                level.sendBlockUpdated(bp, st, reset, Block.UPDATE_CLIENTS);
+                TransportBlock.refreshConnections(level, bp);
             }
         }
         WorldEnergy.disconnect(core);
+        core.invalidateCornerCaps();
         core.formed = false;
         core.isCore = false;
         core.dissolving = false;
@@ -333,10 +448,25 @@ public final class GiantMachineBlockEntity extends BlockEntity
     // ---- Server Tick ----
 
     public void serverTick() {
-        if (!(level instanceof ServerLevel serverLevel) || !isCore()) {
+        if (!(level instanceof ServerLevel serverLevel)) {
             return;
         }
-        lastTick = serverLevel.getGameTime();
+        long now = serverLevel.getGameTime();
+        if (!isCore()) {
+            if (formed && (now % 20L) == 0L) {
+                tryRecoverOrphan(serverLevel, getBlockState());
+            }
+            return;
+        }
+        lastTick = now;
+        if (pendingPortVisualSync) {
+            pendingPortVisualSync = false;
+            refreshAllCorners(serverLevel);
+        }
+        if ((now % 20L) == 0L && !verifyStructureIntegrity(serverLevel)) {
+            dissolveOnBreak(serverLevel);
+            return;
+        }
         refreshUpgrades();
 
         // Discharge battery slot into EU buffer
@@ -361,15 +491,18 @@ public final class GiantMachineBlockEntity extends BlockEntity
 
         // Optional redstone inverter upgrade pause check
         List<ItemStack> upgrades = upgradeList();
-        boolean redstoneInverter = Ecc2EnergyHelper.hasRedstoneInverter(upgrades);
-        boolean powered = serverLevel.hasNeighborSignal(worldPosition);
-        boolean runAllowed = !redstoneInverter || powered;
+        boolean runAllowed = GasUpgradeAutomation.isRunAllowed(serverLevel, worldPosition, upgrades);
 
         boolean nowActive = false;
         if (runAllowed) {
             var summary =
                     engine.tick(
                             new GiantMachineEngine.LaneHandler() {
+                                @Override
+                                public int availableInputBatch(int lane, int maxBatch) {
+                                    return computeLaneInputBatch(lane, maxBatch);
+                                }
+
                                 @Override
                                 public int availableBatch(int lane, int maxBatch) {
                                     return computeLaneAvailableBatch(lane, maxBatch);
@@ -404,6 +537,39 @@ public final class GiantMachineBlockEntity extends BlockEntity
         }
     }
 
+    private boolean verifyStructureIntegrity(ServerLevel serverLevel) {
+        MultiblockBounds bounds =
+                MultiblockGeometry.boundsFromCore(
+                        new BlockPos3(
+                                worldPosition.getX(), worldPosition.getY(), worldPosition.getZ()));
+        for (BlockPos3 p : bounds.allPositions()) {
+            BlockPos bp = new BlockPos(p.x(), p.y(), p.z());
+            if (!serverLevel.hasChunkAt(bp)) {
+                continue;
+            }
+            BlockState st = serverLevel.getBlockState(bp);
+            if (!(st.getBlock() instanceof GiantMachineBlock gb)
+                    || gb.kind() != kind
+                    || !st.getValue(GiantMachineBlock.FORMED)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private int computeLaneInputBatch(int lane, int maxBatch) {
+        ItemStack input = inventory.getStackInSlot(INPUT_START + lane);
+        if (input.isEmpty()) {
+            return 0;
+        }
+        GiantRecipeAdapter.ResolvedRecipe recipe = GiantRecipeAdapter.match(kind, input);
+        if (recipe == null) {
+            return 0;
+        }
+        int byInput = input.getCount() / recipe.inputCount();
+        return Math.max(0, Math.min(maxBatch, byInput));
+    }
+
     private int computeLaneAvailableBatch(int lane, int maxBatch) {
         ItemStack input = inventory.getStackInSlot(INPUT_START + lane);
         if (input.isEmpty()) {
@@ -414,7 +580,7 @@ public final class GiantMachineBlockEntity extends BlockEntity
             return 0;
         }
         int byInput = input.getCount() / recipe.inputCount();
-        int cap = Math.min(maxBatch, Math.min(Ecc2Config.giantMaxBatchPerLane(), byInput));
+        int cap = Math.min(maxBatch, byInput);
         if (cap <= 0) {
             return 0;
         }
@@ -572,99 +738,93 @@ public final class GiantMachineBlockEntity extends BlockEntity
     }
 
     private void serviceCornerUpgradeAutomation(ServerLevel level, List<ItemStack> upgrades) {
-        boolean hasItemEject = false;
-        boolean hasItemPull = false;
-        boolean hasFluidPull = false;
-        for (ItemStack u : upgrades) {
-            String id = Ecc2BridgePlatform.itemId(u);
-            if ("ic2:ejector_upgrade".equals(id)) {
-                hasItemEject = true;
-            } else if ("ic2:pulling_upgrade".equals(id)) {
-                hasItemPull = true;
-            } else if ("ic2:fluid_pulling_upgrade".equals(id)) {
-                hasFluidPull = true;
-            }
-        }
-        if (!hasItemEject && !hasItemPull && !hasFluidPull) {
-            return;
-        }
         BlockFace structFace = toBlockFace(structureFacing);
-        for (GiantCornerPort port : GiantCornerPort.values()) {
-            PortAccessMode mode = engine.portPermissions().get(port);
-            if (!mode.connects()) {
+        int[] outSlots = kind.spec().usesWater() ? OUTPUT_SLOTS_WASHER : OUTPUT_SLOTS_STANDARD;
+        for (ItemStack u : upgrades) {
+            if (u.isEmpty()) {
                 continue;
             }
-            BlockPos3 offset = port.cornerOffset(structFace);
-            Direction outDir = toDirection(port.worldFace(structFace));
-            BlockPos neighborPos =
-                    worldPosition.offset(offset.x(), offset.y(), offset.z()).relative(outDir);
-            if (!level.hasChunkAt(neighborPos)) {
+            String id = Ecc2BridgePlatform.itemId(u);
+            boolean isItemEject =
+                    "ic2:ejector_upgrade".equals(id) || "ic2:advanced_ejector_upgrade".equals(id);
+            boolean isItemPull =
+                    "ic2:pulling_upgrade".equals(id) || "ic2:advanced_pulling_upgrade".equals(id);
+            boolean isFluidPull = "ic2:fluid_pulling_upgrade".equals(id);
+            if (!isItemEject && !isItemPull && !isFluidPull) {
                 continue;
             }
-            BlockEntity neighbor = level.getBlockEntity(neighborPos);
-            if (neighbor == null) {
-                continue;
-            }
-            if (hasItemEject && mode.allowsOutput()) {
-                neighbor.getCapability(ForgeCapabilities.ITEM_HANDLER, outDir.getOpposite())
-                        .ifPresent(this::ejectOutputsTo);
-            }
-            if (hasItemPull && mode.allowsInput()) {
-                neighbor.getCapability(ForgeCapabilities.ITEM_HANDLER, outDir.getOpposite())
-                        .ifPresent(this::pullInputsFrom);
-            }
-            if (hasFluidPull && kind.spec().usesWater() && mode.allowsInput()) {
-                neighbor.getCapability(ForgeCapabilities.FLUID_HANDLER, outDir.getOpposite())
-                        .ifPresent(
-                                handler -> {
-                                    int room = configuredWaterCapacity() - engine.waterMb();
-                                    if (room > 0) {
-                                        FluidStack drained =
-                                                handler.drain(
-                                                        new FluidStack(
-                                                                Fluids.WATER, Math.min(1000, room)),
-                                                        IFluidHandler.FluidAction.EXECUTE);
-                                        if (!drained.isEmpty()
-                                                && drained.getFluid() == Fluids.WATER) {
-                                            engine.fillWater(drained.getAmount(), false);
-                                            setChanged();
-                                        }
-                                    }
-                                });
-            }
-        }
-    }
-
-    private void ejectOutputsTo(IItemHandler target) {
-        for (int slot = OUTPUT_START; slot < OUTPUT_START + OUTPUT_COUNT; slot++) {
-            ItemStack stack = inventory.getStackInSlot(slot);
-            if (stack.isEmpty()) {
-                continue;
-            }
-            ItemStack remainder = ItemHandlerHelper.insertItemStacked(target, stack.copy(), false);
-            int moved = stack.getCount() - remainder.getCount();
-            if (moved > 0) {
-                inventory.extractItem(slot, moved, false);
-                setChanged();
-                return;
-            }
-        }
-    }
-
-    private void pullInputsFrom(IItemHandler source) {
-        for (int s = 0; s < source.getSlots(); s++) {
-            ItemStack avail = source.extractItem(s, 64, true);
-            if (avail.isEmpty()) {
-                continue;
-            }
-            for (int lane = 0; lane < INPUT_COUNT; lane++) {
-                ItemStack rem = inventory.insertItem(INPUT_START + lane, avail, true);
-                int accepted = avail.getCount() - rem.getCount();
-                if (accepted > 0) {
-                    ItemStack pulled = source.extractItem(s, accepted, false);
-                    inventory.insertItem(INPUT_START + lane, pulled, false);
-                    setChanged();
-                    return;
+            List<Direction> allowedFaces = MachineAutomation.faces(u);
+            int itemLimit = Math.max(1, ProcessingUpgrades.transferLimit(u.getCount()));
+            int fluidBudget = Math.max(1_000, u.getCount() * 1_000);
+            for (GiantCornerPort port : GiantCornerPort.values()) {
+                PortAccessMode mode = engine.portPermissions().get(port);
+                if (!mode.connects()) {
+                    continue;
+                }
+                Direction outDir = toDirection(port.worldFace(structFace));
+                if (!allowedFaces.contains(outDir)) {
+                    continue;
+                }
+                BlockPos3 offset = port.cornerOffset(structFace);
+                BlockPos neighborPos =
+                        worldPosition.offset(offset.x(), offset.y(), offset.z()).relative(outDir);
+                if (!level.hasChunkAt(neighborPos)) {
+                    continue;
+                }
+                BlockEntity neighbor = level.getBlockEntity(neighborPos);
+                if (neighbor == null) {
+                    continue;
+                }
+                if (isItemEject && mode.allowsOutput()) {
+                    var target =
+                            neighbor.getCapability(
+                                            ForgeCapabilities.ITEM_HANDLER, outDir.getOpposite())
+                                    .resolve();
+                    if (target.isPresent()
+                            && GasUpgradeAutomation.ejectItems(
+                                    inventory, outSlots, target.get(), itemLimit)) {
+                        setChanged();
+                        break;
+                    }
+                }
+                if (isItemPull && mode.allowsInput()) {
+                    var source =
+                            neighbor.getCapability(
+                                            ForgeCapabilities.ITEM_HANDLER, outDir.getOpposite())
+                                    .resolve();
+                    if (source.isPresent()
+                            && GasUpgradeAutomation.pullItems(
+                                    inventory,
+                                    INPUT_SLOTS,
+                                    source.get(),
+                                    itemLimit,
+                                    s -> GiantRecipeAdapter.acceptsInput(kind, s))) {
+                        setChanged();
+                        break;
+                    }
+                }
+                if (isFluidPull && kind.spec().usesWater() && mode.allowsInput()) {
+                    var fluidCap =
+                            neighbor.getCapability(
+                                            ForgeCapabilities.FLUID_HANDLER, outDir.getOpposite())
+                                    .resolve();
+                    if (fluidCap.isPresent()) {
+                        int room = configuredWaterCapacity() - engine.waterMb();
+                        if (room > 0) {
+                            FluidStack drained =
+                                    fluidCap.get()
+                                            .drain(
+                                                    new FluidStack(
+                                                            Fluids.WATER,
+                                                            Math.min(fluidBudget, room)),
+                                                    IFluidHandler.FluidAction.EXECUTE);
+                            if (!drained.isEmpty() && drained.getFluid() == Fluids.WATER) {
+                                engine.fillWater(drained.getAmount(), false);
+                                setChanged();
+                                break;
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -682,6 +842,7 @@ public final class GiantMachineBlockEntity extends BlockEntity
     }
 
     private void refreshUpgrades() {
+        applyConfigToEngine();
         engine.setUpgrades(Ecc2EnergyHelper.readUpgradeProfile(upgradeList()));
     }
 
@@ -712,7 +873,7 @@ public final class GiantMachineBlockEntity extends BlockEntity
     @Override
     public <T> @NotNull LazyOptional<T> getCapability(
             @NotNull Capability<T> cap, @Nullable Direction side) {
-        if (!formed) {
+        if (!formed || side == null) {
             return super.getCapability(cap, side);
         }
         GiantMachineBlockEntity core = resolveCore();
@@ -720,9 +881,6 @@ public final class GiantMachineBlockEntity extends BlockEntity
             return super.getCapability(cap, side);
         }
         if (cap == ForgeCapabilities.ITEM_HANDLER) {
-            if (side == null) {
-                return LazyOptional.of(() -> core.createPortItemHandler(true, true)).cast();
-            }
             var portOpt = cornerPortForSide(side);
             if (portOpt.isEmpty()) {
                 return LazyOptional.empty();
@@ -731,14 +889,18 @@ public final class GiantMachineBlockEntity extends BlockEntity
             if (!mode.connects()) {
                 return LazyOptional.empty();
             }
-            return LazyOptional.of(
-                            () -> core.createPortItemHandler(mode.allowsInput(), mode.allowsOutput()))
+            return itemPortCaps
+                    .computeIfAbsent(
+                            side,
+                            ignored ->
+                                    LazyOptional.of(
+                                            () ->
+                                                    core.createPortItemHandler(
+                                                            mode.allowsInput(),
+                                                            mode.allowsOutput())))
                     .cast();
         }
         if (cap == ForgeCapabilities.FLUID_HANDLER && core.kind.spec().usesWater()) {
-            if (side == null) {
-                return LazyOptional.of(() -> core.createPortFluidHandler(true, true)).cast();
-            }
             var portOpt = cornerPortForSide(side);
             if (portOpt.isEmpty()) {
                 return LazyOptional.empty();
@@ -747,10 +909,15 @@ public final class GiantMachineBlockEntity extends BlockEntity
             if (!mode.connects()) {
                 return LazyOptional.empty();
             }
-            return LazyOptional.of(
-                            () ->
-                                    core.createPortFluidHandler(
-                                            mode.allowsInput(), mode.allowsOutput()))
+            return fluidPortCaps
+                    .computeIfAbsent(
+                            side,
+                            ignored ->
+                                    LazyOptional.of(
+                                            () ->
+                                                    core.createPortFluidHandler(
+                                                            mode.allowsInput(),
+                                                            mode.allowsOutput())))
                     .cast();
         }
         return super.getCapability(cap, side);
@@ -871,8 +1038,15 @@ public final class GiantMachineBlockEntity extends BlockEntity
 
     @Override
     public boolean exchangeHeldFluid(Player player, InteractionHand hand, Direction side) {
+        var portOpt = cornerPortForSide(side);
+        if (portOpt.isEmpty()) {
+            return false;
+        }
         GiantMachineBlockEntity core = resolveCore();
         if (core == null || !core.kind.spec().usesWater()) {
+            return false;
+        }
+        if (!core.engine.portPermissions().allowsInput(portOpt.get())) {
             return false;
         }
         IFluidHandler handler = core.createPortFluidHandler(true, false);
@@ -909,7 +1083,14 @@ public final class GiantMachineBlockEntity extends BlockEntity
     @Override
     public void setRemoved() {
         WorldEnergy.disconnect(this);
+        invalidateCornerCaps();
         super.setRemoved();
+    }
+
+    @Override
+    public void invalidateCaps() {
+        super.invalidateCaps();
+        invalidateCornerCaps();
     }
 
     @Override
@@ -920,7 +1101,23 @@ public final class GiantMachineBlockEntity extends BlockEntity
 
     @Override
     public EnergyGraph.Ports energyPorts() {
-        return formed ? Ecc2EnergyHelper.ALL_INPUT_PORTS : Ecc2EnergyHelper.NO_PORTS;
+        if (!formed || resolveCore() == null) {
+            return Ecc2EnergyHelper.NO_PORTS;
+        }
+        MultiblockBounds bounds =
+                MultiblockGeometry.boundsFromCore(
+                        new BlockPos3(corePos.getX(), corePos.getY(), corePos.getZ()));
+        BlockPos3 here =
+                new BlockPos3(worldPosition.getX(), worldPosition.getY(), worldPosition.getZ());
+        var inputs = EnumSet.noneOf(CapabilityFacade.Face.class);
+        for (Direction dir : Direction.values()) {
+            if (bounds.isExteriorFace(here, toBlockFace(dir))) {
+                inputs.add(Ecc2EnergyHelper.toFace(dir));
+            }
+        }
+        return inputs.isEmpty()
+                ? Ecc2EnergyHelper.NO_PORTS
+                : new EnergyGraph.Ports(inputs, Set.of(), false);
     }
 
     @Override
@@ -940,7 +1137,7 @@ public final class GiantMachineBlockEntity extends BlockEntity
     @Override
     public double packetLimit() {
         GiantMachineBlockEntity core = resolveCore();
-        return core != null ? core.engine.maxInputPacket() : 512.0;
+        return core != null ? core.engine.maxInputPacket() : Double.POSITIVE_INFINITY;
     }
 
     @Override
@@ -990,6 +1187,7 @@ public final class GiantMachineBlockEntity extends BlockEntity
             if (tag.contains("PortPerms")) {
                 engine.portPermissions().setPacked(tag.getInt("PortPerms"));
             }
+            pendingPortVisualSync = true;
             int[] prog = tag.getIntArray("LaneProgress");
             int[] batch = tag.getIntArray("LaneBatch");
             if (prog.length == GiantMachineEngine.LANE_COUNT
@@ -997,6 +1195,32 @@ public final class GiantMachineBlockEntity extends BlockEntity
                 engine.restoreLanes(prog, batch);
             }
         }
+    }
+
+    @Override
+    public CompoundTag getUpdateTag() {
+        CompoundTag tag = super.getUpdateTag();
+        tag.putBoolean("Formed", formed);
+        tag.putBoolean("IsCore", isCore);
+        tag.putInt("CoreX", corePos.getX());
+        tag.putInt("CoreY", corePos.getY());
+        tag.putInt("CoreZ", corePos.getZ());
+        tag.putInt("Facing", structureFacing.get2DDataValue());
+        return tag;
+    }
+
+    @Override
+    public void handleUpdateTag(CompoundTag tag) {
+        super.handleUpdateTag(tag);
+        formed = tag.getBoolean("Formed");
+        isCore = tag.getBoolean("IsCore");
+        corePos = new BlockPos(tag.getInt("CoreX"), tag.getInt("CoreY"), tag.getInt("CoreZ"));
+        structureFacing = Direction.from2DDataValue(tag.getInt("Facing"));
+    }
+
+    @Override
+    public ClientboundBlockEntityDataPacket getUpdatePacket() {
+        return ClientboundBlockEntityDataPacket.create(this);
     }
 
     @Override

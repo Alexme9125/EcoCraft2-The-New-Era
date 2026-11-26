@@ -4,7 +4,9 @@ import com.ecocraft2.bridge.Ecc2BridgePlatform;
 import com.ecocraft2.common.giant.GiantCornerPort;
 import com.ecocraft2.common.solar.QuantumGeneratorEngine;
 import com.ecocraft2.giant.GiantMachineBlockEntity;
+import com.ecocraft2.giant.GiantMachineMenu;
 import com.ecocraft2.solar.QuantumGeneratorBlockEntity;
+import com.ecocraft2.solar.QuantumGeneratorMenu;
 import java.util.function.Supplier;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
@@ -75,14 +77,20 @@ public final class Ecc2Network {
                 QuantumGeneratorButtonPacket msg, Supplier<NetworkEvent.Context> ctxSupplier) {
             NetworkEvent.Context ctx = ctxSupplier.get();
             ServerPlayer player = ctx.getSender();
-            if (player == null || !QuantumGeneratorEngine.isValidButtonEvent(msg.buttonId)) {
+            if (player == null
+                    || player.isSpectator()
+                    || !player.mayBuild()
+                    || !QuantumGeneratorEngine.isValidButtonEvent(msg.buttonId)) {
                 ctx.setPacketHandled(true);
                 return;
             }
-            if (player.distanceToSqr(
-                            msg.pos.getX() + 0.5, msg.pos.getY() + 0.5, msg.pos.getZ() + 0.5)
-                    <= 64.0
+            if (player.containerMenu instanceof QuantumGeneratorMenu menu
+                    && menu.pos().equals(msg.pos)
+                    && player.distanceToSqr(
+                                    msg.pos.getX() + 0.5, msg.pos.getY() + 0.5, msg.pos.getZ() + 0.5)
+                            <= 64.0
                     && player.level.hasChunkAt(msg.pos)
+                    && player.level.mayInteract(player, msg.pos)
                     && player.level.getBlockEntity(msg.pos)
                             instanceof QuantumGeneratorBlockEntity qg) {
                 qg.handleButtonEvent(msg.buttonId);
@@ -108,14 +116,21 @@ public final class Ecc2Network {
             NetworkEvent.Context ctx = ctxSupplier.get();
             ServerPlayer player = ctx.getSender();
             GiantCornerPort[] ports = GiantCornerPort.values();
-            if (player == null || msg.portOrdinal < 0 || msg.portOrdinal >= ports.length) {
+            if (player == null
+                    || player.isSpectator()
+                    || !player.mayBuild()
+                    || msg.portOrdinal < 0
+                    || msg.portOrdinal >= ports.length) {
                 ctx.setPacketHandled(true);
                 return;
             }
-            if (player.distanceToSqr(
-                            msg.pos.getX() + 0.5, msg.pos.getY() + 0.5, msg.pos.getZ() + 0.5)
-                    <= 144.0
+            if (player.containerMenu instanceof GiantMachineMenu menu
+                    && menu.pos().equals(msg.pos)
+                    && player.distanceToSqr(
+                                    msg.pos.getX() + 0.5, msg.pos.getY() + 0.5, msg.pos.getZ() + 0.5)
+                            <= 144.0
                     && player.level.hasChunkAt(msg.pos)
+                    && player.level.mayInteract(player, msg.pos)
                     && player.level.getBlockEntity(msg.pos)
                             instanceof GiantMachineBlockEntity unit) {
                 GiantMachineBlockEntity core = unit.resolveCore();
