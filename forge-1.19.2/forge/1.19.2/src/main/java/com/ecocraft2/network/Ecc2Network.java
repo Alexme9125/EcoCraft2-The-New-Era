@@ -49,6 +49,15 @@ public final class Ecc2Network {
                 .decoder(GiantPortTogglePacket::decode)
                 .consumerMainThread(GiantPortTogglePacket::handle)
                 .add();
+
+        CHANNEL.messageBuilder(
+                        GiantAutoSpreadTogglePacket.class,
+                        nextId++,
+                        NetworkDirection.PLAY_TO_SERVER)
+                .encoder(GiantAutoSpreadTogglePacket::encode)
+                .decoder(GiantAutoSpreadTogglePacket::decode)
+                .consumerMainThread(GiantAutoSpreadTogglePacket::handle)
+                .add();
     }
 
     /** Sends a validated Quantum Generator GUI button click to the server. */
@@ -59,6 +68,11 @@ public final class Ecc2Network {
     /** Sends a Giant Machine lower-corner port mode cycle request to the server. */
     public static void sendGiantPortToggle(BlockPos pos, GiantCornerPort port) {
         CHANNEL.sendToServer(new GiantPortTogglePacket(pos, port.ordinal()));
+    }
+
+    /** Sends a Giant Machine 9-slot input auto-spread toggle request to the server. */
+    public static void sendGiantAutoSpreadToggle(BlockPos pos) {
+        CHANNEL.sendToServer(new GiantAutoSpreadTogglePacket(pos));
     }
 
     /** C2S packet for Quantum Generator production/tier buttons (validated by common engine). */
@@ -136,6 +150,43 @@ public final class Ecc2Network {
                 GiantMachineBlockEntity core = unit.resolveCore();
                 if (core != null) {
                     core.cycleCornerPort(ports[msg.portOrdinal]);
+                }
+            }
+            ctx.setPacketHandled(true);
+        }
+    }
+
+    /** C2S packet toggling automatic 9-slot input spreading on a formed Giant Machine. */
+    public record GiantAutoSpreadTogglePacket(BlockPos pos) {
+
+        public static void encode(GiantAutoSpreadTogglePacket msg, FriendlyByteBuf buf) {
+            buf.writeBlockPos(msg.pos);
+        }
+
+        public static GiantAutoSpreadTogglePacket decode(FriendlyByteBuf buf) {
+            return new GiantAutoSpreadTogglePacket(buf.readBlockPos());
+        }
+
+        public static void handle(
+                GiantAutoSpreadTogglePacket msg, Supplier<NetworkEvent.Context> ctxSupplier) {
+            NetworkEvent.Context ctx = ctxSupplier.get();
+            ServerPlayer player = ctx.getSender();
+            if (player == null || player.isSpectator() || !player.mayBuild()) {
+                ctx.setPacketHandled(true);
+                return;
+            }
+            if (player.containerMenu instanceof GiantMachineMenu menu
+                    && menu.pos().equals(msg.pos)
+                    && player.distanceToSqr(
+                                    msg.pos.getX() + 0.5, msg.pos.getY() + 0.5, msg.pos.getZ() + 0.5)
+                            <= 144.0
+                    && player.level.hasChunkAt(msg.pos)
+                    && player.level.mayInteract(player, msg.pos)
+                    && player.level.getBlockEntity(msg.pos)
+                            instanceof GiantMachineBlockEntity unit) {
+                GiantMachineBlockEntity core = unit.resolveCore();
+                if (core != null) {
+                    core.toggleAutoSpread();
                 }
             }
             ctx.setPacketHandled(true);

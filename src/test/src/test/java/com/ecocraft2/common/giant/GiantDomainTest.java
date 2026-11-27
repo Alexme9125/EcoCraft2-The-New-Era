@@ -2,7 +2,10 @@ package com.ecocraft2.common.giant;
 
 import org.junit.jupiter.api.Test;
 
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
+import java.util.Random;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -401,5 +404,345 @@ class GiantDomainTest {
         assertEquals(1, recycler.laneProgress(0));
         assertEquals(1, recycler.laneProgress(1));
         assertEquals(0, recycler.laneProgress(2));
+    }
+
+    // --- Auto-Spread Engine Flag & GiantInputDistributor ---
+
+    @Test
+    void giantMachineEngineAutoSpreadDefaultsOffAndTogglesCleanly() {
+        GiantMachineEngine engine = new GiantMachineEngine(GiantMachineKind.MACERATOR);
+        assertFalse(engine.isAutoSpreadInputs());
+        assertTrue(engine.toggleAutoSpreadInputs());
+        assertTrue(engine.isAutoSpreadInputs());
+        assertFalse(engine.toggleAutoSpreadInputs());
+        assertFalse(engine.isAutoSpreadInputs());
+        engine.setAutoSpreadInputs(true);
+        assertTrue(engine.isAutoSpreadInputs());
+    }
+
+    @Test
+    void giantInputDistributorSingleItemEvenSpreadMinimalChurnAndIdempotency() {
+        // 64 items in slot 0 -> [8, 7, 7, 7, 7, 7, 7, 7, 7]
+        GiantInputDistributor.SlotInput[] stack64 = emptySlots(9);
+        stack64[0] = new GiantInputDistributor.SlotInput(0, 64, 64, 1);
+        var res64 = GiantInputDistributor.plan(stack64);
+        assertTrue(res64.changed());
+        assertEquals(8, res64.outputs()[0].count());
+        for (int i = 1; i < 9; i++) {
+            assertEquals(7, res64.outputs()[i].count());
+        }
+        assertFalse(GiantInputDistributor.plan(toInputs(res64.outputs(), 64, 1)).changed());
+
+        // 10 items in slot 4 -> slot 4 keeps the 2, all other 8 slots get 1
+        GiantInputDistributor.SlotInput[] stack10 = emptySlots(9);
+        stack10[4] = new GiantInputDistributor.SlotInput(0, 10, 64, 1);
+        var res10 = GiantInputDistributor.plan(stack10);
+        assertTrue(res10.changed());
+        assertEquals(2, res10.outputs()[4].count());
+        for (int i = 0; i < 9; i++) {
+            assertEquals(i == 4 ? 2 : 1, res10.outputs()[i].count());
+        }
+
+        // Already balanced [1, 1, 2, 1, 1, 1, 1, 1, 1] -> zero churn (changed == false)
+        GiantInputDistributor.SlotInput[] balanced = new GiantInputDistributor.SlotInput[9];
+        for (int i = 0; i < 9; i++) {
+            balanced[i] = new GiantInputDistributor.SlotInput(0, i == 2 ? 2 : 1, 64, 1);
+        }
+        assertFalse(GiantInputDistributor.plan(balanced).changed());
+
+        // Partial (< 9): slot 3 has 1, slot 7 has 2 -> keeps slots 3 & 7 intact, puts 3rd in slot 0
+        GiantInputDistributor.SlotInput[] partial = emptySlots(9);
+        partial[3] = new GiantInputDistributor.SlotInput(0, 1, 64, 1);
+        partial[7] = new GiantInputDistributor.SlotInput(0, 2, 64, 1);
+        var resPartial = GiantInputDistributor.plan(partial);
+        assertTrue(resPartial.changed());
+        assertEquals(1, resPartial.outputs()[0].count());
+        assertEquals(1, resPartial.outputs()[3].count());
+        assertEquals(1, resPartial.outputs()[7].count());
+        assertEquals(3, totalCount(resPartial.outputs(), 0));
+    }
+
+    @Test
+    void giantInputDistributorMixedItemsShareEmptySlotsProportionallyWithoutStealing() {
+        // Equal counts: Iron 64 in slot 0, Copper 64 in slot 1, 7 empty -> Iron gets 5 slots, Copper gets 4
+        GiantInputDistributor.SlotInput[] equalMix = emptySlots(9);
+        equalMix[0] = new GiantInputDistributor.SlotInput(0, 64, 64, 1);
+        equalMix[1] = new GiantInputDistributor.SlotInput(1, 64, 64, 1);
+        var equalRes = GiantInputDistributor.plan(equalMix);
+        assertTrue(equalRes.changed());
+        assertEquals(5, countSlotsOfGroup(equalRes.outputs(), 0));
+        assertEquals(4, countSlotsOfGroup(equalRes.outputs(), 1));
+        assertEquals(64, totalCount(equalRes.outputs(), 0));
+        assertEquals(64, totalCount(equalRes.outputs(), 1));
+
+        // Weighted counts: Iron 64 in slot 0, Copper 8 in slot 1 -> Iron gets 8 slots (8 each), Copper gets 1 slot (8)
+        GiantInputDistributor.SlotInput[] weightedMix = emptySlots(9);
+        weightedMix[0] = new GiantInputDistributor.SlotInput(0, 64, 64, 1);
+        weightedMix[1] = new GiantInputDistributor.SlotInput(1, 8, 64, 1);
+        var weightedRes = GiantInputDistributor.plan(weightedMix);
+        assertTrue(weightedRes.changed());
+        assertEquals(8, countSlotsOfGroup(weightedRes.outputs(), 0));
+        assertEquals(1, countSlotsOfGroup(weightedRes.outputs(), 1));
+        assertEquals(8, weightedRes.outputs()[1].count());
+        assertEquals(1, weightedRes.outputs()[1].groupKey());
+
+        // Zero stealing when all 9 slots are occupied: Iron owns 0..4, Copper owns 5..8
+        GiantInputDistributor.SlotInput[] fullMix = new GiantInputDistributor.SlotInput[9];
+        fullMix[0] = new GiantInputDistributor.SlotInput(0, 20, 64, 1);
+        fullMix[1] = new GiantInputDistributor.SlotInput(0, 5, 64, 1);
+        fullMix[2] = new GiantInputDistributor.SlotInput(0, 5, 64, 1);
+        fullMix[3] = new GiantInputDistributor.SlotInput(0, 5, 64, 1);
+        fullMix[4] = new GiantInputDistributor.SlotInput(0, 5, 64, 1);
+        fullMix[5] = new GiantInputDistributor.SlotInput(1, 30, 64, 1);
+        fullMix[6] = new GiantInputDistributor.SlotInput(1, 2, 64, 1);
+        fullMix[7] = new GiantInputDistributor.SlotInput(1, 2, 64, 1);
+        fullMix[8] = new GiantInputDistributor.SlotInput(1, 2, 64, 1);
+        var fullRes = GiantInputDistributor.plan(fullMix);
+        assertTrue(fullRes.changed());
+        for (int i = 0; i < 5; i++) {
+            assertEquals(0, fullRes.outputs()[i].groupKey());
+            assertEquals(8, fullRes.outputs()[i].count());
+        }
+        for (int i = 5; i < 9; i++) {
+            assertEquals(1, fullRes.outputs()[i].groupKey());
+            assertEquals(9, fullRes.outputs()[i].count());
+        }
+    }
+
+    @Test
+    void giantInputDistributorMultiInputRecipeAlignmentPreventsDeadlock() {
+        // 9 items of a 4-input recipe (cap 64) -> [5, 4] across 2 slots (NOT 1x9!)
+        GiantInputDistributor.SlotInput[] nineOfFour = emptySlots(9);
+        nineOfFour[0] = new GiantInputDistributor.SlotInput(0, 9, 64, 4);
+        var res94 = GiantInputDistributor.plan(nineOfFour);
+        assertTrue(res94.changed());
+        assertEquals(5, res94.outputs()[0].count());
+        assertEquals(4, res94.outputs()[1].count());
+        assertEquals(2, countSlotsOfGroup(res94.outputs(), 0));
+
+        // 9 items of a 4-input recipe with cap=4 -> [4, 4, 1] across 3 slots (never exceeds cap, 2 lanes run!)
+        GiantInputDistributor.SlotInput[] cap4 = emptySlots(9);
+        cap4[0] = new GiantInputDistributor.SlotInput(0, 4, 4, 4);
+        cap4[1] = new GiantInputDistributor.SlotInput(0, 4, 4, 4);
+        cap4[2] = new GiantInputDistributor.SlotInput(0, 1, 4, 4);
+        var resCap4 = GiantInputDistributor.plan(cap4);
+        assertFalse(resCap4.changed());
+
+        GiantInputDistributor.SlotInput[] cap4Unbalanced = emptySlots(9);
+        cap4Unbalanced[0] = new GiantInputDistributor.SlotInput(0, 3, 4, 4);
+        cap4Unbalanced[1] = new GiantInputDistributor.SlotInput(0, 3, 4, 4);
+        cap4Unbalanced[2] = new GiantInputDistributor.SlotInput(0, 3, 4, 4);
+        var resCap4Fix = GiantInputDistributor.plan(cap4Unbalanced);
+        assertTrue(resCap4Fix.changed());
+        assertEquals(4, resCap4Fix.outputs()[0].count());
+        assertEquals(4, resCap4Fix.outputs()[1].count());
+        assertEquals(1, resCap4Fix.outputs()[2].count());
+
+        // 3 items of a 4-input recipe split [1, 1, 1] -> consolidates to [3] on 1 slot
+        GiantInputDistributor.SlotInput[] scraps = emptySlots(9);
+        scraps[1] = new GiantInputDistributor.SlotInput(0, 1, 64, 4);
+        scraps[4] = new GiantInputDistributor.SlotInput(0, 1, 64, 4);
+        scraps[7] = new GiantInputDistributor.SlotInput(0, 1, 64, 4);
+        var resScraps = GiantInputDistributor.plan(scraps);
+        assertTrue(resScraps.changed());
+        assertEquals(1, countSlotsOfGroup(resScraps.outputs(), 0));
+        assertEquals(3, totalCount(resScraps.outputs(), 0));
+        assertEquals(3, resScraps.outputs()[1].count());
+
+        // 38 items of a 4-input recipe -> all 9 slots >= 4: [5, 5, 4, 4, 4, 4, 4, 4, 4]
+        GiantInputDistributor.SlotInput[] bulk38 = emptySlots(9);
+        bulk38[0] = new GiantInputDistributor.SlotInput(0, 38, 64, 4);
+        var res38 = GiantInputDistributor.plan(bulk38);
+        assertTrue(res38.changed());
+        assertEquals(9, countSlotsOfGroup(res38.outputs(), 0));
+        for (int i = 0; i < 9; i++) {
+            assertTrue(res38.outputs()[i].count() >= 4);
+        }
+        assertEquals(38, totalCount(res38.outputs(), 0));
+
+        // minUnit > cap (e.g. minUnit=20, cap=16, total=35) -> safely clamped to effectiveUnit=16, no overflow
+        GiantInputDistributor.SlotInput[] unitOverCap = emptySlots(9);
+        unitOverCap[0] = new GiantInputDistributor.SlotInput(0, 12, 16, 20);
+        unitOverCap[1] = new GiantInputDistributor.SlotInput(0, 12, 16, 20);
+        unitOverCap[2] = new GiantInputDistributor.SlotInput(0, 11, 16, 20);
+        var resOver = GiantInputDistributor.plan(unitOverCap);
+        assertEquals(35, totalCount(resOver.outputs(), 0));
+        for (var out : resOver.outputs()) {
+            assertTrue(out.count() <= 16);
+        }
+    }
+
+    @Test
+    void giantInputDistributorHandlesUnstackablesLowCapsAndFrozenOversizedStacks() {
+        // Unstackables (cap=1): 4 distinct/identical unstackable items stay count 1 each, never merged
+        GiantInputDistributor.SlotInput[] unstack = emptySlots(9);
+        unstack[0] = new GiantInputDistributor.SlotInput(0, 1, 1, 1);
+        unstack[2] = new GiantInputDistributor.SlotInput(0, 1, 1, 1);
+        unstack[5] = new GiantInputDistributor.SlotInput(0, 1, 1, 1);
+        unstack[8] = new GiantInputDistributor.SlotInput(0, 1, 1, 1);
+        var resUnstack = GiantInputDistributor.plan(unstack);
+        assertFalse(resUnstack.changed());
+
+        // Low-cap (cap=16): 20 items -> spreads across all 9 slots without exceeding 16
+        GiantInputDistributor.SlotInput[] cap16 = emptySlots(9);
+        cap16[0] = new GiantInputDistributor.SlotInput(0, 16, 16, 1);
+        cap16[1] = new GiantInputDistributor.SlotInput(0, 4, 16, 1);
+        var res16 = GiantInputDistributor.plan(cap16);
+        assertTrue(res16.changed());
+        assertEquals(20, totalCount(res16.outputs(), 0));
+        assertEquals(9, countSlotsOfGroup(res16.outputs(), 0));
+        for (var out : res16.outputs()) {
+            assertTrue(out.count() >= 2 && out.count() <= 3);
+        }
+
+        // Oversized stack (count=100 > cap=64) in slot 5 stays frozen untouched while slot 0 spreads across other 8 slots
+        GiantInputDistributor.SlotInput[] oversized = emptySlots(9);
+        oversized[0] = new GiantInputDistributor.SlotInput(0, 64, 64, 1);
+        oversized[5] = new GiantInputDistributor.SlotInput(0, 100, 64, 1);
+        var resOversized = GiantInputDistributor.plan(oversized);
+        assertTrue(resOversized.changed());
+        assertEquals(100, resOversized.outputs()[5].count());
+        assertEquals(0, resOversized.outputs()[5].groupKey());
+        assertEquals(164, totalCount(resOversized.outputs(), 0));
+        for (int i = 0; i < 9; i++) {
+            if (i != 5) {
+                assertEquals(8, resOversized.outputs()[i].count());
+            }
+        }
+        // Re-planning with same oversized slot is idempotent
+        GiantInputDistributor.SlotInput[] secondPass = new GiantInputDistributor.SlotInput[9];
+        for (int i = 0; i < 9; i++) {
+            secondPass[i] = new GiantInputDistributor.SlotInput(0, resOversized.outputs()[i].count(), 64, 1);
+        }
+        assertFalse(GiantInputDistributor.plan(secondPass).changed());
+
+        // Pathological synthetic mismatched caps on same groupKey (Integer.MAX_VALUE + 1 with cap=1):
+        // must never overflow int narrowing or lose items; safely aborts unchanged.
+        GiantInputDistributor.SlotInput[] mismatchedCaps = emptySlots(9);
+        mismatchedCaps[0] = new GiantInputDistributor.SlotInput(0, Integer.MAX_VALUE, Integer.MAX_VALUE, 1);
+        mismatchedCaps[1] = new GiantInputDistributor.SlotInput(0, 1, 1, 1);
+        var resMismatch = GiantInputDistributor.plan(mismatchedCaps);
+        assertFalse(resMismatch.changed());
+        assertEquals(Integer.MAX_VALUE, resMismatch.outputs()[0].count());
+        assertEquals(1, resMismatch.outputs()[1].count());
+    }
+
+    @Test
+    void giantInputDistributorFuzz12000RandomCasesGuaranteesConservationBoundsAndIdempotency() {
+        Random rng = new Random(0xECC2_9513L);
+        int[] capChoices = {1, 4, 8, 16, 32, 64};
+        int[] unitChoices = {1, 1, 1, 2, 3, 4, 8, 9, 16, 70};
+
+        for (int trial = 0; trial < 12_000; trial++) {
+            int distinctGroups = rng.nextInt(6); // 0..5 item types
+            int[] groupCaps = new int[Math.max(1, distinctGroups)];
+            int[] groupUnits = new int[Math.max(1, distinctGroups)];
+            for (int g = 0; g < distinctGroups; g++) {
+                groupCaps[g] = capChoices[rng.nextInt(capChoices.length)];
+                groupUnits[g] = unitChoices[rng.nextInt(unitChoices.length)];
+            }
+
+            GiantInputDistributor.SlotInput[] inputs = new GiantInputDistributor.SlotInput[9];
+            Map<Integer, Long> beforeSums = new HashMap<>();
+            boolean[] frozenExpected = new boolean[9];
+            for (int i = 0; i < 9; i++) {
+                if (distinctGroups == 0 || rng.nextInt(100) < 35) {
+                    inputs[i] = GiantInputDistributor.SlotInput.empty();
+                    continue;
+                }
+                int g = rng.nextInt(distinctGroups);
+                int cap = groupCaps[g];
+                int unit = groupUnits[g];
+                int count;
+                if (rng.nextInt(100) < 4) {
+                    // Occasional abnormal oversized stack
+                    count = cap + 1 + rng.nextInt(50);
+                    frozenExpected[i] = true;
+                } else {
+                    count = 1 + rng.nextInt(cap);
+                }
+                inputs[i] = new GiantInputDistributor.SlotInput(g, count, cap, unit);
+                beforeSums.merge(g, (long) count, Long::sum);
+            }
+
+            var plan1 = GiantInputDistributor.plan(inputs);
+            assertEquals(9, plan1.outputs().length);
+
+            Map<Integer, Long> afterSums = new HashMap<>();
+            for (int i = 0; i < 9; i++) {
+                var out = plan1.outputs()[i];
+                if (frozenExpected[i]) {
+                    assertEquals(inputs[i].groupKey(), out.groupKey(), "Frozen group altered on trial " + trial);
+                    assertEquals(inputs[i].count(), out.count(), "Frozen count altered on trial " + trial);
+                }
+                if (out.isEmpty()) {
+                    assertEquals(GiantInputDistributor.EMPTY_GROUP, out.groupKey());
+                    assertEquals(0, out.count());
+                } else {
+                    int g = out.groupKey();
+                    assertTrue(g >= 0 && g < distinctGroups);
+                    if (!frozenExpected[i]) {
+                        assertTrue(out.count() >= 1 && out.count() <= groupCaps[g],
+                                "Count out of bounds on trial " + trial + ": " + out.count() + " > " + groupCaps[g]);
+                    }
+                    afterSums.merge(g, (long) out.count(), Long::sum);
+                }
+            }
+            assertEquals(beforeSums, afterSums, "Item conservation violated on trial " + trial);
+
+            // Single-pass idempotency check: feeding plan1 outputs back into plan() must yield changed == false
+            GiantInputDistributor.SlotInput[] secondInputs = new GiantInputDistributor.SlotInput[9];
+            for (int i = 0; i < 9; i++) {
+                var out = plan1.outputs()[i];
+                if (out.isEmpty()) {
+                    secondInputs[i] = GiantInputDistributor.SlotInput.empty();
+                } else {
+                    int g = out.groupKey();
+                    secondInputs[i] = new GiantInputDistributor.SlotInput(g, out.count(), groupCaps[g], groupUnits[g]);
+                }
+            }
+            var plan2 = GiantInputDistributor.plan(secondInputs);
+            assertFalse(plan2.changed(), "Distributor was not idempotent on trial " + trial);
+        }
+    }
+
+    private static GiantInputDistributor.SlotInput[] emptySlots(int n) {
+        GiantInputDistributor.SlotInput[] arr = new GiantInputDistributor.SlotInput[n];
+        for (int i = 0; i < n; i++) {
+            arr[i] = GiantInputDistributor.SlotInput.empty();
+        }
+        return arr;
+    }
+
+    private static GiantInputDistributor.SlotInput[] toInputs(
+            GiantInputDistributor.SlotOutput[] outputs, int cap, int unit) {
+        GiantInputDistributor.SlotInput[] arr = new GiantInputDistributor.SlotInput[outputs.length];
+        for (int i = 0; i < outputs.length; i++) {
+            arr[i] =
+                    outputs[i].isEmpty()
+                            ? GiantInputDistributor.SlotInput.empty()
+                            : new GiantInputDistributor.SlotInput(outputs[i].groupKey(), outputs[i].count(), cap, unit);
+        }
+        return arr;
+    }
+
+    private static int totalCount(GiantInputDistributor.SlotOutput[] outputs, int groupKey) {
+        int sum = 0;
+        for (var out : outputs) {
+            if (!out.isEmpty() && out.groupKey() == groupKey) {
+                sum += out.count();
+            }
+        }
+        return sum;
+    }
+
+    private static int countSlotsOfGroup(GiantInputDistributor.SlotOutput[] outputs, int groupKey) {
+        int c = 0;
+        for (var out : outputs) {
+            if (!out.isEmpty() && out.groupKey() == groupKey) {
+                c++;
+            }
+        }
+        return c;
     }
 }

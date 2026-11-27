@@ -16,6 +16,7 @@ public final class GiantMachineScreen extends Ecc2ScreenBase<GiantMachineMenu> {
 
     private static final String TEX_GUI = "textures/gui/giant_machine.png";
     private static final String TEX_GEAR = "textures/gui/icons/port_access_gear.png";
+    private static final String TEX_SPREAD = "textures/gui/icons/auto_spread.png";
 
     private static final int GUI_W = 256;
     private static final int GUI_H = 236;
@@ -37,6 +38,12 @@ public final class GiantMachineScreen extends Ecc2ScreenBase<GiantMachineMenu> {
     private static final int GEAR_Y = 114;
     private static final int GEAR_W = 20;
     private static final int GEAR_H = 20;
+
+    // Auto-spread toggle button rect [102, 81, 20, 20]
+    private static final int SPREAD_X = 102;
+    private static final int SPREAD_Y = 81;
+    private static final int SPREAD_W = 20;
+    private static final int SPREAD_H = 20;
 
     // Modal 8-corner port permission top-down matrix popup rect (GUI-local)
     private static final int MODAL_X = 32;
@@ -196,6 +203,27 @@ public final class GiantMachineScreen extends Ecc2ScreenBase<GiantMachineMenu> {
                 !portModalOpen && inside(relMouseX, relMouseY, GEAR_X, GEAR_Y, GEAR_W, GEAR_H);
         c.blit(TEX_GUI, GEAR_X + 1, GEAR_Y + 1, gearHover ? 190 : 170, 237, 18, 18);
         c.blitFull(TEX_GEAR, GEAR_X + 2, GEAR_Y + 2, 16, 16);
+
+        // 9. Auto-spread toggle button [102, 81, 20, 20]
+        boolean spreadOn = menu.isAutoSpreadEnabled();
+        boolean spreadHover =
+                !portModalOpen
+                        && inside(relMouseX, relMouseY, SPREAD_X, SPREAD_Y, SPREAD_W, SPREAD_H);
+        c.blit(
+                TEX_GUI,
+                SPREAD_X + 1,
+                SPREAD_Y + 1,
+                (spreadOn || spreadHover) ? 190 : 170,
+                237,
+                18,
+                18);
+        c.blitFull(TEX_SPREAD, SPREAD_X + 2, SPREAD_Y + 2, 16, 16);
+        c.fill(
+                SPREAD_X + 15,
+                SPREAD_Y + 3,
+                SPREAD_X + 18,
+                SPREAD_Y + 6,
+                spreadOn ? 0xFF55FFFF : 0xFF3A4654);
     }
 
     private void drawPortSummaryPreview(Ecc2Canvas c) {
@@ -397,6 +425,21 @@ public final class GiantMachineScreen extends Ecc2ScreenBase<GiantMachineMenu> {
             return;
         }
 
+        // Auto-spread toggle button tooltip [102, 81, 20, 20]
+        if (inside(relMouseX, relMouseY, SPREAD_X, SPREAD_Y, SPREAD_W, SPREAD_H)) {
+            c.renderTooltip(
+                    List.of(
+                            Component.translatable("gui.ecc2.giant.auto_spread"),
+                            Component.translatable(
+                                    menu.isAutoSpreadEnabled()
+                                            ? "gui.ecc2.giant.auto_spread.on"
+                                            : "gui.ecc2.giant.auto_spread.off"),
+                            Component.translatable("gui.ecc2.giant.auto_spread.hint")),
+                    screenX,
+                    screenY);
+            return;
+        }
+
         // EU core bar tooltip [80, 25, 14, 52]
         if (inside(relMouseX, relMouseY, 80, 25, 14, 52)) {
             c.renderTooltip(
@@ -474,6 +517,10 @@ public final class GiantMachineScreen extends Ecc2ScreenBase<GiantMachineMenu> {
 
         if (inside(relX, relY, GEAR_X, GEAR_Y, GEAR_W, GEAR_H)) {
             portModalOpen = true;
+            return true;
+        }
+        if (button == 0 && inside(relX, relY, SPREAD_X, SPREAD_Y, SPREAD_W, SPREAD_H)) {
+            GiantGasClientPlatform.sendToServer(new GiantAutoSpreadTogglePayload(menu.corePos()));
             return true;
         }
         return false;

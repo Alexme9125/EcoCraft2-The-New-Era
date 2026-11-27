@@ -14,7 +14,6 @@ import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.inventory.SimpleContainerData;
 import net.minecraft.world.inventory.Slot;
@@ -25,7 +24,7 @@ import net.minecraft.world.item.Items;
  * Container menu for all 3x3x3 Giant Machines, pixel-aligned to {@code assets-gen/gui_coordinates.json}
  * ({@code giant_machine.png}, 256x236).
  */
-public final class GiantMachineMenu extends AbstractContainerMenu {
+public final class GiantMachineMenu extends Ecc2MenuBase {
 
     // Data slot layout (32 synced 16-bit slots):
     // 0..8   : lane progress scaled 0..1000
@@ -38,7 +37,7 @@ public final class GiantMachineMenu extends AbstractContainerMenu {
     // 26..27 : water mB (low16, high16)
     // 28..29 : water capacity mB (low16, high16)
     // 30     : packed 16-bit GiantPortPermissions
-    // 31     : flags bit0=usesWater, bit1=active
+    // 31     : flags bit0=usesWater, bit1=active, bit2=autoSpreadInputs
     private static final int DATA_COUNT = 32;
 
     private static final int[][] INPUT_COORDS = {
@@ -61,6 +60,7 @@ public final class GiantMachineMenu extends AbstractContainerMenu {
     private final ContainerData data;
     private final BlockPos corePos;
     private final boolean initialUsesWater;
+    private final GiantUnitBlockEntity serverCore;
 
     public GiantMachineMenu(int containerId, Inventory playerInventory, GiantUnitBlockEntity core) {
         this(
@@ -69,7 +69,8 @@ public final class GiantMachineMenu extends AbstractContainerMenu {
                 core.coreInventory(),
                 createServerData(core),
                 core.getBlockPos(),
-                core.usesWater());
+                core.usesWater(),
+                core);
     }
 
     public static GiantMachineMenu fromNetwork(
@@ -121,7 +122,8 @@ public final class GiantMachineMenu extends AbstractContainerMenu {
                 clientContainer,
                 new SimpleContainerData(DATA_COUNT),
                 pos,
-                usesWater);
+                usesWater,
+                null);
     }
 
     private GiantMachineMenu(
@@ -130,12 +132,14 @@ public final class GiantMachineMenu extends AbstractContainerMenu {
             Container container,
             ContainerData data,
             BlockPos corePos,
-            boolean initialUsesWater) {
+            boolean initialUsesWater,
+            GiantUnitBlockEntity serverCore) {
         super(GiantGasModule.GIANT_MACHINE_MENU.get(), containerId);
         this.container = container;
         this.data = data;
         this.corePos = corePos.immutable();
         this.initialUsesWater = initialUsesWater;
+        this.serverCore = serverCore;
 
         // 0..8: 3x3 Input slots
         for (int i = 0; i < GiantUnitBlockEntity.INPUT_COUNT; i++) {
@@ -252,7 +256,10 @@ public final class GiantMachineMenu extends AbstractContainerMenu {
                     case 28 -> Ecc2SyncData.low16(eng.waterTankCapacityMb());
                     case 29 -> Ecc2SyncData.high16(eng.waterTankCapacityMb());
                     case 30 -> Ecc2SyncData.low16(eng.portPermissions().packed());
-                    case 31 -> (core.usesWater() ? 1 : 0) | (eng.isActive() ? 2 : 0);
+                    case 31 ->
+                            (core.usesWater() ? 1 : 0)
+                                    | (eng.isActive() ? 2 : 0)
+                                    | (eng.isAutoSpreadInputs() ? 4 : 0);
                     default -> 0;
                 };
             }
@@ -270,6 +277,22 @@ public final class GiantMachineMenu extends AbstractContainerMenu {
     @Override
     public boolean stillValid(Player player) {
         return container.stillValid(player);
+    }
+
+    @Override
+    protected Object captureBeforeClick(Player player) {
+        return (serverCore != null && serverCore.isAutoSpreadInputs())
+                ? serverCore.copyInputSlots()
+                : null;
+    }
+
+    @Override
+    protected void afterMenuClick(Player player, Object captured) {
+        if (serverCore != null
+                && captured instanceof ItemStack[] beforeInputs
+                && serverCore.hasInputIncreased(beforeInputs)) {
+            serverCore.markPendingInputSpread();
+        }
     }
 
     @Override
@@ -320,11 +343,18 @@ public final class GiantMachineMenu extends AbstractContainerMenu {
             }
             // 4. 3x3 Input lanes
             if (!stack.isEmpty()) {
+                int beforeInputMove = stack.getCount();
                 moveItemStackTo(
                         stack,
                         GiantUnitBlockEntity.INPUT_START,
                         GiantUnitBlockEntity.INPUT_START + GiantUnitBlockEntity.INPUT_COUNT,
                         false);
+                if (serverCore != null
+                        && player != null
+                        && !player.level().isClientSide()
+                        && stack.getCount() < beforeInputMove) {
+                    serverCore.markPendingInputSpread();
+                }
             }
             if (stack.getCount() == copy.getCount()) {
                 return ItemStack.EMPTY;
@@ -401,5 +431,9 @@ public final class GiantMachineMenu extends AbstractContainerMenu {
 
     public boolean isMachineActive() {
         return (data.get(31) & 2) != 0;
+    }
+
+    public boolean isAutoSpreadEnabled() {
+        return (data.get(31) & 4) != 0;
     }
 }

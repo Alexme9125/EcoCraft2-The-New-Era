@@ -141,6 +141,10 @@
   "gui.ecc2.giant.port_access_title": "下角八接口权限配置",
   "gui.ecc2.giant.port_access_button": "接口权限",
   "gui.ecc2.giant.port_access_hint": "点击任意下角端口循环切换：双通 → 仅输入 → 仅输出 → 禁用",
+  "gui.ecc2.giant.auto_spread": "自动平摊输入",
+  "gui.ecc2.giant.auto_spread.on": "状态：开启",
+  "gui.ecc2.giant.auto_spread.off": "状态：关闭",
+  "gui.ecc2.giant.auto_spread.hint": "点击切换：将放入或输入的物品自动平摊到 9 个输入格",
 
   "gui.ecc2.port.mode.full": "双通（输入与输出）",
   "gui.ecc2.port.mode.input": "仅输入",

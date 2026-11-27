@@ -4,6 +4,7 @@ import com.ecocraft2.EcoCraft2;
 import com.industrialage.ia2.access.MachineAccess;
 import com.industrialage.ia2.access.MachinePorts;
 import com.industrialage.ia2.access.ProcessingItemPort;
+import com.industrialage.ia2.access.ProcessingSlots;
 import com.industrialage.ia2.logistics.CellFamily;
 import com.industrialage.ia2.logistics.CellItem;
 import java.util.List;
@@ -127,7 +128,10 @@ public final class GiantGasPlatform {
                                                 be, side, new ProcessingItemPort(slots, side));
                                     }
                                     return new PortGatedItemHandler(
-                                            provider, side, new ProcessingItemPort(slots, side));
+                                            provider,
+                                            side,
+                                            slots,
+                                            new ProcessingItemPort(slots, side));
                                 });
                         event.registerBlockEntity(
                                 Capabilities.Fluid.BLOCK,
@@ -543,9 +547,52 @@ public final class GiantGasPlatform {
         }
     }
 
-    private record PortGatedItemHandler(
-            Ecc2CapabilityProvider provider, Direction side, ResourceHandler<ItemResource> delegate)
+    public static boolean isInTransaction() {
+        return Transaction.getLifecycle() != Transaction.Lifecycle.NONE;
+    }
+
+    private static final class PortGatedItemHandler extends SnapshotJournal<Integer>
             implements ResourceHandler<ItemResource> {
+
+        private final Ecc2CapabilityProvider provider;
+        private final Direction side;
+        private final ProcessingSlots slots;
+        private final ResourceHandler<ItemResource> delegate;
+        private int insertedSlotMask;
+
+        PortGatedItemHandler(
+                Ecc2CapabilityProvider provider,
+                Direction side,
+                ProcessingSlots slots,
+                ResourceHandler<ItemResource> delegate) {
+            this.provider = provider;
+            this.side = side;
+            this.slots = slots;
+            this.delegate = delegate;
+        }
+
+        @Override
+        protected Integer createSnapshot() {
+            return insertedSlotMask;
+        }
+
+        @Override
+        protected void revertToSnapshot(Integer snapshot) {
+            this.insertedSlotMask = snapshot == null ? 0 : snapshot;
+        }
+
+        @Override
+        protected void onRootCommit(Integer originalState) {
+            int committedMask = this.insertedSlotMask;
+            this.insertedSlotMask = 0;
+            if (committedMask != 0) {
+                for (int bit = 0; bit < 31; bit++) {
+                    if ((committedMask & (1 << bit)) != 0) {
+                        provider.onAutomationInputInserted(bit);
+                    }
+                }
+            }
+        }
 
         @Override
         public int size() {
@@ -575,9 +622,21 @@ public final class GiantGasPlatform {
         @Override
         public int insert(
                 int slot, ItemResource resource, int amount, TransactionContext transaction) {
-            return provider.allowsItemInput(side)
-                    ? delegate.insert(slot, resource, amount, transaction)
-                    : 0;
+            if (!provider.allowsItemInput(side)) {
+                return 0;
+            }
+            int accepted = delegate.insert(slot, resource, amount, transaction);
+            if (accepted > 0) {
+                int[] faceSlots = slots.getSlotsForFace(side);
+                if (slot >= 0 && slot < faceSlots.length) {
+                    int rawSlot = faceSlots[slot];
+                    if (rawSlot >= 0 && rawSlot < 31) {
+                        updateSnapshots(transaction);
+                        insertedSlotMask |= (1 << rawSlot);
+                    }
+                }
+            }
+            return accepted;
         }
 
         @Override

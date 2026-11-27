@@ -39,4 +39,10 @@ public interface Ecc2CapabilityProvider {
     default boolean allowsItemOutput(Direction side) {
         return true;
     }
+
+    /**
+     * Notifies the provider after an external automation transfer has committed inserted items
+     * into container slot {@code slot}. Never invoked for simulated or rolled-back transfers.
+     */
+    default void onAutomationInputInserted(int slot) {}
 }

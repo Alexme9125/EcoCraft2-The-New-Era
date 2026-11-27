@@ -5,6 +5,7 @@ import com.ecocraft2.bridge.Ecc2EnergyHelper;
 import com.ecocraft2.common.giant.BlockFace;
 import com.ecocraft2.common.giant.BlockPos3;
 import com.ecocraft2.common.giant.GiantCornerPort;
+import com.ecocraft2.common.giant.GiantInputDistributor;
 import com.ecocraft2.common.giant.GiantMachineEngine;
 import com.ecocraft2.common.giant.GiantMachineKind;
 import com.ecocraft2.common.giant.GiantPortPermissions;
@@ -60,6 +61,8 @@ import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.ItemStackHandler;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Unified BlockEntity for 3x3x3 Giant Machines (bottom-center core + 26 proxy units).
@@ -70,6 +73,8 @@ import org.jetbrains.annotations.Nullable;
  */
 public final class GiantMachineBlockEntity extends BlockEntity
         implements WorldPowerPort, EuBuffer, MachineAccessTarget, MenuProvider {
+
+    private static final Logger LOG = LoggerFactory.getLogger(GiantMachineBlockEntity.class);
 
     public static final int INPUT_START = 0;
     public static final int INPUT_COUNT = 9;
@@ -98,6 +103,8 @@ public final class GiantMachineBlockEntity extends BlockEntity
     private Direction structureFacing = Direction.NORTH;
     private boolean dissolving;
     private boolean pendingPortVisualSync;
+    private boolean pendingInputSpread;
+    private boolean spreading;
     private long lastTick = Long.MIN_VALUE;
 
     private final Map<Direction, LazyOptional<IItemHandler>> itemPortCaps =
@@ -126,6 +133,9 @@ public final class GiantMachineBlockEntity extends BlockEntity
 
                 @Override
                 protected void onContentsChanged(int slot) {
+                    if (spreading) {
+                        return;
+                    }
                     setChanged();
                     if (slot >= UPGRADE_START && slot < UPGRADE_START + UPGRADE_COUNT) {
                         refreshUpgrades();
@@ -160,7 +170,9 @@ public final class GiantMachineBlockEntity extends BlockEntity
                         case 9 -> waterCap & 0xFFFF;
                         case 10 -> (waterCap >>> 16) & 0xFFFF;
                         case 11 -> engine.portPermissions().packed() & 0xFFFF;
-                        case 30 -> kind.spec().usesWater() ? 1 : 0;
+                        case 30 ->
+                                (kind.spec().usesWater() ? 1 : 0)
+                                        | (engine.isAutoSpreadInputs() ? 2 : 0);
                         default -> 0;
                     };
                 }
@@ -257,6 +269,222 @@ public final class GiantMachineBlockEntity extends BlockEntity
         }
     }
 
+    /** Returns {@code true} if automatic 9-slot input spreading is enabled on this machine. */
+    public boolean isAutoSpreadInputs() {
+        GiantMachineBlockEntity core = resolveCore();
+        return core != null ? core.engine.isAutoSpreadInputs() : engine.isAutoSpreadInputs();
+    }
+
+    /** Toggles automatic 9-slot input spreading on the core; turning ON schedules immediate spread. */
+    public boolean toggleAutoSpread() {
+        GiantMachineBlockEntity core = resolveCore();
+        if (core == null || !core.isCore() || core.dissolving || core.isRemoved()) {
+            return false;
+        }
+        boolean enabled = core.engine.toggleAutoSpreadInputs();
+        core.pendingInputSpread = enabled;
+        core.setChanged();
+        return enabled;
+    }
+
+    /** Marks a deferred input spread to run at the start of the next CORE server tick. */
+    public void markPendingInputSpread() {
+        GiantMachineBlockEntity core = resolveCore();
+        if (core == null
+                || !core.isCore()
+                || core.dissolving
+                || core.isRemoved()
+                || core.spreading
+                || !core.engine.isAutoSpreadInputs()) {
+            return;
+        }
+        core.pendingInputSpread = true;
+    }
+
+    /** Captures a defensive snapshot of the 9 input slots for server-side click-insertion detection. */
+    ItemStack[] copyInputSlots() {
+        ItemStack[] snapshot = new ItemStack[INPUT_COUNT];
+        for (int i = 0; i < INPUT_COUNT; i++) {
+            ItemStack s = inventory.getStackInSlot(INPUT_START + i);
+            snapshot[i] = s.isEmpty() ? ItemStack.EMPTY : s.copy();
+        }
+        return snapshot;
+    }
+
+    /**
+     * Returns {@code true} iff any distinct item key (exact item + NBT tags) has a strictly higher
+     * total count in slots {@code 0..8} now than in {@code before}.
+     */
+    boolean hasInputIncreased(ItemStack[] before) {
+        if (before == null || before.length != INPUT_COUNT) {
+            return false;
+        }
+        List<ItemStack> checkedKeys = new ArrayList<>(INPUT_COUNT);
+        for (int i = 0; i < INPUT_COUNT; i++) {
+            ItemStack cur = inventory.getStackInSlot(INPUT_START + i);
+            if (cur.isEmpty() || containsSameKey(checkedKeys, cur)) {
+                continue;
+            }
+            checkedKeys.add(cur);
+            long afterSum = 0L;
+            long beforeSum = 0L;
+            for (int j = 0; j < INPUT_COUNT; j++) {
+                ItemStack a = inventory.getStackInSlot(INPUT_START + j);
+                if (!a.isEmpty() && ItemStack.isSameItemSameTags(a, cur)) {
+                    afterSum += a.getCount();
+                }
+                ItemStack b = before[j];
+                if (b != null && !b.isEmpty() && ItemStack.isSameItemSameTags(b, cur)) {
+                    beforeSum += b.getCount();
+                }
+            }
+            if (afterSum > beforeSum) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean containsSameKey(List<ItemStack> keys, ItemStack candidate) {
+        for (ItemStack existing : keys) {
+            if (ItemStack.isSameItemSameTags(existing, candidate)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static int findOrAddGroup(List<ItemStack> templates, ItemStack stack) {
+        for (int i = 0; i < templates.size(); i++) {
+            if (ItemStack.isSameItemSameTags(templates.get(i), stack)) {
+                return i;
+            }
+        }
+        templates.add(stack);
+        return templates.size() - 1;
+    }
+
+    private int resolveRecipeMinUnit(ItemStack stack) {
+        try {
+            return GiantRecipeAdapter.recipeInputCount(kind, stack);
+        } catch (Throwable failure) {
+            LOG.debug(
+                    "Falling back to minUnit=1 during giant machine auto-spread lookup: {}",
+                    failure.getMessage());
+            return 1;
+        }
+    }
+
+    private boolean spreadInputsNow() {
+        if (!(level instanceof ServerLevel)
+                || level.isClientSide
+                || !isCore()
+                || dissolving
+                || isRemoved()
+                || spreading
+                || !engine.isAutoSpreadInputs()) {
+            return false;
+        }
+        spreading = true;
+        try {
+            List<ItemStack> groupTemplates = new ArrayList<>(INPUT_COUNT);
+            GiantInputDistributor.SlotInput[] slotInputs =
+                    new GiantInputDistributor.SlotInput[INPUT_COUNT];
+            int[] beforeGroups = new int[INPUT_COUNT];
+            int[] beforeCounts = new int[INPUT_COUNT];
+            int[] slotCaps = new int[INPUT_COUNT];
+
+            for (int i = 0; i < INPUT_COUNT; i++) {
+                int slotLimit = Math.max(1, inventory.getSlotLimit(INPUT_START + i));
+                ItemStack stack = inventory.getStackInSlot(INPUT_START + i);
+                if (stack.isEmpty()) {
+                    slotInputs[i] = GiantInputDistributor.SlotInput.empty();
+                    beforeGroups[i] = GiantInputDistributor.EMPTY_GROUP;
+                    beforeCounts[i] = 0;
+                    slotCaps[i] = slotLimit;
+                    continue;
+                }
+                int gk = findOrAddGroup(groupTemplates, stack);
+                int cap = Math.max(1, Math.min(slotLimit, stack.getMaxStackSize()));
+                int minUnit = resolveRecipeMinUnit(stack);
+                slotInputs[i] =
+                        new GiantInputDistributor.SlotInput(gk, stack.getCount(), cap, minUnit);
+                beforeGroups[i] = gk;
+                beforeCounts[i] = stack.getCount();
+                slotCaps[i] = cap;
+            }
+
+            GiantInputDistributor.PlanResult plan = GiantInputDistributor.plan(slotInputs);
+            if (!plan.changed()) {
+                return false;
+            }
+
+            long[] beforeSums = new long[groupTemplates.size()];
+            long[] afterSums = new long[groupTemplates.size()];
+            for (int i = 0; i < INPUT_COUNT; i++) {
+                if (beforeGroups[i] >= 0) {
+                    beforeSums[beforeGroups[i]] += beforeCounts[i];
+                }
+            }
+
+            ItemStack[] plannedStacks = new ItemStack[INPUT_COUNT];
+            for (int i = 0; i < INPUT_COUNT; i++) {
+                GiantInputDistributor.SlotOutput out = plan.outputs()[i];
+                if (out == null || out.isEmpty()) {
+                    plannedStacks[i] = ItemStack.EMPTY;
+                    continue;
+                }
+                int gk = out.groupKey();
+                if (gk < 0 || gk >= groupTemplates.size() || out.count() <= 0) {
+                    LOG.warn("Aborting giant auto-spread: invalid planned output at slot {}", i);
+                    return false;
+                }
+                boolean frozenOversized =
+                        beforeGroups[i] == gk
+                                && beforeCounts[i] == out.count()
+                                && beforeCounts[i] > slotCaps[i];
+                if (frozenOversized) {
+                    ItemStack original = inventory.getStackInSlot(INPUT_START + i);
+                    plannedStacks[i] = original;
+                    afterSums[gk] += original.getCount();
+                    continue;
+                }
+                ItemStack template = groupTemplates.get(gk);
+                int slotLimit = Math.max(1, inventory.getSlotLimit(INPUT_START + i));
+                int cap = Math.max(1, Math.min(slotLimit, template.getMaxStackSize()));
+                if (out.count() > cap) {
+                    LOG.warn(
+                            "Aborting giant auto-spread: planned count {} exceeds cap {} at slot {}",
+                            out.count(),
+                            cap,
+                            i);
+                    return false;
+                }
+                ItemStack fresh = Ecc2BridgePlatform.copyWithCount(template, out.count());
+                plannedStacks[i] = fresh;
+                afterSums[gk] += fresh.getCount();
+            }
+
+            for (int g = 0; g < groupTemplates.size(); g++) {
+                if (beforeSums[g] != afterSums[g]) {
+                    LOG.warn(
+                            "Aborting giant auto-spread: conservation check failed for group {} ({} != {})",
+                            g,
+                            beforeSums[g],
+                            afterSums[g]);
+                    return false;
+                }
+            }
+
+            for (int i = 0; i < INPUT_COUNT; i++) {
+                inventory.setStackInSlot(INPUT_START + i, plannedStacks[i]);
+            }
+            return true;
+        } finally {
+            spreading = false;
+        }
+    }
+
     private void refreshAllCorners(ServerLevel serverLevel) {
         BlockFace facing = toBlockFace(structureFacing);
         GiantPortPermissions perms = engine.portPermissions();
@@ -320,6 +548,7 @@ public final class GiantMachineBlockEntity extends BlockEntity
         formed = false;
         isCore = false;
         corePos = BlockPos.ZERO;
+        pendingInputSpread = false;
         invalidateCornerCaps();
         setChanged();
         if (state.getBlock() instanceof GiantMachineBlock) {
@@ -382,6 +611,7 @@ public final class GiantMachineBlockEntity extends BlockEntity
                 unit.isCore = bp.equals(coreWorldPos);
                 unit.corePos = coreWorldPos;
                 unit.structureFacing = horizontalFacing;
+                unit.pendingInputSpread = false;
                 unit.invalidateCornerCaps();
                 unit.setChanged();
                 level.sendBlockUpdated(bp, current, updated, Block.UPDATE_CLIENTS);
@@ -405,6 +635,7 @@ public final class GiantMachineBlockEntity extends BlockEntity
             return;
         }
         core.dissolving = true;
+        core.pendingInputSpread = false;
         BlockPos coreWorld = core.worldPosition;
         MultiblockBounds bounds =
                 MultiblockGeometry.boundsFromCore(
@@ -478,6 +709,15 @@ public final class GiantMachineBlockEntity extends BlockEntity
             return;
         }
         refreshUpgrades();
+
+        // Flush deferred auto-spread across slots 0..8 BEFORE lane processing so all parallel
+        // lanes activate immediately on this tick.
+        if (pendingInputSpread) {
+            pendingInputSpread = false;
+            if (engine.isAutoSpreadInputs() && spreadInputsNow()) {
+                setChanged();
+            }
+        }
 
         // Discharge battery slot into EU buffer
         ItemStack battery = inventory.getStackInSlot(BATTERY_SLOT);
@@ -843,6 +1083,7 @@ public final class GiantMachineBlockEntity extends BlockEntity
                                     source.get(),
                                     itemLimit,
                                     s -> GiantRecipeAdapter.acceptsInput(kind, s))) {
+                        markPendingInputSpread();
                         setChanged();
                         break;
                     }
@@ -992,7 +1233,16 @@ public final class GiantMachineBlockEntity extends BlockEntity
                 if (!legalInput) {
                     return stack;
                 }
-                return inventory.insertItem(slot, stack, simulate);
+                int offered = stack.getCount();
+                ItemStack remainder = inventory.insertItem(slot, stack, simulate);
+                if (!simulate
+                        && slot >= INPUT_START
+                        && slot < INPUT_START + INPUT_COUNT
+                        && offered > 0
+                        && remainder.getCount() < offered) {
+                    markPendingInputSpread();
+                }
+                return remainder;
             }
 
             @Override
@@ -1209,6 +1459,7 @@ public final class GiantMachineBlockEntity extends BlockEntity
             tag.putDouble("StoredEu", engine.storedEu());
             tag.putInt("WaterMb", engine.waterMb());
             tag.putInt("PortPerms", engine.portPermissions().packed());
+            tag.putBoolean("AutoSpread", engine.isAutoSpreadInputs());
             tag.putIntArray("LaneProgress", engine.copyLaneProgress());
             tag.putIntArray("LaneBatch", engine.copyLaneBatchSizes());
         }
@@ -1231,6 +1482,8 @@ public final class GiantMachineBlockEntity extends BlockEntity
             if (tag.contains("PortPerms")) {
                 engine.portPermissions().setPacked(tag.getInt("PortPerms"));
             }
+            engine.setAutoSpreadInputs(tag.getBoolean("AutoSpread"));
+            pendingInputSpread = false;
             pendingPortVisualSync = true;
             int[] prog = tag.getIntArray("LaneProgress");
             int[] batch = tag.getIntArray("LaneBatch");

@@ -4,6 +4,7 @@ import com.ecocraft2.EcoCraft2;
 import com.industrialage.ia2.access.MachineAccess;
 import com.industrialage.ia2.access.MachinePorts;
 import com.industrialage.ia2.access.ProcessingItemPort;
+import com.industrialage.ia2.access.ProcessingSlots;
 import com.industrialage.ia2.logistics.CellFamily;
 import com.industrialage.ia2.logistics.CellItem;
 import java.util.List;
@@ -120,7 +121,10 @@ public final class GiantGasPlatform {
                                                 be, side, new ProcessingItemPort(slots, side));
                                     }
                                     return new PortGatedItemHandler(
-                                            provider, side, new ProcessingItemPort(slots, side));
+                                            provider,
+                                            side,
+                                            slots,
+                                            new ProcessingItemPort(slots, side));
                                 });
                         event.registerBlockEntity(
                                 Capabilities.FluidHandler.BLOCK,
@@ -491,8 +495,15 @@ public final class GiantGasPlatform {
         return null;
     }
 
+    public static boolean isInTransaction() {
+        return false;
+    }
+
     private record PortGatedItemHandler(
-            Ecc2CapabilityProvider provider, Direction side, IItemHandler delegate)
+            Ecc2CapabilityProvider provider,
+            Direction side,
+            ProcessingSlots slots,
+            IItemHandler delegate)
             implements IItemHandler {
 
         @Override
@@ -517,9 +528,18 @@ public final class GiantGasPlatform {
 
         @Override
         public ItemStack insertItem(int slot, ItemStack stack, boolean simulate) {
-            return provider.allowsItemInput(side)
-                    ? delegate.insertItem(slot, stack, simulate)
-                    : stack;
+            if (!provider.allowsItemInput(side)) {
+                return stack;
+            }
+            int offered = stack.getCount();
+            ItemStack remainder = delegate.insertItem(slot, stack, simulate);
+            if (!simulate && offered > 0 && remainder.getCount() < offered) {
+                int[] faceSlots = slots.getSlotsForFace(side);
+                if (slot >= 0 && slot < faceSlots.length) {
+                    provider.onAutomationInputInserted(faceSlots[slot]);
+                }
+            }
+            return remainder;
         }
 
         @Override

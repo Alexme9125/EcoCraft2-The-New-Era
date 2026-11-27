@@ -141,6 +141,10 @@
   "gui.ecc2.giant.port_access_title": "Lower-Corner Port Access",
   "gui.ecc2.giant.port_access_button": "Port Access",
   "gui.ecc2.giant.port_access_hint": "Click any corner port to cycle: Full → Input → Output → Blocked",
+  "gui.ecc2.giant.auto_spread": "Auto-Spread Inputs",
+  "gui.ecc2.giant.auto_spread.on": "Status: ON",
+  "gui.ecc2.giant.auto_spread.off": "Status: OFF",
+  "gui.ecc2.giant.auto_spread.hint": "Click to toggle evenly distributing placed or piped items across all 9 input slots",
 
   "gui.ecc2.port.mode.full": "Full (In & Out)",
   "gui.ecc2.port.mode.input": "Input Only",
