@@ -73,6 +73,17 @@ public final class GiantRecipeAdapter {
         return match(kind, probe) != null;
     }
 
+    /** Returns the single-operation recipe input count for {@code input}, or {@code 1} if none. */
+    public static int recipeInputCount(GiantMachineKind kind, ItemStack input) {
+        if (input == null || input.isEmpty()) {
+            return 1;
+        }
+        ItemStack probe =
+                Ecc2BridgePlatform.copyWithCount(input, Math.max(input.getCount(), 64));
+        ResolvedRecipe resolved = match(kind, probe);
+        return resolved != null && resolved.inputCount() > 1 ? resolved.inputCount() : 1;
+    }
+
     private static ResolvedRecipe matchProcessing(
             String machineName, boolean rejectFilledCells, ItemStack input) {
         if (rejectFilledCells && TransportPlatform.cellContainsFluid(input)) {

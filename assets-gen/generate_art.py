@@ -2136,6 +2136,8 @@ def gen_guis() -> Dict[str, dict]:
     draw_lcd(g, 99, 23, 26, 16, accent=PAL["cyan_dark"], scanlines=False)
     draw_arrow_24x15(g, 100, 44, PAL["slot_dark"], PAL["slate_mid"])
     draw_lcd(g, 99, 64, 26, 15, accent=None, scanlines=False)
+    # Auto-spread toggle button dock directly below EU draw LCD (102, 81, 20, 20)
+    make_bevel_box(g, 102, 81, 20, 20, fill=PAL["slate_mid"], raised=True, hi=PAL["bevel_hi"], lo=PAL["border_dark"])
 
     # Washer 64,000 mB Water Tank Window (128, 23, 20, 76 -> inner 130, 25, 16, 72)
     draw_tank_frame(g, 128, 23, 20, 76)
@@ -2230,6 +2232,7 @@ def gen_guis() -> Dict[str, dict]:
         "upgrade_slots": upgrade_slots,
         "port_summary_lcd": [153, 105, 64, 40],
         "port_access_button": [224, 114, 20, 20],
+        "auto_spread_button": [102, 81, 20, 20],
         "player_inventory": {"top_left_item": [48, 152], "hotbar_item": [48, 210]},
         "sprites": {
             "micro_progress_fill": [2, 238, 16, 3],
@@ -2470,8 +2473,28 @@ def gen_guis() -> Dict[str, dict]:
                     c = PAL["cyan_glow"]
                 px(gear, x, y, c)
     save_png(add_item_outline(gear), TEX_ROOT / "gui" / "icons" / "port_access_gear.png")
+
+    # --- 7.12 icons/auto_spread.png (16x16 crisp 3x3 input distribution grid icon) ---
+    spread = Image.new("RGBA", (16, 16), PAL["transparent"])
+    for gy in range(3):
+        for gx in range(3):
+            bx = 2 + gx * 4
+            by = 2 + gy * 4
+            is_center = (gx == 1 and gy == 1)
+            cell_hi = PAL["cyan_white"] if is_center else PAL["bevel_white"]
+            cell_mid = PAL["cyan_glow"] if is_center else PAL["blue_port"]
+            cell_lo = PAL["cyan_dark"] if is_center else PAL["slate_dark"]
+            fill_rect(spread, bx, by, 3, 3, cell_mid)
+            px(spread, bx, by, cell_hi)
+            px(spread, bx + 2, by + 2, cell_lo)
+    # Subtle connecting bridges between center and cardinal cells to convey even spreading
+    for cx, cy in ((5, 7), (9, 7), (7, 5), (7, 9)):
+        px(spread, cx, cy, PAL["cyan_glow"])
+    save_png(add_item_outline(spread), TEX_ROOT / "gui" / "icons" / "auto_spread.png")
+
     coords["icons"] = {
-        "port_access_gear": {"texture": "ecc2:textures/gui/icons/port_access_gear.png", "size": [16, 16]}
+        "port_access_gear": {"texture": "ecc2:textures/gui/icons/port_access_gear.png", "size": [16, 16]},
+        "auto_spread": {"texture": "ecc2:textures/gui/icons/auto_spread.png", "size": [16, 16]},
     }
 
     GUI_COORDS_PATH.write_text(json.dumps(coords, indent=2) + "\n", encoding="utf-8")

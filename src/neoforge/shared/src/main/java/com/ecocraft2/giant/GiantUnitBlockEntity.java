@@ -4,6 +4,7 @@ import com.ecocraft2.common.config.Ecc2Ids;
 import com.ecocraft2.common.giant.BlockFace;
 import com.ecocraft2.common.giant.BlockPos3;
 import com.ecocraft2.common.giant.GiantCornerPort;
+import com.ecocraft2.common.giant.GiantInputDistributor;
 import com.ecocraft2.common.giant.GiantMachineEngine;
 import com.ecocraft2.common.giant.GiantPortPermissions;
 import com.ecocraft2.common.giant.MultiblockBounds;
@@ -44,6 +45,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * BlockEntity backing every block of a 3x3x3 Giant Machine.
@@ -81,6 +84,7 @@ public final class GiantUnitBlockEntity extends Ecc2BlockEntityBase
     private static final int[] AUTOMATED_SLOTS_WASHER = {
         0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 23, 24
     };
+    private static final Logger LOG = LoggerFactory.getLogger(GiantUnitBlockEntity.class);
     private static final EnergyGraph.Ports EMPTY_PORTS =
             new EnergyGraph.Ports(Set.of(), Set.of(), false);
 
@@ -96,6 +100,8 @@ public final class GiantUnitBlockEntity extends Ecc2BlockEntityBase
     private Direction structureFacing = Direction.NORTH;
     private boolean dissolved;
     private boolean pendingPortVisualSync;
+    private boolean pendingInputSpread;
+    private boolean spreading;
     private int lastTick = Integer.MIN_VALUE;
 
     public GiantUnitBlockEntity(BlockPos pos, BlockState state) {
@@ -124,6 +130,7 @@ public final class GiantUnitBlockEntity extends Ecc2BlockEntityBase
         this.structureFacing = structureFacing;
         this.role = role;
         this.dissolved = false;
+        this.pendingInputSpread = false;
         if (role == GiantBlockRole.CORE) {
             this.engine = new GiantMachineEngine(this.machineType.effectiveSpec());
         }
@@ -135,6 +142,7 @@ public final class GiantUnitBlockEntity extends Ecc2BlockEntityBase
         this.corePos = null;
         this.role = GiantBlockRole.UNFORMED;
         this.dissolved = false;
+        this.pendingInputSpread = false;
         setChanged();
     }
 
@@ -209,6 +217,15 @@ public final class GiantUnitBlockEntity extends Ecc2BlockEntityBase
         }
         boolean changed = false;
 
+        // 0. Flush deferred auto-spread across slots 0..8 BEFORE lane processing so newly placed or
+        // inserted items activate all parallel lanes immediately on this tick.
+        if (pendingInputSpread) {
+            pendingInputSpread = false;
+            if (engine.isAutoSpreadInputs()) {
+                changed |= spreadInputsNow(level);
+            }
+        }
+
         // 1. Refresh IC2 upgrades (Overclocker, Transformer, Energy Storage).
         var upgradeList = upgradeStacks();
         var profile = Ecc2UpgradeHelper.readProfile(upgradeList);
@@ -262,7 +279,14 @@ public final class GiantUnitBlockEntity extends Ecc2BlockEntityBase
         }
 
         // 6. Execute IC2 item & fluid ejector/pulling upgrades via enabled lower-corner ports.
-        changed |= executeCornerUpgrades(level, upgradeList);
+        ItemStack[] beforeUpgradeInputs = engine.isAutoSpreadInputs() ? copyInputSlots() : null;
+        boolean upgradesChanged = executeCornerUpgrades(level, upgradeList);
+        changed |= upgradesChanged;
+        if (upgradesChanged
+                && beforeUpgradeInputs != null
+                && hasInputIncreased(beforeUpgradeInputs)) {
+            markPendingInputSpread();
+        }
 
         // 7. Sync active blockstate on core and front-center exterior display block (with legacy heal).
         boolean nowActive = canRun && engine.isActive();
@@ -620,6 +644,234 @@ public final class GiantUnitBlockEntity extends Ecc2BlockEntityBase
         return list;
     }
 
+    // ---- Auto-Spread Across 9 Input Slots (Deferred, Crash-Proof & Conservative) ----
+
+    /** Toggles automatic 9-slot input spreading on the core; turning ON schedules immediate spread. */
+    public boolean toggleAutoSpread() {
+        GiantUnitBlockEntity core = coreEntity();
+        if (core == null || core.isRemoved() || core.dissolved) {
+            return false;
+        }
+        boolean enabled = core.engine.toggleAutoSpreadInputs();
+        if (enabled) {
+            core.pendingInputSpread = true;
+        } else {
+            core.pendingInputSpread = false;
+        }
+        core.setChanged();
+        return enabled;
+    }
+
+    /** Marks a deferred input spread to run at the start of the next CORE server tick. */
+    public void markPendingInputSpread() {
+        GiantUnitBlockEntity core = coreEntity();
+        if (core == null
+                || core.isRemoved()
+                || core.dissolved
+                || core.spreading
+                || !core.engine.isAutoSpreadInputs()) {
+            return;
+        }
+        core.pendingInputSpread = true;
+    }
+
+    @Override
+    public void onAutomationInputInserted(int slot) {
+        if (slot >= INPUT_START && slot < INPUT_START + INPUT_COUNT) {
+            markPendingInputSpread();
+        }
+    }
+
+    /** Captures a defensive copy of the 9 input slots for server-side click-insertion detection. */
+    ItemStack[] copyInputSlots() {
+        ItemStack[] snapshot = new ItemStack[INPUT_COUNT];
+        for (int i = 0; i < INPUT_COUNT; i++) {
+            ItemStack s = items.get(INPUT_START + i);
+            snapshot[i] = s.isEmpty() ? ItemStack.EMPTY : s.copy();
+        }
+        return snapshot;
+    }
+
+    /**
+     * Returns {@code true} iff any distinct item key (by exact item + components) has a strictly
+     * higher total count in slots {@code 0..8} now than in {@code before}.
+     */
+    boolean hasInputIncreased(ItemStack[] before) {
+        if (before == null || before.length != INPUT_COUNT) {
+            return false;
+        }
+        List<ItemStack> checkedKeys = new ArrayList<>(INPUT_COUNT);
+        for (int i = 0; i < INPUT_COUNT; i++) {
+            ItemStack cur = items.get(INPUT_START + i);
+            if (cur.isEmpty() || containsSameKey(checkedKeys, cur)) {
+                continue;
+            }
+            checkedKeys.add(cur);
+            long afterSum = 0L;
+            long beforeSum = 0L;
+            for (int j = 0; j < INPUT_COUNT; j++) {
+                ItemStack a = items.get(INPUT_START + j);
+                if (!a.isEmpty() && ItemStack.isSameItemSameComponents(a, cur)) {
+                    afterSum += a.getCount();
+                }
+                ItemStack b = before[j];
+                if (b != null && !b.isEmpty() && ItemStack.isSameItemSameComponents(b, cur)) {
+                    beforeSum += b.getCount();
+                }
+            }
+            if (afterSum > beforeSum) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean containsSameKey(List<ItemStack> keys, ItemStack candidate) {
+        for (ItemStack existing : keys) {
+            if (ItemStack.isSameItemSameComponents(existing, candidate)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static int findOrAddGroup(List<ItemStack> templates, ItemStack stack) {
+        for (int i = 0; i < templates.size(); i++) {
+            if (ItemStack.isSameItemSameComponents(templates.get(i), stack)) {
+                return i;
+            }
+        }
+        templates.add(stack);
+        return templates.size() - 1;
+    }
+
+    private int resolveRecipeMinUnit(ServerLevel level, ItemStack stack) {
+        try {
+            ItemStack probe =
+                    stack.copyWithCount(
+                            Math.max(stack.getCount(), Math.min(64, stack.getMaxStackSize())));
+            GiantRecipeAdapter.Result recipe = machineType.recipeAdapter().resolve(level, probe);
+            if (recipe != null && recipe.inputCount() > 1) {
+                return recipe.inputCount();
+            }
+        } catch (Throwable failure) {
+            LOG.debug(
+                    "Falling back to minUnit=1 during giant machine auto-spread lookup: {}",
+                    failure.getMessage());
+        }
+        return 1;
+    }
+
+    private boolean spreadInputsNow(ServerLevel level) {
+        if (level == null
+                || level.isClientSide()
+                || !formed
+                || role != GiantBlockRole.CORE
+                || dissolved
+                || isRemoved()
+                || spreading
+                || !engine.isAutoSpreadInputs()) {
+            return false;
+        }
+        spreading = true;
+        try {
+            int containerLimit = Math.max(1, coreAutomationSlots.getMaxStackSize());
+            List<ItemStack> groupTemplates = new ArrayList<>(INPUT_COUNT);
+            GiantInputDistributor.SlotInput[] slotInputs =
+                    new GiantInputDistributor.SlotInput[INPUT_COUNT];
+            int[] beforeGroups = new int[INPUT_COUNT];
+            int[] beforeCounts = new int[INPUT_COUNT];
+            int[] slotCaps = new int[INPUT_COUNT];
+
+            for (int i = 0; i < INPUT_COUNT; i++) {
+                ItemStack stack = items.get(INPUT_START + i);
+                if (stack == null || stack.isEmpty()) {
+                    slotInputs[i] = GiantInputDistributor.SlotInput.empty();
+                    beforeGroups[i] = GiantInputDistributor.EMPTY_GROUP;
+                    beforeCounts[i] = 0;
+                    slotCaps[i] = containerLimit;
+                    continue;
+                }
+                int gk = findOrAddGroup(groupTemplates, stack);
+                int cap = Math.max(1, Math.min(containerLimit, stack.getMaxStackSize()));
+                int minUnit = resolveRecipeMinUnit(level, stack);
+                slotInputs[i] =
+                        new GiantInputDistributor.SlotInput(gk, stack.getCount(), cap, minUnit);
+                beforeGroups[i] = gk;
+                beforeCounts[i] = stack.getCount();
+                slotCaps[i] = cap;
+            }
+
+            GiantInputDistributor.PlanResult plan = GiantInputDistributor.plan(slotInputs);
+            if (!plan.changed()) {
+                return false;
+            }
+
+            long[] beforeSums = new long[groupTemplates.size()];
+            long[] afterSums = new long[groupTemplates.size()];
+            for (int i = 0; i < INPUT_COUNT; i++) {
+                if (beforeGroups[i] >= 0) {
+                    beforeSums[beforeGroups[i]] += beforeCounts[i];
+                }
+            }
+
+            ItemStack[] plannedStacks = new ItemStack[INPUT_COUNT];
+            for (int i = 0; i < INPUT_COUNT; i++) {
+                GiantInputDistributor.SlotOutput out = plan.outputs()[i];
+                if (out == null || out.isEmpty()) {
+                    plannedStacks[i] = ItemStack.EMPTY;
+                    continue;
+                }
+                int gk = out.groupKey();
+                if (gk < 0 || gk >= groupTemplates.size() || out.count() <= 0) {
+                    LOG.warn("Aborting giant auto-spread: invalid planned output at slot {}", i);
+                    return false;
+                }
+                boolean frozenOversized =
+                        beforeGroups[i] == gk
+                                && beforeCounts[i] == out.count()
+                                && beforeCounts[i] > slotCaps[i];
+                if (frozenOversized) {
+                    ItemStack original = items.get(INPUT_START + i);
+                    plannedStacks[i] = original;
+                    afterSums[gk] += original.getCount();
+                    continue;
+                }
+                ItemStack template = groupTemplates.get(gk);
+                int cap = Math.max(1, Math.min(containerLimit, template.getMaxStackSize()));
+                if (out.count() > cap) {
+                    LOG.warn(
+                            "Aborting giant auto-spread: planned count {} exceeds cap {} at slot {}",
+                            out.count(),
+                            cap,
+                            i);
+                    return false;
+                }
+                ItemStack fresh = template.copyWithCount(out.count());
+                plannedStacks[i] = fresh;
+                afterSums[gk] += fresh.getCount();
+            }
+
+            for (int g = 0; g < groupTemplates.size(); g++) {
+                if (beforeSums[g] != afterSums[g]) {
+                    LOG.warn(
+                            "Aborting giant auto-spread: conservation check failed for group {} ({} != {})",
+                            g,
+                            beforeSums[g],
+                            afterSums[g]);
+                    return false;
+                }
+            }
+
+            for (int i = 0; i < INPUT_COUNT; i++) {
+                items.set(INPUT_START + i, plannedStacks[i]);
+            }
+            return true;
+        } finally {
+            spreading = false;
+        }
+    }
+
     // ---- 8 Lower-Corner Port Permission API ----
 
     public Optional<GiantCornerPort> cornerPortFor(Direction worldFace) {
@@ -953,6 +1205,7 @@ public final class GiantUnitBlockEntity extends Ecc2BlockEntityBase
     }
 
     public void clearContent() {
+        pendingInputSpread = false;
         for (int i = 0; i < items.size(); i++) {
             items.set(i, ItemStack.EMPTY);
         }
@@ -1043,9 +1296,27 @@ public final class GiantUnitBlockEntity extends Ecc2BlockEntityBase
 
         @Override
         public void setItem(int slot, ItemStack stack) {
+            ItemStack prev = items.get(slot);
+            int prevCount = prev.getCount();
+            boolean samePrev =
+                    !prev.isEmpty()
+                            && !stack.isEmpty()
+                            && ItemStack.isSameItemSameComponents(prev, stack);
             items.set(slot, stack);
             stack.limitSize(getMaxStackSize(stack));
-            GiantUnitBlockEntity.this.setChanged();
+            boolean inTx = GiantGasPlatform.isInTransaction();
+            if (!spreading
+                    && !inTx
+                    && slot >= INPUT_START
+                    && slot < INPUT_START + INPUT_COUNT
+                    && !stack.isEmpty()
+                    && (!samePrev || stack.getCount() > prevCount)
+                    && getLevel() instanceof ServerLevel) {
+                markPendingInputSpread();
+            }
+            if (!inTx) {
+                GiantUnitBlockEntity.this.setChanged();
+            }
         }
 
         @Override
@@ -1095,6 +1366,7 @@ public final class GiantUnitBlockEntity extends Ecc2BlockEntityBase
             out.putDouble("ecc2_eu", engine.storedEu());
             out.putInt("ecc2_water", engine.waterMb());
             out.putInt("ecc2_ports", engine.portPermissions().packed());
+            out.putBoolean("ecc2_auto_spread", engine.isAutoSpreadInputs());
             out.putIntArray("ecc2_lane_prog", engine.copyLaneProgress());
             out.putIntArray("ecc2_lane_batch", engine.copyLaneBatchSizes());
         }
@@ -1132,6 +1404,8 @@ public final class GiantUnitBlockEntity extends Ecc2BlockEntityBase
             engine.setStoredEu(in.getDouble("ecc2_eu", 0.0));
             engine.setWaterMb(in.getInt("ecc2_water", 0));
             engine.portPermissions().setPacked(in.getInt("ecc2_ports", 0));
+            engine.setAutoSpreadInputs(in.getBoolean("ecc2_auto_spread", false));
+            pendingInputSpread = false;
             int[] savedProg = in.getIntArray("ecc2_lane_prog", GiantMachineEngine.LANE_COUNT);
             int[] savedBatch = in.getIntArray("ecc2_lane_batch", GiantMachineEngine.LANE_COUNT);
             engine.restoreLanes(savedProg, savedBatch);
@@ -1233,6 +1507,10 @@ public final class GiantUnitBlockEntity extends Ecc2BlockEntityBase
 
     public boolean isMachineActive() {
         return engine().isActive();
+    }
+
+    public boolean isAutoSpreadInputs() {
+        return engine().isAutoSpreadInputs();
     }
 
     public List<FluidContents> fluidContents() {

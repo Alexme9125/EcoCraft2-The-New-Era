@@ -8,6 +8,7 @@ import com.ecocraft2.giant.GiantMachineMenu;
 import com.ecocraft2.network.Ecc2Network;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
+import java.util.List;
 import net.minecraft.client.gui.GuiComponent;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.renderer.GameRenderer;
@@ -31,6 +32,8 @@ public final class GiantMachineScreen extends AbstractContainerScreen<GiantMachi
             Ecc2BridgePlatform.rl("textures/gui/giant_machine.png");
     private static final ResourceLocation GEAR_ICON =
             Ecc2BridgePlatform.rl("textures/gui/icons/port_access_gear.png");
+    private static final ResourceLocation SPREAD_ICON =
+            Ecc2BridgePlatform.rl("textures/gui/icons/auto_spread.png");
 
     private static final int[] BAR_X = {13, 33, 53};
     private static final int[] BAR_Y = {43, 67, 91};
@@ -41,6 +44,11 @@ public final class GiantMachineScreen extends AbstractContainerScreen<GiantMachi
     private static final int GEAR_X = 224;
     private static final int GEAR_Y = 114;
     private static final int GEAR_SIZE = 20;
+
+    // Auto-spread toggle button at (102, 81, 20x20)
+    private static final int SPREAD_X = 102;
+    private static final int SPREAD_Y = 81;
+    private static final int SPREAD_SIZE = 20;
 
     // 8 Lower-Corner Port Matrix popup (opened right of main panel or overlaid cleanly inside)
     private boolean portPopupOpen = false;
@@ -91,6 +99,18 @@ public final class GiantMachineScreen extends AbstractContainerScreen<GiantMachi
                 renderTooltip(
                         poseStack,
                         Component.translatable("gui.ecc2.giant.port_access_button"),
+                        mouseX,
+                        mouseY);
+            } else if (isHovering(SPREAD_X, SPREAD_Y, SPREAD_SIZE, SPREAD_SIZE, mouseX, mouseY)) {
+                renderComponentTooltip(
+                        poseStack,
+                        List.of(
+                                Component.translatable("gui.ecc2.giant.auto_spread"),
+                                Component.translatable(
+                                        menu.isAutoSpreadEnabled()
+                                                ? "gui.ecc2.giant.auto_spread.on"
+                                                : "gui.ecc2.giant.auto_spread.off"),
+                                Component.translatable("gui.ecc2.giant.auto_spread.hint")),
                         mouseX,
                         mouseY);
             } else if (menu.usesWater() && isHovering(130, 25, 16, 72, mouseX, mouseY)) {
@@ -164,7 +184,8 @@ public final class GiantMachineScreen extends AbstractContainerScreen<GiantMachi
         }
 
         // Gear access button at (224, 114)
-        boolean hoverGear = isHovering(GEAR_X, GEAR_Y, GEAR_SIZE, GEAR_SIZE, mouseX, mouseY);
+        boolean hoverGear =
+                !portPopupOpen && isHovering(GEAR_X, GEAR_Y, GEAR_SIZE, GEAR_SIZE, mouseX, mouseY);
         blit(
                 poseStack,
                 leftPos + GEAR_X + 1,
@@ -176,6 +197,31 @@ public final class GiantMachineScreen extends AbstractContainerScreen<GiantMachi
         RenderSystem.setShaderTexture(0, GEAR_ICON);
         GuiComponent.blit(
                 poseStack, leftPos + GEAR_X + 2, topPos + GEAR_Y + 2, 0, 0, 16, 16, 16, 16);
+
+        // Auto-spread toggle button at (102, 81)
+        boolean spreadOn = menu.isAutoSpreadEnabled();
+        boolean hoverSpread =
+                !portPopupOpen
+                        && isHovering(SPREAD_X, SPREAD_Y, SPREAD_SIZE, SPREAD_SIZE, mouseX, mouseY);
+        RenderSystem.setShaderTexture(0, TEXTURE);
+        blit(
+                poseStack,
+                leftPos + SPREAD_X + 1,
+                topPos + SPREAD_Y + 1,
+                (spreadOn || hoverSpread) ? 190 : 170,
+                237,
+                18,
+                18);
+        RenderSystem.setShaderTexture(0, SPREAD_ICON);
+        GuiComponent.blit(
+                poseStack, leftPos + SPREAD_X + 2, topPos + SPREAD_Y + 2, 0, 0, 16, 16, 16, 16);
+        GuiComponent.fill(
+                poseStack,
+                leftPos + SPREAD_X + 15,
+                topPos + SPREAD_Y + 3,
+                leftPos + SPREAD_X + 18,
+                topPos + SPREAD_Y + 6,
+                spreadOn ? 0xFF55FFFF : 0xFF3A4654);
     }
 
     @Override
@@ -348,10 +394,6 @@ public final class GiantMachineScreen extends AbstractContainerScreen<GiantMachi
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         if (button == 0) {
-            if (isHovering(GEAR_X, GEAR_Y, GEAR_SIZE, GEAR_SIZE, mouseX, mouseY)) {
-                portPopupOpen = !portPopupOpen;
-                return true;
-            }
             if (portPopupOpen) {
                 int px = leftPos + POPUP_X;
                 int py = topPos + POPUP_Y;
@@ -380,6 +422,14 @@ public final class GiantMachineScreen extends AbstractContainerScreen<GiantMachi
                         || mouseY >= py + POPUP_H) {
                     portPopupOpen = false;
                 }
+                return true;
+            }
+            if (isHovering(GEAR_X, GEAR_Y, GEAR_SIZE, GEAR_SIZE, mouseX, mouseY)) {
+                portPopupOpen = true;
+                return true;
+            }
+            if (isHovering(SPREAD_X, SPREAD_Y, SPREAD_SIZE, SPREAD_SIZE, mouseX, mouseY)) {
+                Ecc2Network.sendGiantAutoSpreadToggle(menu.pos());
                 return true;
             }
         }

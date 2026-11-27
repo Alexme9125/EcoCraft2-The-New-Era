@@ -136,6 +136,7 @@ class Verifier:
             "gui/culture_incubator.png",
             "gui/organic_fermenter.png",
             "gui/icons/port_access_gear.png",
+            "gui/icons/auto_spread.png",
         ]
         for kind in GIANT_KINDS:
             must_exist.extend([

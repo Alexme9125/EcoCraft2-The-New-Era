@@ -103,6 +103,7 @@ public final class GiantMachineEngine {
     private double lastTickEuConsumed;
     private int lastActiveTotalBatch;
     private boolean active;
+    private boolean autoSpreadInputs;
 
     /**
      * Creates a Giant Machine engine for a built-in {@link GiantMachineKind}.
@@ -474,6 +475,25 @@ public final class GiantMachineEngine {
     /** Returns {@code true} if any lane was active on the most recent tick. */
     public boolean isActive() {
         return active;
+    }
+
+    /**
+     * Returns {@code true} if automatic even distribution of placed/inserted items across the 9
+     * input slots is currently enabled (defaults to {@code false}).
+     */
+    public boolean isAutoSpreadInputs() {
+        return autoSpreadInputs;
+    }
+
+    /** Enables or disables automatic even distribution across the 9 input slots. */
+    public void setAutoSpreadInputs(boolean enabled) {
+        this.autoSpreadInputs = enabled;
+    }
+
+    /** Toggles automatic input distribution and returns the new state. */
+    public boolean toggleAutoSpreadInputs() {
+        this.autoSpreadInputs = !this.autoSpreadInputs;
+        return this.autoSpreadInputs;
     }
 
     /**

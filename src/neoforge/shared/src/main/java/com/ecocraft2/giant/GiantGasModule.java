@@ -314,6 +314,12 @@ public final class GiantGasModule {
                 GiantPortTogglePayload.STREAM_CODEC,
                 GiantPortTogglePayload::handleServer);
 
+        GiantGasPlatform.registerServerboundPayload(
+                modBus,
+                GiantAutoSpreadTogglePayload.TYPE,
+                GiantAutoSpreadTogglePayload.STREAM_CODEC,
+                GiantAutoSpreadTogglePayload::handleServer);
+
         EcoCraft2.addCreativeTabItems(
                 output -> {
                     output.accept(MEGASTRUCTURE_COMPONENT.get());

@@ -918,6 +918,12 @@
       20,
       20
     ],
+    "auto_spread_button": [
+      102,
+      81,
+      20,
+      20
+    ],
     "player_inventory": {
       "top_left_item": [
         48,
@@ -1931,6 +1937,13 @@
   "icons": {
     "port_access_gear": {
       "texture": "ecc2:textures/gui/icons/port_access_gear.png",
+      "size": [
+        16,
+        16
+      ]
+    },
+    "auto_spread": {
+      "texture": "ecc2:textures/gui/icons/auto_spread.png",
       "size": [
         16,
         16
