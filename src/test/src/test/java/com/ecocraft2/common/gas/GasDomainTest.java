@@ -33,6 +33,21 @@ class GasDomainTest {
         assertEquals(GasFuelSpec.NATURAL_GAS, GasFuelSpec.byFluidId("ecc2:natural_gas").orElseThrow());
         assertEquals(GasFuelSpec.BIOGAS, GasFuelSpec.byFluidId("ic2:biogas").orElseThrow());
         assertTrue(GasFuelSpec.byFluidId("minecraft:water").isEmpty());
+
+        // Common fluid tag & ecc2:gas_fuel resolution across both c: and forge: namespaces
+        assertEquals(
+                GasFuelSpec.WATER_GAS,
+                GasFuelSpec.resolve("other:water_gas", "c", "c:water_gas"::equals).orElseThrow());
+        assertEquals(
+                GasFuelSpec.NATURAL_GAS,
+                GasFuelSpec.resolve("other:methane", "forge", "forge:natural_gas"::equals).orElseThrow());
+        assertEquals(
+                GasFuelSpec.BIOGAS,
+                GasFuelSpec.resolve("other:bio_gas", "c", "c:biogas"::equals).orElseThrow());
+        assertEquals(
+                GasFuelSpec.WATER_GAS,
+                GasFuelSpec.resolve("datapack:syngas", "c", "ecc2:gas_fuel"::equals).orElseThrow());
+        assertTrue(GasFuelSpec.resolve("minecraft:water", "c", tag -> false).isEmpty());
     }
 
     // --- WaterGasEngine ---

@@ -26,10 +26,7 @@ public final class GasContainerHelper {
 
     /** Resolves a Forge {@link FluidStack} to a {@link GasFuelSpec}, if combustible. */
     public static Optional<GasFuelSpec> fuelOf(FluidStack stack) {
-        if (stack == null || stack.isEmpty()) {
-            return Optional.empty();
-        }
-        return GasFuelSpec.byFluidId(Ecc2BridgePlatform.fluidId(stack));
+        return Ecc2BridgePlatform.resolveGasFuel(stack);
     }
 
     /** Returns the Forge {@link Fluid} registered for a {@link GasFuelSpec}. */

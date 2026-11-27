@@ -17,7 +17,6 @@ import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.inventory.SimpleContainerData;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 
 /** Container menu for {@code ecc2:organic_fermenter} aligned to {@code organic_fermenter.png}. */
 public final class OrganicFermenterMenu extends DeviceAccessMenu {
@@ -45,13 +44,13 @@ public final class OrganicFermenterMenu extends DeviceAccessMenu {
                                     GiantGasPlatform.foodNutrition(stack) > 0;
                             case OrganicFermenterBlockEntity.SLOT_CULTURE_CELL_IN ->
                                     GiantGasPlatform.isDrainableContainer(
-                                            stack, Ecc2Ids.CULTURE_MEDIUM_ID::equals);
+                                            stack, GiantGasPlatform::isCultureMediumFluid);
                             case OrganicFermenterBlockEntity.SLOT_BIOGAS_CELL_IN ->
                                     GiantGasPlatform.isFillableContainer(
                                             stack, Ecc2Ids.IC2_BIOGAS_ID);
                             case OrganicFermenterBlockEntity.SLOT_BATTERY ->
                                     PortableGear.canDischarge(stack, 14)
-                                            || stack.is(Items.REDSTONE);
+                                            || GiantGasPlatform.isRedstoneDust(stack);
                             case 7, 8, 9, 10 ->
                                     Ecc2UpgradeHelper.isAcceptedUpgrade(stack, true, true);
                             default -> false;
@@ -163,7 +162,7 @@ public final class OrganicFermenterMenu extends DeviceAccessMenu {
             } else if (GiantGasPlatform.foodNutrition(stack) > 0) {
                 moveItemStackTo(stack, 0, 1, false);
             } else if (GiantGasPlatform.isDrainableContainer(
-                    stack, Ecc2Ids.CULTURE_MEDIUM_ID::equals)) {
+                    stack, GiantGasPlatform::isCultureMediumFluid)) {
                 moveItemStackTo(stack, 2, 3, false);
             } else if (GiantGasPlatform.isFillableContainer(stack, Ecc2Ids.IC2_BIOGAS_ID)) {
                 moveItemStackTo(stack, 4, 5, false);

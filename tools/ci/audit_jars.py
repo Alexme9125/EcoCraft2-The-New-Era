@@ -148,6 +148,39 @@ def audit_jar(jar_path: Path, target: str) -> list[str]:
             manifest = zf.read("META-INF/MANIFEST.MF").decode("utf-8") if "META-INF/MANIFEST.MF" in names else ""
             if "MixinConfigs: ecc2.mixins.json" not in manifest:
                 errors.append(f"Missing MixinConfigs manifest entry in {jar_path.name}")
+            for name in sorted(names):
+                if name.startswith(("data/c/", "data/neoforge/", "data/ecc2/recipe/", "data/ecc2/loot_table/")):
+                    errors.append(f"1.21+ data path leaked into Forge 1.19.2 JAR {jar_path.name}: {name}")
+                if re.match(r"^data/[^/]+/tags/(item|block|fluid)/", name):
+                    errors.append(f"Singular tag directory leaked into Forge 1.19.2 JAR {jar_path.name}: {name}")
+            if "data/minecraft/tags/items/dyeable.json" in names:
+                errors.append(f"1.21+ minecraft:dyeable tag leaked into Forge 1.19.2 JAR {jar_path.name}")
+            for req in (
+                "data/forge/tags/items/ingots.json",
+                "data/forge/tags/items/armors.json",
+                "data/forge/tags/items/buckets.json",
+                "data/forge/tags/blocks/relocation_not_supported.json",
+                "data/ecc2/tags/items/culture_nutrients.json",
+            ):
+                if req not in names:
+                    errors.append(f"Missing required Forge 1.19.2 tag {req} in {jar_path.name}")
+        else:
+            for name in sorted(names):
+                if name.startswith(("data/forge/", "data/ecc2/recipes/", "data/ecc2/loot_tables/")):
+                    errors.append(f"Forge 1.19.2 data path leaked into NeoForge JAR {jar_path.name}: {name}")
+                if re.match(r"^data/[^/]+/tags/(items|blocks|fluids)/", name):
+                    errors.append(f"Plural tag directory leaked into NeoForge JAR {jar_path.name}: {name}")
+            for req in (
+                "data/c/tags/item/ingots.json",
+                "data/c/tags/item/armors.json",
+                "data/c/tags/item/buckets.json",
+                "data/c/tags/block/relocation_not_supported.json",
+                "data/c/tags/fluid/gaseous.json",
+                "data/minecraft/tags/item/head_armor.json",
+                "data/ecc2/tags/item/culture_nutrients.json",
+            ):
+                if req not in names:
+                    errors.append(f"Missing required NeoForge tag {req} in {jar_path.name}")
 
         if png_count < 150:
             errors.append(f"Expected >= 150 PNG textures in {jar_path.name}, found {png_count}")

@@ -175,14 +175,13 @@ public final class OrganicFermenterBlockEntity extends BlockEntity
                 @Override
                 public boolean isFluidValid(int tank, @NotNull FluidStack stack) {
                     return tank == 0
-                            ? stack.getFluid() == GasRegistry.CULTURE_MEDIUM.get()
+                            ? Ecc2BridgePlatform.isCultureMediumFluid(stack)
                             : Ecc2Ids.IC2_BIOGAS_ID.equals(Ecc2BridgePlatform.fluidId(stack));
                 }
 
                 @Override
                 public int fill(FluidStack resource, FluidAction action) {
-                    if (resource.isEmpty()
-                            || resource.getFluid() != GasRegistry.CULTURE_MEDIUM.get()) {
+                    if (resource.isEmpty() || !Ecc2BridgePlatform.isCultureMediumFluid(resource)) {
                         return 0;
                     }
                     int accepted = engine.fillCulture(resource.getAmount(), action.simulate());
@@ -333,7 +332,7 @@ public final class OrganicFermenterBlockEntity extends BlockEntity
                 SLOT_CULTURE_IN,
                 SLOT_CULTURE_OUT,
                 OrganicFermenterEngine.CULTURE_TANK_CAPACITY_MB - engine.cultureMb(),
-                fs -> fs.getFluid() == GasRegistry.CULTURE_MEDIUM.get(),
+                Ecc2BridgePlatform::isCultureMediumFluid,
                 fs -> engine.fillCulture(fs.getAmount(), false))) {
             setChanged();
         }
@@ -386,7 +385,7 @@ public final class OrganicFermenterBlockEntity extends BlockEntity
                             serverLevel,
                             this,
                             upgrades,
-                            fs -> fs.getFluid() == GasRegistry.CULTURE_MEDIUM.get(),
+                            Ecc2BridgePlatform::isCultureMediumFluid,
                             () ->
                                     OrganicFermenterEngine.CULTURE_TANK_CAPACITY_MB
                                             - engine.cultureMb(),

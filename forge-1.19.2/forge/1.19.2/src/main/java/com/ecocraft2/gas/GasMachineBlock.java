@@ -1,7 +1,9 @@
 package com.ecocraft2.gas;
 
 import com.ecocraft2.bridge.Ecc2PowerConnectable;
+import com.ecocraft2.bridge.Ecc2WrenchHelper;
 import com.industrialage.ia2.access.MachineAccessTarget;
+import com.industrialage.ia2.wrench.WrenchTarget;
 import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.Supplier;
@@ -24,6 +26,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.HorizontalDirectionalBlock;
+import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
@@ -39,7 +42,7 @@ import org.jetbrains.annotations.Nullable;
 
 /** Shared horizontal-facing machine block for Water Gas, Gas Furnace, Gas Generator, and Biogas machines. */
 public class GasMachineBlock<BE extends BlockEntity & GasMachineBlock.TickableMachine> extends Block
-        implements EntityBlock {
+        implements EntityBlock, WrenchTarget {
 
     public static final DirectionProperty FACING = HorizontalDirectionalBlock.FACING;
     public static final BooleanProperty ACTIVE = BooleanProperty.create("active");
@@ -93,6 +96,11 @@ public class GasMachineBlock<BE extends BlockEntity & GasMachineBlock.TickableMa
     }
 
     @Override
+    public BlockState rotate(BlockState state, Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+    }
+
+    @Override
     public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
         return factory.apply(pos, state);
     }
@@ -117,6 +125,10 @@ public class GasMachineBlock<BE extends BlockEntity & GasMachineBlock.TickableMa
             Player player,
             InteractionHand hand,
             BlockHitResult hit) {
+        if (Ecc2WrenchHelper.tryHandleThirdPartyWrench(
+                this, state, level, pos, player, hand, hit.getDirection())) {
+            return InteractionResult.sidedSuccess(level.isClientSide);
+        }
         if (!level.isClientSide) {
             BlockEntity be = level.getBlockEntity(pos);
             if (be instanceof MachineAccessTarget target

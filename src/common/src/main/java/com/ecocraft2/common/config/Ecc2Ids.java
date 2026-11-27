@@ -125,17 +125,24 @@ public final class Ecc2Ids {
     public static final String IC2_ORE_WASHING_PLANT = ic2("ore_washing_plant");
     public static final String IC2_KINETIC_GENERATOR = ic2("kinetic_generator");
 
-    // --- Recipe Type & Tag IDs ---
+    // --- Recipe Type & Tag IDs / Platform-Neutral Common Tag Paths ---
 
     public static final String RECIPE_MOLECULAR_TRANSFORMER = "molecular_transformer";
 
     public static final String TAG_GAS_FUEL = ecc2("gas_fuel");
-    public static final String TAG_WATER_GAS = "c:water_gas";
-    public static final String TAG_NATURAL_GAS = "c:natural_gas";
-    public static final String TAG_CULTURE_MEDIUM = "c:culture_medium";
-    public static final String TAG_BIOGAS = "c:biogas";
-    public static final String TAG_INGOTS_IRIDIUM = "c:ingots/iridium";
-    public static final String TAG_INGOTS_URANIUM = "c:ingots/uranium";
+    public static final String TAG_CULTURE_NUTRIENTS = ecc2("culture_nutrients");
+
+    public static final String COMMON_TAG_WATER_GAS = "water_gas";
+    public static final String COMMON_TAG_NATURAL_GAS = "natural_gas";
+    public static final String COMMON_TAG_CULTURE_MEDIUM = "culture_medium";
+    public static final String COMMON_TAG_BIOGAS = "biogas";
+    public static final String COMMON_TAG_WATER = "water";
+    public static final String COMMON_TAG_INGOTS_IRIDIUM = "ingots/iridium";
+    public static final String COMMON_TAG_INGOTS_URANIUM = "ingots/uranium";
+    public static final String COMMON_TAG_DUSTS_COAL = "dusts/coal";
+    public static final String COMMON_TAG_DUSTS_REDSTONE = "dusts/redstone";
+    public static final String COMMON_TAG_TOOLS_WRENCH = "tools/wrench";
+    public static final String COMMON_TAG_WRENCHES = "wrenches";
 
     // --- Fluid Properties (matching spec/CONTRACTS.md §2.3) ---
 
@@ -241,5 +248,17 @@ public final class Ecc2Ids {
      */
     public static String ic2(String path) {
         return IC2_MOD_ID + ":" + path;
+    }
+
+    /**
+     * Qualifies a common tag path under the target platform's common namespace ({@code "c"} on
+     * NeoForge 1.21+/26.x, {@code "forge"} on Forge 1.19.2).
+     *
+     * @param commonNamespace common tag namespace ({@code "c"} or {@code "forge"})
+     * @param path lowercase tag path without namespace
+     * @return {@code commonNamespace + ":" + path}
+     */
+    public static String commonTag(String commonNamespace, String path) {
+        return commonNamespace + ":" + path;
     }
 }

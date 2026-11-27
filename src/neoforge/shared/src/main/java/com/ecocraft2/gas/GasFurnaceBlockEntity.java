@@ -70,7 +70,7 @@ public final class GasFurnaceBlockEntity extends GasMachineBlockEntityBase {
                         this::acceptsGasFluid,
                         GasFurnaceEngine.GAS_TANK_CAPACITY_MB - engine.gasMb(),
                         (fid, amt) ->
-                                GasFuelSpec.byFluidId(fid)
+                                GiantGasPlatform.resolveGasFuel(fid)
                                         .ifPresent(spec -> engine.fillGas(spec, amt, false)));
 
         // Resolve vanilla smelting recipe
@@ -112,7 +112,7 @@ public final class GasFurnaceBlockEntity extends GasMachineBlockEntityBase {
                         endpoints,
                         this::acceptsGasFluid,
                         (fid, amt) ->
-                                GasFuelSpec.byFluidId(fid)
+                                GiantGasPlatform.resolveGasFuel(fid)
                                         .map(spec -> engine.fillGas(spec, amt, false))
                                         .orElse(0),
                         () -> GasFurnaceEngine.GAS_TANK_CAPACITY_MB - engine.gasMb(),
@@ -127,7 +127,7 @@ public final class GasFurnaceBlockEntity extends GasMachineBlockEntityBase {
     }
 
     private boolean acceptsGasFluid(String fluidId) {
-        var specOpt = GasFuelSpec.byFluidId(fluidId);
+        var specOpt = GiantGasPlatform.resolveGasFuel(fluidId);
         if (specOpt.isEmpty()) {
             return false;
         }
@@ -180,7 +180,7 @@ public final class GasFurnaceBlockEntity extends GasMachineBlockEntityBase {
                 if (tank != -1 && tank != 0) {
                     return 0;
                 }
-                return GasFuelSpec.byFluidId(fluidId)
+                return GiantGasPlatform.resolveGasFuel(fluidId)
                         .map(spec -> engine.fillGas(spec, amount, simulate))
                         .orElse(0);
             }

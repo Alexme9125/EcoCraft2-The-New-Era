@@ -1,5 +1,6 @@
 package com.ecocraft2.giant;
 
+import com.ecocraft2.bridge.Ecc2WrenchHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
@@ -38,6 +39,10 @@ public abstract class Ecc2BlockBase extends Block {
             Player player,
             InteractionHand hand,
             BlockHitResult hit) {
+        if (Ecc2WrenchHelper.tryHandleThirdPartyWrench(
+                this, state, level, pos, player, hand, hit.getDirection())) {
+            return ItemInteractionResult.sidedSuccess(level.isClientSide);
+        }
         return onUseBlock(state, level, pos, player, hand, hit.getDirection())
                 ? ItemInteractionResult.SUCCESS
                 : ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;

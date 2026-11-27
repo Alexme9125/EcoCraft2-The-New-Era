@@ -978,18 +978,20 @@ public final class GiantMachineBlockEntity extends BlockEntity
                 .ifPresent(
                         handler -> {
                             FluidStack sim =
-                                    handler.drain(
-                                            new FluidStack(Fluids.WATER, room),
-                                            IFluidHandler.FluidAction.SIMULATE);
-                            if (sim.isEmpty() || sim.getFluid() != Fluids.WATER) {
+                                    handler.drain(room, IFluidHandler.FluidAction.SIMULATE);
+                            if (sim.isEmpty() || !Ecc2BridgePlatform.isWaterFluid(sim)) {
                                 return;
                             }
-                            handler.drain(sim, IFluidHandler.FluidAction.EXECUTE);
+                            FluidStack drained =
+                                    handler.drain(sim, IFluidHandler.FluidAction.EXECUTE);
+                            if (drained.isEmpty()) {
+                                return;
+                            }
                             ItemStack emptyContainer = handler.getContainer();
                             if (!canFitReturnSlot(emptyContainer)) {
                                 return;
                             }
-                            engine.fillWater(sim.getAmount(), false);
+                            engine.fillWater(drained.getAmount(), false);
                             inventory.extractItem(WASHER_IN_SLOT, 1, false);
                             placeInReturnSlot(emptyContainer);
                             setChanged();
@@ -1096,17 +1098,20 @@ public final class GiantMachineBlockEntity extends BlockEntity
                     if (fluidCap.isPresent()) {
                         int room = configuredWaterCapacity() - engine.waterMb();
                         if (room > 0) {
-                            FluidStack drained =
+                            FluidStack sim =
                                     fluidCap.get()
                                             .drain(
-                                                    new FluidStack(
-                                                            Fluids.WATER,
-                                                            Math.min(fluidBudget, room)),
-                                                    IFluidHandler.FluidAction.EXECUTE);
-                            if (!drained.isEmpty() && drained.getFluid() == Fluids.WATER) {
-                                engine.fillWater(drained.getAmount(), false);
-                                setChanged();
-                                break;
+                                                    Math.min(fluidBudget, room),
+                                                    IFluidHandler.FluidAction.SIMULATE);
+                            if (!sim.isEmpty() && Ecc2BridgePlatform.isWaterFluid(sim)) {
+                                FluidStack drained =
+                                        fluidCap.get()
+                                                .drain(sim, IFluidHandler.FluidAction.EXECUTE);
+                                if (!drained.isEmpty()) {
+                                    engine.fillWater(drained.getAmount(), false);
+                                    setChanged();
+                                    break;
+                                }
                             }
                         }
                     }
@@ -1133,7 +1138,7 @@ public final class GiantMachineBlockEntity extends BlockEntity
 
     private static boolean hasWaterFluid(ItemStack stack) {
         return FluidUtil.getFluidContained(stack)
-                .map(fs -> !fs.isEmpty() && fs.getFluid() == Fluids.WATER)
+                .map(Ecc2BridgePlatform::isWaterFluid)
                 .orElse(false);
     }
 
@@ -1291,12 +1296,12 @@ public final class GiantMachineBlockEntity extends BlockEntity
 
             @Override
             public boolean isFluidValid(int tank, @NotNull FluidStack stack) {
-                return stack.getFluid() == Fluids.WATER;
+                return Ecc2BridgePlatform.isWaterFluid(stack);
             }
 
             @Override
             public int fill(FluidStack resource, FluidAction action) {
-                if (!allowIn || resource.isEmpty() || resource.getFluid() != Fluids.WATER) {
+                if (!allowIn || !Ecc2BridgePlatform.isWaterFluid(resource)) {
                     return 0;
                 }
                 int room = Math.max(0, configuredWaterCapacity() - engine.waterMb());

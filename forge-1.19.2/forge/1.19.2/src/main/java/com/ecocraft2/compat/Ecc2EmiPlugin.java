@@ -16,11 +16,17 @@ import dev.emi.emi.api.recipe.VanillaEmiRecipeCategories;
 import dev.emi.emi.api.stack.EmiIngredient;
 import dev.emi.emi.api.stack.EmiStack;
 import dev.emi.emi.api.widget.WidgetHolder;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
 
@@ -81,12 +87,11 @@ public final class Ecc2EmiPlugin implements EmiPlugin {
             }
         }
 
-        Item coalDust = Ecc2BridgePlatform.findItem("ic2:coal_dust");
         registry.addRecipe(
                 new ProcessEmiRecipe(
                         waterGasCategory,
                         Ecc2BridgePlatform.rl("emi/water_gas/coal_dust"),
-                        EmiStack.of(coalDust != null ? coalDust : Items.COAL),
+                        itemChoices(collectCoalDustInputs()),
                         EmiStack.of(Fluids.WATER, 100),
                         EmiStack.of(GasRegistry.WATER_GAS.get(), 1000),
                         1000));
@@ -94,16 +99,8 @@ public final class Ecc2EmiPlugin implements EmiPlugin {
         registry.addRecipe(
                 new ProcessEmiRecipe(
                         cultureCategory,
-                        Ecc2BridgePlatform.rl("emi/culture_incubator/bonemeal"),
-                        EmiStack.of(Items.BONE_MEAL),
-                        EmiStack.of(Fluids.WATER, 100),
-                        EmiStack.of(GasRegistry.CULTURE_MEDIUM.get(), 100),
-                        200));
-        registry.addRecipe(
-                new ProcessEmiRecipe(
-                        cultureCategory,
-                        Ecc2BridgePlatform.rl("emi/culture_incubator/rotten_flesh"),
-                        EmiStack.of(Items.ROTTEN_FLESH),
+                        Ecc2BridgePlatform.rl("emi/culture_incubator/nutrients"),
+                        itemChoices(collectCultureNutrientInputs()),
                         EmiStack.of(Fluids.WATER, 100),
                         EmiStack.of(GasRegistry.CULTURE_MEDIUM.get(), 100),
                         200));
@@ -184,13 +181,52 @@ public final class Ecc2EmiPlugin implements EmiPlugin {
         }
     }
 
+    private static EmiIngredient itemChoices(List<ItemStack> stacks) {
+        if (stacks.size() == 1) {
+            return EmiStack.of(stacks.get(0));
+        }
+        return EmiIngredient.of(Ingredient.of(stacks.toArray(ItemStack[]::new)));
+    }
+
+    private static List<ItemStack> collectCoalDustInputs() {
+        Map<Item, ItemStack> unique = new LinkedHashMap<>();
+        Item coalDust = Ecc2BridgePlatform.findItem("ic2:coal_dust");
+        if (coalDust != null && coalDust != Items.AIR) {
+            unique.put(coalDust, new ItemStack(coalDust));
+        }
+        for (ItemStack tagged :
+                Ecc2BridgePlatform.allItemsInTag(
+                        Ecc2Ids.commonTag("forge", Ecc2Ids.COMMON_TAG_DUSTS_COAL), 1)) {
+            if (!tagged.isEmpty()) {
+                unique.putIfAbsent(tagged.getItem(), tagged);
+            }
+        }
+        if (unique.isEmpty()) {
+            unique.put(Items.COAL, new ItemStack(Items.COAL));
+        }
+        return new ArrayList<>(unique.values());
+    }
+
+    private static List<ItemStack> collectCultureNutrientInputs() {
+        Map<Item, ItemStack> unique = new LinkedHashMap<>();
+        unique.put(Items.BONE_MEAL, new ItemStack(Items.BONE_MEAL));
+        unique.put(Items.ROTTEN_FLESH, new ItemStack(Items.ROTTEN_FLESH));
+        for (ItemStack tagged :
+                Ecc2BridgePlatform.allItemsInTag(Ecc2Ids.TAG_CULTURE_NUTRIENTS, 1)) {
+            if (!tagged.isEmpty()) {
+                unique.putIfAbsent(tagged.getItem(), tagged);
+            }
+        }
+        return new ArrayList<>(unique.values());
+    }
+
     private static final class ProcessEmiRecipe extends BasicEmiRecipe {
         private final int euCost;
 
         ProcessEmiRecipe(
                 EmiRecipeCategory cat,
                 ResourceLocation id,
-                EmiStack itemIn,
+                EmiIngredient itemIn,
                 EmiStack fluidIn,
                 EmiStack fluidOut,
                 int euCost) {

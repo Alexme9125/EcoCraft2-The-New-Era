@@ -17,7 +17,6 @@ import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.inventory.SimpleContainerData;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 
 /** Container menu for {@code ecc2:culture_incubator} aligned to {@code culture_incubator.png}. */
 public final class CultureIncubatorMenu extends DeviceAccessMenu {
@@ -45,13 +44,13 @@ public final class CultureIncubatorMenu extends DeviceAccessMenu {
                                     CultureIncubatorBlockEntity.isNutrientInput(stack);
                             case CultureIncubatorBlockEntity.SLOT_WATER_CELL_IN ->
                                     GiantGasPlatform.isDrainableContainer(
-                                            stack, Ecc2Ids.MINECRAFT_WATER_ID::equals);
+                                            stack, GiantGasPlatform::isWaterFluid);
                             case CultureIncubatorBlockEntity.SLOT_CULTURE_CELL_IN ->
                                     GiantGasPlatform.isFillableContainer(
                                             stack, Ecc2Ids.CULTURE_MEDIUM_ID);
                             case CultureIncubatorBlockEntity.SLOT_BATTERY ->
                                     PortableGear.canDischarge(stack, 14)
-                                            || stack.is(Items.REDSTONE);
+                                            || GiantGasPlatform.isRedstoneDust(stack);
                             case 6, 7, 8, 9 ->
                                     Ecc2UpgradeHelper.isAcceptedUpgrade(stack, true, true);
                             default -> false;
@@ -162,7 +161,7 @@ public final class CultureIncubatorMenu extends DeviceAccessMenu {
             } else if (CultureIncubatorBlockEntity.isNutrientInput(stack)) {
                 moveItemStackTo(stack, 0, 1, false);
             } else if (GiantGasPlatform.isDrainableContainer(
-                    stack, Ecc2Ids.MINECRAFT_WATER_ID::equals)) {
+                    stack, GiantGasPlatform::isWaterFluid)) {
                 moveItemStackTo(stack, 1, 2, false);
             } else if (GiantGasPlatform.isFillableContainer(stack, Ecc2Ids.CULTURE_MEDIUM_ID)) {
                 moveItemStackTo(stack, 3, 4, false);

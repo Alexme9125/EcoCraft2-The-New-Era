@@ -61,6 +61,12 @@ class Ecc2ConfigAndIdsTest {
         assertEquals("pv_power_upgrade", Ecc2Ids.PV_POWER_UPGRADE_PATH);
         assertEquals("ecc2:pv_power_upgrade", Ecc2Ids.PV_POWER_UPGRADE_ID);
         assertEquals("ic2:carbon_rotor", Ecc2Ids.IC2_CARBON_ROTOR);
+        assertEquals("ecc2:gas_fuel", Ecc2Ids.TAG_GAS_FUEL);
+        assertEquals("ecc2:culture_nutrients", Ecc2Ids.TAG_CULTURE_NUTRIENTS);
+        assertEquals("c:water_gas", Ecc2Ids.commonTag("c", Ecc2Ids.COMMON_TAG_WATER_GAS));
+        assertEquals("forge:water_gas", Ecc2Ids.commonTag("forge", Ecc2Ids.COMMON_TAG_WATER_GAS));
+        assertEquals("c:tools/wrench", Ecc2Ids.commonTag("c", Ecc2Ids.COMMON_TAG_TOOLS_WRENCH));
+        assertEquals("forge:tools/wrench", Ecc2Ids.commonTag("forge", Ecc2Ids.COMMON_TAG_TOOLS_WRENCH));
     }
 
     @Test
@@ -94,11 +100,10 @@ class Ecc2ConfigAndIdsTest {
             assertFalse(src.contains("ecc2$tickVanillaRotorWear"), "Must remove duplicate vanilla wear in " + km);
         }
 
-        // Verify both entry points register ic2:uranium_ingot (and NOT ecc2:biogas_cell or ecc2:uranium_ingot)
-        for (Path entry : List.of(
-                repoRoot.resolve("src/neoforge/shared/src/main/java/com/ecocraft2/EcoCraft2.java"),
-                repoRoot.resolve("forge-1.19.2/forge/1.19.2/src/main/java/com/ecocraft2/EcoCraft2.java")
-        )) {
+        // Verify both entry points register ic2:uranium_ingot via platform-appropriate common tags
+        Path neoEntry = repoRoot.resolve("src/neoforge/shared/src/main/java/com/ecocraft2/EcoCraft2.java");
+        Path forgeEntry = repoRoot.resolve("forge-1.19.2/forge/1.19.2/src/main/java/com/ecocraft2/EcoCraft2.java");
+        for (Path entry : List.of(neoEntry, forgeEntry)) {
             String src = Files.readString(entry);
             assertFalse(src.contains("ecc2:biogas_cell"), "Must not register ecc2:biogas_cell in " + entry);
             assertFalse(src.contains("ecc2:uranium_ingot"), "Must not register ecc2:uranium_ingot in " + entry);
@@ -106,6 +111,20 @@ class Ecc2ConfigAndIdsTest {
             assertTrue(src.contains("ecc2:iridium_ingot"), "Must preserve ecc2:iridium_ingot in " + entry);
             assertFalse(src.contains("appendRotorTooltip"), "Must remove duplicate vanilla rotor tooltip in " + entry);
         }
+        String neoSrc = Files.readString(neoEntry);
+        assertTrue(neoSrc.contains("#c:ores/iridium"), "NeoForge compressor bridge must use #c:ores/iridium");
+        assertTrue(neoSrc.contains("#c:ores/uranium"), "NeoForge compressor bridge must use #c:ores/uranium");
+        assertFalse(neoSrc.contains("#forge:"), "NeoForge entry point must not leak #forge: tags");
+
+        String forgeSrc = Files.readString(forgeEntry);
+        assertTrue(forgeSrc.contains("#forge:ores/iridium"), "Forge 1.19.2 compressor bridge must use #forge:ores/iridium");
+        assertTrue(forgeSrc.contains("#forge:ores/uranium"), "Forge 1.19.2 compressor bridge must use #forge:ores/uranium");
+        assertFalse(forgeSrc.contains("#c:"), "Forge 1.19.2 entry point must not leak #c: tags");
+
+        // Common Ecc2Ids must remain platform-neutral without hardcoded "c:" tag literals
+        String idsSrc = Files.readString(
+                repoRoot.resolve("src/common/src/main/java/com/ecocraft2/common/config/Ecc2Ids.java"));
+        assertFalse(idsSrc.contains("\"c:"), "Common Ecc2Ids must not hardcode c: namespace");
 
         // Verify WTHIT metadata and 26.x EMI plugin exist
         assertTrue(Files.isRegularFile(repoRoot.resolve("src/neoforge/metadata/wthit_plugins.json")));

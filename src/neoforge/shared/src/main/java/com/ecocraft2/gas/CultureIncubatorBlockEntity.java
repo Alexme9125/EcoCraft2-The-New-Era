@@ -82,7 +82,7 @@ public final class CultureIncubatorBlockEntity extends GasMachineBlockEntityBase
             if (drawn > 0.0) {
                 engine.injectEu(drawn);
                 changed = true;
-            } else if (battery.is(Items.REDSTONE) && engine.demandedEu() >= 800.0) {
+            } else if (GiantGasPlatform.isRedstoneDust(battery) && engine.demandedEu() >= 800.0) {
                 engine.injectEu(800.0);
                 battery.shrink(1);
                 changed = true;
@@ -94,7 +94,7 @@ public final class CultureIncubatorBlockEntity extends GasMachineBlockEntityBase
                 drainContainerSlot(
                         SLOT_WATER_CELL_IN,
                         SLOT_WATER_CELL_OUT,
-                        Ecc2Ids.MINECRAFT_WATER_ID::equals,
+                        GiantGasPlatform::isWaterFluid,
                         CultureIncubatorEngine.WATER_TANK_CAPACITY_MB - engine.waterMb(),
                         (fid, amt) -> engine.fillWater(amt, false));
 
@@ -136,7 +136,7 @@ public final class CultureIncubatorBlockEntity extends GasMachineBlockEntityBase
                         level,
                         upgrades,
                         endpoints,
-                        Ecc2Ids.MINECRAFT_WATER_ID::equals,
+                        GiantGasPlatform::isWaterFluid,
                         (fid, amt) -> engine.fillWater(amt, false),
                         () -> CultureIncubatorEngine.WATER_TANK_CAPACITY_MB - engine.waterMb(),
                         () -> Ecc2Ids.CULTURE_MEDIUM_ID,
@@ -149,11 +149,16 @@ public final class CultureIncubatorBlockEntity extends GasMachineBlockEntityBase
         }
     }
 
-    /** Returns {@code true} if {@code stack} is an accepted nutrient input (Bone Meal or Rotten Flesh). */
+    /**
+     * Returns {@code true} if {@code stack} is an accepted nutrient input ({@code #ecc2:culture_nutrients},
+     * Bone Meal, or Rotten Flesh).
+     */
     public static boolean isNutrientInput(ItemStack stack) {
         return stack != null
                 && !stack.isEmpty()
-                && (stack.is(Items.BONE_MEAL) || stack.is(Items.ROTTEN_FLESH));
+                && (GiantGasPlatform.hasItemTag(stack, Ecc2Ids.TAG_CULTURE_NUTRIENTS)
+                        || stack.is(Items.BONE_MEAL)
+                        || stack.is(Items.ROTTEN_FLESH));
     }
 
     // ---- WorldPowerPort & EuBuffer ----
@@ -231,7 +236,7 @@ public final class CultureIncubatorBlockEntity extends GasMachineBlockEntityBase
 
             @Override
             public boolean acceptsFluid(int tank, String fluidId) {
-                return tank == 0 && Ecc2Ids.MINECRAFT_WATER_ID.equals(fluidId);
+                return tank == 0 && GiantGasPlatform.isWaterFluid(fluidId);
             }
 
             @Override
@@ -246,7 +251,7 @@ public final class CultureIncubatorBlockEntity extends GasMachineBlockEntityBase
 
             @Override
             public int fillFluid(int tank, String fluidId, int amount, boolean simulate) {
-                if ((tank != -1 && tank != 0) || !Ecc2Ids.MINECRAFT_WATER_ID.equals(fluidId)) {
+                if ((tank != -1 && tank != 0) || !GiantGasPlatform.isWaterFluid(fluidId)) {
                     return 0;
                 }
                 return engine.fillWater(amount, simulate);
@@ -293,12 +298,12 @@ public final class CultureIncubatorBlockEntity extends GasMachineBlockEntityBase
         return switch (slot) {
             case SLOT_BONEMEAL -> isNutrientInput(stack);
             case SLOT_WATER_CELL_IN ->
-                    GiantGasPlatform.isDrainableContainer(stack, Ecc2Ids.MINECRAFT_WATER_ID::equals);
+                    GiantGasPlatform.isDrainableContainer(stack, GiantGasPlatform::isWaterFluid);
             case SLOT_CULTURE_CELL_IN ->
                     GiantGasPlatform.isFillableContainer(stack, Ecc2Ids.CULTURE_MEDIUM_ID);
             case SLOT_BATTERY ->
                     PortableGear.canDischarge(stack, engine.inputTier())
-                            || stack.is(Items.REDSTONE);
+                            || GiantGasPlatform.isRedstoneDust(stack);
             case 6, 7, 8, 9 -> Ecc2UpgradeHelper.isAcceptedUpgrade(stack, true, true);
             default -> false;
         };
@@ -311,7 +316,7 @@ public final class CultureIncubatorBlockEntity extends GasMachineBlockEntityBase
         }
         if (slot == SLOT_BATTERY) {
             return PortableGear.canSupplyCharge(stack, engine.inputTier())
-                    || stack.is(Items.REDSTONE);
+                    || GiantGasPlatform.isRedstoneDust(stack);
         }
         return (slot == SLOT_BONEMEAL
                         || slot == SLOT_WATER_CELL_IN

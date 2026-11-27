@@ -1,6 +1,8 @@
 package com.ecocraft2.solar;
 
 import com.ecocraft2.bridge.Ecc2PowerConnectable;
+import com.ecocraft2.bridge.Ecc2WrenchHelper;
+import com.industrialage.ia2.wrench.WrenchTarget;
 import java.util.List;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
@@ -18,6 +20,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.HorizontalDirectionalBlock;
+import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
@@ -32,7 +35,8 @@ import net.minecraftforge.network.NetworkHooks;
 import org.jetbrains.annotations.Nullable;
 
 /** Creative-only configurable multi-packet EU generator block (no survival recipe). */
-public final class QuantumGeneratorBlock extends Block implements EntityBlock, Ecc2PowerConnectable {
+public final class QuantumGeneratorBlock extends Block
+        implements EntityBlock, Ecc2PowerConnectable, WrenchTarget {
 
     public static final DirectionProperty FACING = HorizontalDirectionalBlock.FACING;
     public static final BooleanProperty ACTIVE = BooleanProperty.create("active");
@@ -61,6 +65,11 @@ public final class QuantumGeneratorBlock extends Block implements EntityBlock, E
         return defaultBlockState()
                 .setValue(FACING, ctx.getHorizontalDirection().getOpposite())
                 .setValue(ACTIVE, !powered);
+    }
+
+    @Override
+    public BlockState rotate(BlockState state, Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
     }
 
     @Override
@@ -102,6 +111,10 @@ public final class QuantumGeneratorBlock extends Block implements EntityBlock, E
             Player player,
             InteractionHand hand,
             BlockHitResult hit) {
+        if (Ecc2WrenchHelper.tryHandleThirdPartyWrench(
+                this, state, level, pos, player, hand, hit.getDirection())) {
+            return InteractionResult.sidedSuccess(level.isClientSide);
+        }
         if (!level.isClientSide
                 && player instanceof ServerPlayer serverPlayer
                 && level.getBlockEntity(pos) instanceof QuantumGeneratorBlockEntity qg) {

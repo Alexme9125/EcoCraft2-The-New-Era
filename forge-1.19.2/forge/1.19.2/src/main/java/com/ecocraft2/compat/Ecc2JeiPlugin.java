@@ -9,7 +9,9 @@ import com.ecocraft2.solar.MolecularTransformerRecipe;
 import com.ecocraft2.solar.SolarKineticRegistry;
 import com.mojang.blaze3d.vertex.PoseStack;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
 import mezz.jei.api.constants.RecipeTypes;
@@ -59,7 +61,7 @@ public final class Ecc2JeiPlugin implements IModPlugin {
     public record GasFuelEntry(FluidStack fluid, int euPerBucket, int euPerTick) {}
 
     public record SimpleProcessEntry(
-            ItemStack inputItem, FluidStack inputFluid, FluidStack outputFluid, int euCost) {}
+            List<ItemStack> inputItems, FluidStack inputFluid, FluidStack outputFluid, int euCost) {}
 
     @Override
     public ResourceLocation getPluginUid() {
@@ -123,12 +125,11 @@ public final class Ecc2JeiPlugin implements IModPlugin {
         }
         registration.addRecipes(GAS_GEN_TYPE, fuels);
 
-        Item coalDust = Ecc2BridgePlatform.findItem("ic2:coal_dust");
         registration.addRecipes(
                 WATER_GAS_TYPE,
                 List.of(
                         new SimpleProcessEntry(
-                                new ItemStack(coalDust != null ? coalDust : Items.COAL),
+                                collectCoalDustInputs(),
                                 new FluidStack(Fluids.WATER, 100),
                                 new FluidStack(GasRegistry.WATER_GAS.get(), 1000),
                                 1000)));
@@ -137,12 +138,7 @@ public final class Ecc2JeiPlugin implements IModPlugin {
                 CULTURE_TYPE,
                 List.of(
                         new SimpleProcessEntry(
-                                new ItemStack(Items.BONE_MEAL),
-                                new FluidStack(Fluids.WATER, 100),
-                                new FluidStack(GasRegistry.CULTURE_MEDIUM.get(), 100),
-                                200),
-                        new SimpleProcessEntry(
-                                new ItemStack(Items.ROTTEN_FLESH),
+                                collectCultureNutrientInputs(),
                                 new FluidStack(Fluids.WATER, 100),
                                 new FluidStack(GasRegistry.CULTURE_MEDIUM.get(), 100),
                                 200)));
@@ -155,21 +151,53 @@ public final class Ecc2JeiPlugin implements IModPlugin {
                     FERMENTER_TYPE,
                     List.of(
                             new SimpleProcessEntry(
-                                    new ItemStack(Items.APPLE),
+                                    List.of(new ItemStack(Items.APPLE)),
                                     new FluidStack(GasRegistry.CULTURE_MEDIUM.get(), cultureCost),
                                     new FluidStack(biogas, 4 * perHunger),
                                     200),
                             new SimpleProcessEntry(
-                                    new ItemStack(Items.BREAD),
+                                    List.of(new ItemStack(Items.BREAD)),
                                     new FluidStack(GasRegistry.CULTURE_MEDIUM.get(), cultureCost),
                                     new FluidStack(biogas, 5 * perHunger),
                                     200),
                             new SimpleProcessEntry(
-                                    new ItemStack(Items.COOKED_BEEF),
+                                    List.of(new ItemStack(Items.COOKED_BEEF)),
                                     new FluidStack(GasRegistry.CULTURE_MEDIUM.get(), cultureCost),
                                     new FluidStack(biogas, 8 * perHunger),
                                     200)));
         }
+    }
+
+    private static List<ItemStack> collectCoalDustInputs() {
+        Map<Item, ItemStack> unique = new LinkedHashMap<>();
+        Item coalDust = Ecc2BridgePlatform.findItem("ic2:coal_dust");
+        if (coalDust != null && coalDust != Items.AIR) {
+            unique.put(coalDust, new ItemStack(coalDust));
+        }
+        for (ItemStack tagged :
+                Ecc2BridgePlatform.allItemsInTag(
+                        Ecc2Ids.commonTag("forge", Ecc2Ids.COMMON_TAG_DUSTS_COAL), 1)) {
+            if (!tagged.isEmpty()) {
+                unique.putIfAbsent(tagged.getItem(), tagged);
+            }
+        }
+        if (unique.isEmpty()) {
+            unique.put(Items.COAL, new ItemStack(Items.COAL));
+        }
+        return new ArrayList<>(unique.values());
+    }
+
+    private static List<ItemStack> collectCultureNutrientInputs() {
+        Map<Item, ItemStack> unique = new LinkedHashMap<>();
+        unique.put(Items.BONE_MEAL, new ItemStack(Items.BONE_MEAL));
+        unique.put(Items.ROTTEN_FLESH, new ItemStack(Items.ROTTEN_FLESH));
+        for (ItemStack tagged :
+                Ecc2BridgePlatform.allItemsInTag(Ecc2Ids.TAG_CULTURE_NUTRIENTS, 1)) {
+            if (!tagged.isEmpty()) {
+                unique.putIfAbsent(tagged.getItem(), tagged);
+            }
+        }
+        return new ArrayList<>(unique.values());
     }
 
     @Override
@@ -339,7 +367,7 @@ public final class Ecc2JeiPlugin implements IModPlugin {
         @Override
         public void setRecipe(
                 IRecipeLayoutBuilder builder, SimpleProcessEntry recipe, IFocusGroup focuses) {
-            builder.addSlot(RecipeIngredientRole.INPUT, 10, 14).addItemStack(recipe.inputItem());
+            builder.addSlot(RecipeIngredientRole.INPUT, 10, 14).addItemStacks(recipe.inputItems());
             builder.addSlot(RecipeIngredientRole.INPUT, 34, 14)
                     .addIngredient(ForgeTypes.FLUID_STACK, recipe.inputFluid())
                     .setFluidRenderer(Math.max(100, recipe.inputFluid().getAmount()), false, 16, 16);

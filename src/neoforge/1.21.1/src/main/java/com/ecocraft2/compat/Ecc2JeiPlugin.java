@@ -756,15 +756,15 @@ public final class Ecc2JeiPlugin implements IModPlugin {
                 IRecipeLayoutBuilder builder,
                 CompatRecipes.Ic2BridgeEntry recipe,
                 IFocusGroup focuses) {
-            if (!recipe.inputs().isEmpty()) {
+            if (!recipe.inputSlots().isEmpty()) {
                 builder.addSlot(RecipeIngredientRole.INPUT, 10, 22)
                         .setBackground(slotBg, -1, -1)
-                        .addItemStack(recipe.inputs().get(0));
+                        .addItemStacks(recipe.inputSlots().get(0));
             }
-            if (recipe.inputs().size() > 1) {
+            if (recipe.inputSlots().size() > 1) {
                 builder.addSlot(RecipeIngredientRole.INPUT, 32, 22)
                         .setBackground(slotBg, -1, -1)
-                        .addItemStack(recipe.inputs().get(1));
+                        .addItemStacks(recipe.inputSlots().get(1));
             }
             builder.addSlot(RecipeIngredientRole.OUTPUT, 94, 22)
                     .setBackground(slotBg, -1, -1)

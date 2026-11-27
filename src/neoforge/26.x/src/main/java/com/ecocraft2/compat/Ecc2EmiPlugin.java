@@ -380,8 +380,8 @@ public final class Ecc2EmiPlugin implements EmiPlugin {
         Ic2BridgeEmiRecipe(EmiRecipeCategory category, CompatRecipes.Ic2BridgeEntry entry) {
             super(category, syntheticId(entry.id()), 172, 48);
             this.entry = entry;
-            for (ItemStack in : entry.inputs()) {
-                this.inputs.add(EmiStack.of(in));
+            for (List<ItemStack> slotChoices : entry.inputSlots()) {
+                this.inputs.add(itemChoices(slotChoices));
             }
             this.outputs.add(EmiStack.of(entry.output()));
             if (!entry.catalystMachines().isEmpty()) {

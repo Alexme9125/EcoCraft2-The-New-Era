@@ -1,6 +1,7 @@
 package com.ecocraft2;
 
 import com.ecocraft2.bridge.Ecc2ExternalRecipes;
+import com.ecocraft2.bridge.Ecc2WrenchHelper;
 import com.ecocraft2.client.Ecc2ClientSetup;
 import com.ecocraft2.common.config.Ecc2Ids;
 import com.ecocraft2.compat.Ecc2TopCompat;
@@ -12,12 +13,16 @@ import com.ecocraft2.network.Ecc2Network;
 import com.ecocraft2.registry.Ecc2Registries;
 import com.ecocraft2.solar.SolarHelmetItem;
 import com.ecocraft2.solar.SolarKineticRegistry;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.crafting.CraftingHelper;
 import net.minecraftforge.event.entity.player.PlayerEvent;
+import net.minecraftforge.event.entity.player.PlayerInteractEvent;
+import net.minecraftforge.eventbus.api.Event;
+import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.ModList;
@@ -65,6 +70,7 @@ public final class EcoCraft2 {
 
         IEventBus gameBus = MinecraftForge.EVENT_BUS;
         gameBus.addListener(this::onPlayerLoggedOut);
+        gameBus.addListener(EventPriority.LOW, this::onRightClickBlock);
 
         DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> Ecc2ClientSetup.register(modBus));
 
@@ -91,6 +97,29 @@ public final class EcoCraft2 {
         SolarHelmetItem.clearPlayerEngine(event.getEntity().getUUID());
     }
 
+    private void onRightClickBlock(PlayerInteractEvent.RightClickBlock event) {
+        if (event.isCanceled() || event.getUseBlock() == Event.Result.DENY) {
+            return;
+        }
+        var level = event.getLevel();
+        var pos = event.getPos();
+        var state = level.getBlockState(pos);
+        if (!Ecc2WrenchHelper.isEcc2WrenchTarget(state.getBlock())) {
+            return;
+        }
+        if (Ecc2WrenchHelper.tryHandleThirdPartyWrench(
+                state.getBlock(),
+                state,
+                level,
+                pos,
+                event.getEntity(),
+                event.getHand(),
+                event.getFace())) {
+            event.setCanceled(true);
+            event.setCancellationResult(InteractionResult.sidedSuccess(level.isClientSide));
+        }
+    }
+
     private static void registerDefaultIc2Bridges() {
         // 1. Named 1000 mB fluid cells bridged into IC2NE CellFamily & CellItem & TransportPlatform.
         // Biogas cells reuse ic2:biogas_cell natively.
@@ -105,18 +134,20 @@ public final class EcoCraft2 {
         Ecc2ExternalRecipes.registerCanningBottle(
                 "ic2:fluid_cell", 1, "ecc2:methane_ice_cluster", 3, "ecc2:natural_gas_cell", 1);
 
-        // 3. ASP 2 compressor recipes (Iridium Ore -> ecc2:iridium_ingot; Uranium ores/dusts/fuel -> ic2:uranium_ingot).
-        Ecc2ExternalRecipes.registerCompressor("ic2:iridium_ore", 1, "ecc2:iridium_ingot", 1);
+        // 3. ASP 2 compressor recipes via #forge: common tags (Iridium -> ecc2:iridium_ingot; Uranium -> ic2:uranium_ingot).
+        Ecc2ExternalRecipes.registerCompressor("#forge:ores/iridium", 1, "ecc2:iridium_ingot", 1);
         Ecc2ExternalRecipes.registerCompressor(
-                "ic2:uranium_ore", 1, Ecc2Ids.IC2_URANIUM_INGOT, 1);
+                "#forge:raw_materials/iridium", 1, "ecc2:iridium_ingot", 1);
         Ecc2ExternalRecipes.registerCompressor(
-                "ic2:deepslate_uranium_ore", 1, Ecc2Ids.IC2_URANIUM_INGOT, 1);
+                "#forge:ores/uranium", 1, Ecc2Ids.IC2_URANIUM_INGOT, 1);
         Ecc2ExternalRecipes.registerCompressor(
-                "ic2:raw_uranium", 1, Ecc2Ids.IC2_URANIUM_INGOT, 1);
+                "#forge:raw_materials/uranium", 1, Ecc2Ids.IC2_URANIUM_INGOT, 1);
         Ecc2ExternalRecipes.registerCompressor(
-                "ic2:crushed_uranium", 1, Ecc2Ids.IC2_URANIUM_INGOT, 1);
+                "#forge:crushed_raw_materials/uranium", 1, Ecc2Ids.IC2_URANIUM_INGOT, 1);
         Ecc2ExternalRecipes.registerCompressor(
-                "ic2:purified_uranium", 1, Ecc2Ids.IC2_URANIUM_INGOT, 1);
+                "#forge:purified_ores/uranium", 1, Ecc2Ids.IC2_URANIUM_INGOT, 1);
+        Ecc2ExternalRecipes.registerCompressor(
+                "#forge:dusts/uranium", 1, Ecc2Ids.IC2_URANIUM_INGOT, 1);
         Ecc2ExternalRecipes.registerCompressor("ic2:uranium", 1, Ecc2Ids.IC2_URANIUM_INGOT, 1);
 
         // 4. ASP 2 metal former extruding recipe (Reinforced Iridium Plate ic2:iridium -> ecc2:iridium_ingot).

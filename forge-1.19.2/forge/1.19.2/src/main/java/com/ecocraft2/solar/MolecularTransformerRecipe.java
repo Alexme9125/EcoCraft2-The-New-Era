@@ -84,7 +84,11 @@ public final class MolecularTransformerRecipe implements Recipe<Container> {
     }
 
     public boolean isAvailable() {
-        return !resolveOutput().isEmpty() && energy > 0L;
+        return input != null
+                && !input.isEmpty()
+                && input.getItems().length > 0
+                && !resolveOutput().isEmpty()
+                && energy > 0L;
     }
 
     @Override

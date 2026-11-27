@@ -2,6 +2,7 @@ package com.ecocraft2.gas;
 
 import com.ecocraft2.bridge.Ecc2BridgePlatform;
 import com.ecocraft2.bridge.Ecc2EnergyHelper;
+import com.ecocraft2.common.config.Ecc2Ids;
 import com.ecocraft2.common.gas.CultureIncubatorEngine;
 import com.ecocraft2.common.gas.GasMachineOutcome;
 import com.industrialage.ia2.access.MachineAccess;
@@ -164,13 +165,13 @@ public final class CultureIncubatorBlockEntity extends BlockEntity
                 @Override
                 public boolean isFluidValid(int tank, @NotNull FluidStack stack) {
                     return tank == 0
-                            ? stack.getFluid() == Fluids.WATER
+                            ? Ecc2BridgePlatform.isWaterFluid(stack)
                             : stack.getFluid() == GasRegistry.CULTURE_MEDIUM.get();
                 }
 
                 @Override
                 public int fill(FluidStack resource, FluidAction action) {
-                    if (resource.isEmpty() || resource.getFluid() != Fluids.WATER) {
+                    if (resource.isEmpty() || !Ecc2BridgePlatform.isWaterFluid(resource)) {
                         return 0;
                     }
                     int accepted = engine.fillWater(resource.getAmount(), action.simulate());
@@ -236,11 +237,16 @@ public final class CultureIncubatorBlockEntity extends BlockEntity
         super(GasRegistry.CULTURE_INCUBATOR_BE.get(), pos, state);
     }
 
-    /** Returns {@code true} if {@code stack} is an accepted nutrient input (Bone Meal or Rotten Flesh). */
+    /**
+     * Returns {@code true} if {@code stack} is an accepted nutrient input ({@code #ecc2:culture_nutrients},
+     * Bone Meal, or Rotten Flesh).
+     */
     public static boolean isNutrientInput(ItemStack stack) {
         return stack != null
                 && !stack.isEmpty()
-                && (stack.is(Items.BONE_MEAL) || stack.is(Items.ROTTEN_FLESH));
+                && (Ecc2BridgePlatform.hasItemTag(stack, Ecc2Ids.TAG_CULTURE_NUTRIENTS)
+                        || stack.is(Items.BONE_MEAL)
+                        || stack.is(Items.ROTTEN_FLESH));
     }
 
     public CultureIncubatorEngine engine() {
@@ -288,7 +294,7 @@ public final class CultureIncubatorBlockEntity extends BlockEntity
                 SLOT_WATER_IN,
                 SLOT_WATER_OUT,
                 CultureIncubatorEngine.WATER_TANK_CAPACITY_MB - engine.waterMb(),
-                fs -> fs.getFluid() == Fluids.WATER,
+                Ecc2BridgePlatform::isWaterFluid,
                 fs -> engine.fillWater(fs.getAmount(), false))) {
             setChanged();
         }
@@ -328,7 +334,7 @@ public final class CultureIncubatorBlockEntity extends BlockEntity
                             serverLevel,
                             this,
                             upgrades,
-                            fs -> fs.getFluid() == Fluids.WATER,
+                            Ecc2BridgePlatform::isWaterFluid,
                             () -> CultureIncubatorEngine.WATER_TANK_CAPACITY_MB - engine.waterMb(),
                             fs -> engine.fillWater(fs.getAmount(), false),
                             () ->

@@ -17,8 +17,11 @@ from PIL import Image
 
 from generate_data import (
     ALL_PLACEABLE_BLOCKS,
+    DYEABLE_HELMETS,
     FLUID_BLOCKS,
     GIANT_KINDS,
+    GIANT_UNIT_BLOCKS,
+    SOLAR_HELMETS,
     STANDALONE_ITEMS,
     TARGETS,
     TargetConfig,
@@ -31,7 +34,22 @@ TEX_ROOT = ASSETS_ROOT / "textures"
 LANG_ROOT = ASSETS_ROOT / "lang"
 GUI_COORDS_PATH = Path(__file__).resolve().parent / "gui_coordinates.json"
 IC2_LIBS_DIR = Path(os.environ.get("ECC2_IC2_LIBS_DIR", str(REPO_ROOT.parent / ".ic2-libs")))
-IC2_REF_JAR = IC2_LIBS_DIR / "ic2-neoforge-1.21.1-1.0.8.jar"
+IC2_REF_JAR = IC2_LIBS_DIR / "ic2-neoforge-1.21.1-1.0.11.jar"
+
+FORBIDDEN_HARDCODED_RECIPE_ITEMS = {
+    "ic2:iron_plate",
+    "ic2:copper_plate",
+    "ic2:tin_plate",
+    "ic2:steel_plate",
+    "ic2:rubber",
+    "ic2:circuit",
+    "ic2:advanced_circuit",
+    "minecraft:glass",
+    "minecraft:glowstone_dust",
+    "minecraft:redstone",
+    "minecraft:lapis_block",
+    "minecraft:nether_star",
+}
 
 PATH_RE = re.compile(r"^[a-z0-9/._-]+$")
 
@@ -45,7 +63,7 @@ class Verifier:
         self.errors.append(msg)
 
     def load_ic2_known_ids(self) -> Set[str]:
-        """Load verified IC2NE 1.0.6 item/block IDs from read-only local JAR if present."""
+        """Load verified IC2NE 1.0.11 item/block IDs from read-only local JAR if present."""
         if not IC2_REF_JAR.exists():
             return set()
         with zipfile.ZipFile(IC2_REF_JAR) as z:
@@ -304,7 +322,12 @@ class Verifier:
             if item_id.startswith("ecc2:") and item_id not in ecc2_valid:
                 self.fail(f"[{target}] Unknown ecc2 item {item_id} in {src}")
             if item_id.startswith("ic2:") and ic2_ids and item_id not in ic2_ids:
-                self.fail(f"[{target}] Unknown IC2NE 1.0.6 item {item_id} in {src}")
+                self.fail(f"[{target}] Unknown IC2NE 1.0.11 item {item_id} in {src}")
+
+        def check_ingredient_item(item_id: str, src: str) -> None:
+            check_item_id(item_id, src)
+            if not item_id.startswith("#") and item_id in FORBIDDEN_HARDCODED_RECIPE_ITEMS:
+                self.fail(f"[{target}] Hardcoded item {item_id} should use a common tag in {src}")
 
         for rf in craft_files:
             doc = json.loads(rf.read_text(encoding="utf-8"))
@@ -323,24 +346,24 @@ class Verifier:
                         if not isinstance(v, str):
                             self.fail(f"[{target}] 26.x shaped key {k} in {rf.name} must be string, got {type(v)}")
                         else:
-                            check_item_id(v, rf.name)
+                            check_ingredient_item(v, rf.name)
                     else:
                         if not isinstance(v, dict) or not ("item" in v or "tag" in v):
                             self.fail(f"[{target}] {target} shaped key {k} in {rf.name} must be item/tag dict")
                         elif "item" in v:
-                            check_item_id(v["item"], rf.name)
+                            check_ingredient_item(v["item"], rf.name)
             elif doc.get("type") in ("minecraft:crafting_shapeless", "ecc2:solar_helmet_upgrade"):
                 for ing in doc.get("ingredients", []):
                     if cfg.is_26x:
                         if not isinstance(ing, str):
                             self.fail(f"[{target}] 26.x shapeless ingredient in {rf.name} must be string")
                         else:
-                            check_item_id(ing, rf.name)
+                            check_ingredient_item(ing, rf.name)
                     else:
                         if not isinstance(ing, dict) or not ("item" in ing or "tag" in ing):
                             self.fail(f"[{target}] {target} shapeless ingredient in {rf.name} must be item/tag dict")
                         elif "item" in ing:
-                            check_item_id(ing["item"], rf.name)
+                            check_ingredient_item(ing["item"], rf.name)
 
         for mf in mt_files:
             doc = json.loads(mf.read_text(encoding="utf-8"))
@@ -377,7 +400,108 @@ class Verifier:
             if not p.exists():
                 self.fail(f"[{target}] Missing worldgen file: {p.relative_to(out_dir)}")
 
+        # 7. Common Tag directory, namespace, rename, parent-aggregation, and version gates
+        self._verify_common_tags(target, cfg, out_dir, rdir)
+
         return stats
+
+    def _verify_common_tags(self, target: str, cfg: TargetConfig, out_dir: Path, rdir: Path) -> None:
+        data_root = out_dir / "data"
+        forbidden_ns = "c" if cfg.is_1192 else "forge"
+        if (data_root / forbidden_ns).exists():
+            self.fail(f"[{target}] Forbidden tag/data namespace directory data/{forbidden_ns}/ present")
+
+        bad_tag_dirs = {"item", "block", "fluid"} if cfg.is_1192 else {"items", "blocks", "fluids"}
+        for ns_dir in data_root.iterdir():
+            tags_dir = ns_dir / "tags"
+            if not tags_dir.is_dir():
+                continue
+            for sub in tags_dir.iterdir():
+                if sub.name in bad_tag_dirs:
+                    self.fail(f"[{target}] Wrong singular/plural tag directory: {sub.relative_to(out_dir)}")
+
+        # Scan all data JSONs for namespace leakage (c:/neoforge: on 1.19.2; forge: on 1.21+/26.x)
+        leak_tokens = ('"c:', '"#c:', '"neoforge:', '"#neoforge:') if cfg.is_1192 else ('"forge:', '"#forge:')
+        for jp in sorted(data_root.rglob("*.json")):
+            raw = jp.read_text(encoding="utf-8")
+            for tok in leak_tokens:
+                if tok in raw:
+                    self.fail(f"[{target}] Namespace leak {tok} in {jp.relative_to(out_dir)}")
+
+        def read_tag_values(ns: str, kind_dir: str, rel_name: str) -> List[Any]:
+            tp = data_root / ns / "tags" / kind_dir / f"{rel_name}.json"
+            if not tp.exists():
+                self.fail(f"[{target}] Missing required tag: {tp.relative_to(out_dir)}")
+                return []
+            return json.loads(tp.read_text(encoding="utf-8")).get("values", [])
+
+        ns = cfg.common_ns
+        # Parent aggregation gates
+        assert_pairs = [
+            (ns, cfg.tag_item_dir, "ingots/iridium", ["ecc2:iridium_ingot"]),
+            (ns, cfg.tag_item_dir, "ingots", [f"#{ns}:ingots/iridium"]),
+            (ns, cfg.tag_item_dir, "armors/helmets", [f"ecc2:{h}" for h in SOLAR_HELMETS]),
+            (ns, cfg.tag_item_dir, "armors", [f"#{ns}:armors/helmets"]),
+            (ns, cfg.tag_item_dir, "plates/iridium_iron", ["ecc2:iridium_iron_plate"]),
+            (ns, cfg.tag_item_dir, "plates/reinforced_iridium_iron", ["ecc2:reinforced_iridium_iron_plate"]),
+            (ns, cfg.tag_item_dir, "plates/irradiant_reinforced", ["ecc2:irradiant_reinforced_plate"]),
+            (ns, cfg.tag_item_dir, "plates", [f"#{ns}:plates/iridium_iron", f"#{ns}:plates/reinforced_iridium_iron", f"#{ns}:plates/irradiant_reinforced"]),
+            (ns, cfg.tag_item_dir, "buckets/water_gas", ["ecc2:water_gas_bucket"]),
+            (ns, cfg.tag_item_dir, "buckets/natural_gas", ["ecc2:natural_gas_bucket"]),
+            (ns, cfg.tag_item_dir, "buckets/culture_medium", ["ecc2:culture_medium_bucket"]),
+            (ns, cfg.tag_item_dir, "buckets", [f"#{ns}:buckets/water_gas", f"#{ns}:buckets/natural_gas", f"#{ns}:buckets/culture_medium"]),
+            (ns, cfg.tag_block_dir, "relocation_not_supported", [f"ecc2:{b}" for b in GIANT_UNIT_BLOCKS + ["molecular_transformer"]]),
+            (ns, cfg.tag_block_dir, "ores/methane_ice", ["ecc2:methane_ice_cluster"]),
+            (ns, cfg.tag_item_dir, "ores/methane_ice", ["ecc2:methane_ice_cluster"]),
+            ("ecc2", cfg.tag_fluid_dir, "gas_fuel", [f"#{ns}:water_gas", f"#{ns}:natural_gas"]),
+            ("ecc2", cfg.tag_item_dir, "culture_nutrients", ["minecraft:bone_meal", "minecraft:rotten_flesh"]),
+        ]
+        for t_ns, kdir, t_name, required_vals in assert_pairs:
+            vals = read_tag_values(t_ns, kdir, t_name)
+            for rv in required_vals:
+                if rv not in vals:
+                    self.fail(f"[{target}] Tag {t_ns}:{t_name} missing required entry {rv}")
+
+        # Negative guards: methane_ice MUST NOT pollute parent ores; irradiant_glass_pane MUST NOT pollute glass_panes
+        if (data_root / ns / "tags" / cfg.tag_block_dir / "ores.json").exists():
+            self.fail(f"[{target}] methane_ice_cluster must NOT emit parent {ns}:ores block tag")
+        if (data_root / ns / "tags" / cfg.tag_item_dir / "ores.json").exists():
+            self.fail(f"[{target}] methane_ice_cluster must NOT emit parent {ns}:ores item tag")
+        if (data_root / ns / "tags" / cfg.tag_item_dir / "glass_panes.json").exists():
+            self.fail(f"[{target}] irradiant_glass_pane must NOT emit {ns}:glass_panes item tag")
+
+        # 1.21+ exclusive vanilla/common tags must NOT appear on Forge 1.19.2
+        v121_only_paths = [
+            data_root / "minecraft" / "tags" / cfg.tag_item_dir / "dyeable.json",
+            data_root / "minecraft" / "tags" / cfg.tag_item_dir / "head_armor.json",
+            data_root / "minecraft" / "tags" / cfg.tag_item_dir / "enchantable" / "armor.json",
+            data_root / "minecraft" / "tags" / cfg.tag_item_dir / "enchantable" / "head_armor.json",
+            data_root / "minecraft" / "tags" / cfg.tag_item_dir / "enchantable" / "equippable.json",
+            data_root / ns / "tags" / cfg.tag_fluid_dir / "gaseous.json",
+        ]
+        for p in v121_only_paths:
+            if cfg.is_1192 and p.exists():
+                self.fail(f"[{target}] 1.21+ exclusive tag must not exist on 1.19.2: {p.relative_to(out_dir)}")
+            if not cfg.is_1192 and not p.exists():
+                self.fail(f"[{target}] Missing 1.21+ tag: {p.relative_to(out_dir)}")
+
+        # Cross-version tag rename checks
+        ci_doc = json.loads((rdir / "culture_incubator.json").read_text(encoding="utf-8"))
+        ci_glass = ci_doc["key"]["G"]
+        expected_glass = "forge:glass" if cfg.is_1192 else "c:glass_blocks"
+        actual_glass = ci_glass[1:] if isinstance(ci_glass, str) else ci_glass.get("tag", "")
+        if actual_glass != expected_glass:
+            self.fail(f"[{target}] culture_incubator glass key expected {expected_glass}, got {actual_glass!r}")
+
+        nr_doc = json.loads((rdir / "molecular_transformer" / "netherrack_to_gunpowder.json").read_text(encoding="utf-8"))
+        expected_nr = "forge:netherrack" if cfg.is_1192 else "c:netherracks"
+        if nr_doc.get("input", {}).get("tag") != expected_nr:
+            self.fail(f"[{target}] netherrack_to_gunpowder expected {expected_nr}, got {nr_doc.get('input')}")
+
+        sd_doc = json.loads((rdir / "molecular_transformer" / "sand_to_gravel.json").read_text(encoding="utf-8"))
+        expected_sd = "forge:sand" if cfg.is_1192 else "c:sands"
+        if sd_doc.get("input", {}).get("tag") != expected_sd:
+            self.fail(f"[{target}] sand_to_gravel expected {expected_sd}, got {sd_doc.get('input')}")
 
 
 def main() -> None:
@@ -403,7 +527,7 @@ def main() -> None:
     print(f"PNG textures: {v.stats.get('png_count', 0)} | .mcmeta animations: {v.stats.get('mcmeta_count', 0)}")
     print(f"GUIs documented in gui_coordinates.json: {v.stats.get('gui_count', 0)} (+ port_access_gear icon)")
     print(f"Lang keys: en_us={v.stats.get('lang_keys_en', 0)}, zh_cn={v.stats.get('lang_keys_zh', 0)}")
-    print(f"IC2NE 1.0.6 IDs cross-checked: {len(ic2_ids)}")
+    print(f"IC2NE 1.0.11 IDs cross-checked: {len(ic2_ids)}")
     for t, st in target_stats.items():
         print(f"  Target {t:16s}: {st} (total={sum(st.values())} JSONs)")
 

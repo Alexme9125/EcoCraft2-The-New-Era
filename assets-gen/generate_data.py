@@ -120,6 +120,36 @@ STANDALONE_ITEMS = (
 )
 
 
+# Canonical 1.21+ common tag path -> (Forge 1.19.2 path, NeoForge 1.21+ c: path).
+# Legacy 1.19.2 singular aliases are also accepted so callers cannot silently emit wrong names.
+COMMON_TAG_RENAMES: Dict[str, Tuple[str, str]] = {
+    "glass_blocks": ("glass", "glass_blocks"),
+    "glass": ("glass", "glass_blocks"),
+    "sands": ("sand", "sands"),
+    "sand": ("sand", "sands"),
+    "netherracks": ("netherrack", "netherracks"),
+    "netherrack": ("netherrack", "netherracks"),
+    "cobblestones": ("cobblestone", "cobblestones"),
+    "cobblestone": ("cobblestone", "cobblestones"),
+    "stones": ("stone", "stones"),
+    "stone": ("stone", "stones"),
+    "obsidians": ("obsidian", "obsidians"),
+    "obsidian": ("obsidian", "obsidians"),
+    "gravels": ("gravel", "gravels"),
+    "gravel": ("gravel", "gravels"),
+    "slime_balls": ("slimeballs", "slime_balls"),
+    "slimeballs": ("slimeballs", "slime_balls"),
+    "leathers": ("leather", "leathers"),
+    "leather": ("leather", "leathers"),
+    "strings": ("string", "strings"),
+    "string": ("string", "strings"),
+    "gunpowders": ("gunpowder", "gunpowders"),
+    "gunpowder": ("gunpowder", "gunpowders"),
+    "tools/shear": ("shears", "tools/shear"),
+    "shears": ("shears", "tools/shear"),
+}
+
+
 class TargetConfig:
     def __init__(self, target: str) -> None:
         if target not in TARGETS:
@@ -141,8 +171,14 @@ class TargetConfig:
         self.cond_not = "forge:not" if self.is_1192 else "neoforge:not"
         self.cond_tag_empty = "forge:tag_empty" if self.is_1192 else "neoforge:tag_empty"
 
+    def common_tag_path(self, common_path: str) -> str:
+        mapped = COMMON_TAG_RENAMES.get(common_path)
+        if mapped is not None:
+            return mapped[0] if self.is_1192 else mapped[1]
+        return common_path
+
     def tag(self, common_path: str) -> str:
-        return f"#{self.common_ns}:{common_path}"
+        return f"#{self.common_ns}:{self.common_tag_path(common_path)}"
 
     def ingredient(self, spec: str) -> Any:
         """Convert 'ns:id' or '#ns:tag' into version-accurate crafting ingredient JSON."""
@@ -596,7 +632,7 @@ def generate_crafting_recipes(out_root: Path, cfg: TargetConfig) -> int:
         cfg, ["AAA", "ASA", "AAA"], {"A": "ic2:alloy", "S": "ecc2:sunnarium"}, "ecc2:sunnarium_alloy",
     ))
     emit("irradiant_uranium", shaped(
-        cfg, ["GGG", "GUG", "GGG"], {"G": "minecraft:glowstone_dust", "U": cfg.tag("ingots/uranium")}, "ecc2:irradiant_uranium",
+        cfg, ["GGG", "GUG", "GGG"], {"G": cfg.tag("dusts/glowstone"), "U": cfg.tag("ingots/uranium")}, "ecc2:irradiant_uranium",
     ))
     emit("enriched_sunnarium", shaped(
         cfg, ["UUU", "USU", "UUU"], {"U": "ecc2:irradiant_uranium", "S": "ecc2:sunnarium"}, "ecc2:enriched_sunnarium",
@@ -606,11 +642,11 @@ def generate_crafting_recipes(out_root: Path, cfg: TargetConfig) -> int:
     ))
     emit("irradiant_glass_pane", shaped(
         cfg, ["GGG", "DSD", "GGG"],
-        {"G": "ic2:reinforced_glass", "D": "minecraft:glowstone_dust", "S": "ecc2:sunnarium_part"},
+        {"G": "ic2:reinforced_glass", "D": cfg.tag("dusts/glowstone"), "S": "ecc2:sunnarium_part"},
         "ecc2:irradiant_glass_pane", 6,
     ))
     emit("iridium_iron_plate", shaped(
-        cfg, ["III", "IRI", "III"], {"I": "ic2:iron_plate", "R": cfg.tag("ingots/iridium")}, "ecc2:iridium_iron_plate",
+        cfg, ["III", "IRI", "III"], {"I": cfg.tag("plates/iron"), "R": cfg.tag("ingots/iridium")}, "ecc2:iridium_iron_plate",
     ))
     emit("reinforced_iridium_iron_plate", shaped(
         cfg, ["ACA", "CPC", "ACA"],
@@ -620,9 +656,9 @@ def generate_crafting_recipes(out_root: Path, cfg: TargetConfig) -> int:
     emit("irradiant_reinforced_plate", shaped(
         cfg, ["RDR", "GPG", "RMR"],
         {
-            "R": "minecraft:redstone",
+            "R": cfg.tag("dusts/redstone"),
             "D": "ecc2:sunnarium_part",
-            "G": "minecraft:glowstone_dust",
+            "G": cfg.tag("dusts/glowstone"),
             "P": "ecc2:reinforced_iridium_iron_plate",
             "M": "ic2:industrial_diamond",
         },
@@ -635,12 +671,12 @@ def generate_crafting_recipes(out_root: Path, cfg: TargetConfig) -> int:
     ))
     emit("quantum_core", shaped(
         cfg, ["EAE", "ANA", "EAE"],
-        {"E": "ecc2:enriched_sunnarium_alloy", "A": "minecraft:ender_eye", "N": "minecraft:nether_star"},
+        {"E": "ecc2:enriched_sunnarium_alloy", "A": "minecraft:ender_eye", "N": cfg.tag("nether_stars")},
         "ecc2:quantum_core",
     ))
     emit("molecular_transformer", shaped(
         cfg, ["MFM", "CTC", "MFM"],
-        {"M": "ic2:advanced_machine", "F": "ic2:ev_transformer", "C": "ic2:advanced_circuit", "T": "ecc2:mt_core"},
+        {"M": "ic2:advanced_machine", "F": "ic2:ev_transformer", "C": cfg.tag("circuits/advanced"), "T": "ecc2:mt_core"},
         "ecc2:molecular_transformer",
         conditions=[cfg.config_flag_condition("molecular_transformer")],
     ))
@@ -652,7 +688,7 @@ def generate_crafting_recipes(out_root: Path, cfg: TargetConfig) -> int:
             "G": "ecc2:irradiant_glass_pane",
             "A": "ic2:alloy",
             "S": "ic2:solar_generator",
-            "C": "ic2:advanced_circuit",
+            "C": cfg.tag("circuits/advanced"),
             "M": "ic2:advanced_machine",
         },
         "ecc2:advanced_solar_panel",
@@ -664,7 +700,7 @@ def generate_crafting_recipes(out_root: Path, cfg: TargetConfig) -> int:
             "G": "ic2:reinforced_glass",
             "A": "ic2:alloy",
             "S": "ic2:solar_generator",
-            "C": "ic2:circuit",
+            "C": cfg.tag("circuits/basic"),
             "M": "ic2:machine",
         },
         "ecc2:advanced_solar_panel",
@@ -674,10 +710,10 @@ def generate_crafting_recipes(out_root: Path, cfg: TargetConfig) -> int:
         cfg, ["CLC", "PAP", "EKE"],
         {
             "C": "ic2:carbon_plate",
-            "L": "minecraft:lapis_block",
+            "L": cfg.tag("storage_blocks/lapis"),
             "P": "ecc2:irradiant_reinforced_plate",
             "A": "ecc2:advanced_solar_panel",
-            "E": "ic2:advanced_circuit",
+            "E": cfg.tag("circuits/advanced"),
             "K": "ic2:lapotron_crystal",
         },
         "ecc2:hybrid_solar_panel",
@@ -687,10 +723,10 @@ def generate_crafting_recipes(out_root: Path, cfg: TargetConfig) -> int:
         cfg, ["CLC", "SAS", "EIE"],
         {
             "C": "ic2:carbon_plate",
-            "L": "minecraft:lapis_block",
+            "L": cfg.tag("storage_blocks/lapis"),
             "S": "ecc2:sunnarium",
             "A": "ecc2:advanced_solar_panel",
-            "E": "ic2:advanced_circuit",
+            "E": cfg.tag("circuits/advanced"),
             "I": "ic2:iridium",
         },
         "ecc2:hybrid_solar_panel",
@@ -699,11 +735,11 @@ def generate_crafting_recipes(out_root: Path, cfg: TargetConfig) -> int:
     emit("ultimate_hybrid_solar_panel", shaped(
         cfg, ["GCG", "SHS", "ECE"],
         {
-            "G": "minecraft:lapis_block",
+            "G": cfg.tag("storage_blocks/lapis"),
             "C": "ic2:coal_chunk",
             "S": "ecc2:enriched_sunnarium_alloy",
             "H": "ecc2:hybrid_solar_panel",
-            "E": "ic2:advanced_circuit",
+            "E": cfg.tag("circuits/advanced"),
         },
         "ecc2:ultimate_hybrid_solar_panel",
         conditions=[cfg.config_flag_condition("ultimate_hybrid_solar_panel")],
@@ -711,18 +747,18 @@ def generate_crafting_recipes(out_root: Path, cfg: TargetConfig) -> int:
     emit("ultimate_hybrid_solar_panel_normal", shaped(
         cfg, ["GCG", "SHS", "ECE"],
         {
-            "G": "minecraft:lapis_block",
+            "G": cfg.tag("storage_blocks/lapis"),
             "C": "ic2:coal_chunk",
             "S": "ecc2:sunnarium_alloy",
             "H": "ecc2:hybrid_solar_panel",
-            "E": "ic2:advanced_circuit",
+            "E": cfg.tag("circuits/advanced"),
         },
         "ecc2:ultimate_hybrid_solar_panel",
         conditions=[cfg.config_flag_condition("ultimate_hybrid_solar_panel_normal")],
     ))
     emit("ultimate_hybrid_solar_panel_8x", shaped(
         cfg, ["HHH", "HCH", "HHH"],
-        {"H": "ecc2:hybrid_solar_panel", "C": "ic2:advanced_circuit"},
+        {"H": "ecc2:hybrid_solar_panel", "C": cfg.tag("circuits/advanced")},
         "ecc2:ultimate_hybrid_solar_panel",
         conditions=[cfg.config_flag_condition("ultimate_hybrid_solar_panel_any")],
     ))
@@ -740,19 +776,19 @@ def generate_crafting_recipes(out_root: Path, cfg: TargetConfig) -> int:
     # --- ASP Solar Helmets (3 + custom EU/dye-preserving upgrade from Hybrid -> Ultimate) ---
     emit("advanced_solar_helmet", shaped(
         cfg, [" S ", "CNC", "GGG"],
-        {"S": "ecc2:advanced_solar_panel", "C": "ic2:advanced_circuit", "N": "ic2:nano_helmet", "G": "ic2:glass_fibre_cable"},
+        {"S": "ecc2:advanced_solar_panel", "C": cfg.tag("circuits/advanced"), "N": "ic2:nano_helmet", "G": "ic2:glass_fibre_cable"},
         "ecc2:advanced_solar_helmet",
         conditions=[cfg.config_flag_condition("advanced_solar_helmet")],
     ))
     emit("hybrid_solar_helmet", shaped(
         cfg, [" S ", "CQC", "GGG"],
-        {"S": "ecc2:hybrid_solar_panel", "C": "ic2:advanced_circuit", "Q": "ic2:quantum_helmet", "G": "ic2:glass_fibre_cable"},
+        {"S": "ecc2:hybrid_solar_panel", "C": cfg.tag("circuits/advanced"), "Q": "ic2:quantum_helmet", "G": "ic2:glass_fibre_cable"},
         "ecc2:hybrid_solar_helmet",
         conditions=[cfg.config_flag_condition("hybrid_solar_helmet")],
     ))
     emit("ultimate_hybrid_solar_helmet", shaped(
         cfg, [" S ", "CQC", "GGG"],
-        {"S": "ecc2:ultimate_hybrid_solar_panel", "C": "ic2:advanced_circuit", "Q": "ic2:quantum_helmet", "G": "ic2:glass_fibre_cable"},
+        {"S": "ecc2:ultimate_hybrid_solar_panel", "C": cfg.tag("circuits/advanced"), "Q": "ic2:quantum_helmet", "G": "ic2:glass_fibre_cable"},
         "ecc2:ultimate_hybrid_solar_helmet",
         conditions=[cfg.config_flag_condition("ultimate_hybrid_solar_helmet")],
     ))
@@ -768,7 +804,7 @@ def generate_crafting_recipes(out_root: Path, cfg: TargetConfig) -> int:
     for kind, base_id in [("wind", "ic2:wind_kinetic_generator"), ("water", "ic2:water_kinetic_generator")]:
         emit(f"durable_{kind}_kinetic_generator", shaped(
             cfg, ["ASA", "RWR", "ASA"],
-            {"A": "ic2:alloy", "S": "ic2:steel_plate", "R": "ic2:rubber", "W": base_id},
+            {"A": "ic2:alloy", "S": cfg.tag("plates/steel"), "R": cfg.tag("rubbers"), "W": base_id},
             f"ecc2:durable_{kind}_kinetic_generator",
         ))
         emit(f"overclocked_{kind}_kinetic_generator", shaped(
@@ -777,7 +813,7 @@ def generate_crafting_recipes(out_root: Path, cfg: TargetConfig) -> int:
                 "O": "ic2:overclocker_upgrade",
                 "M": "ic2:electric_motor",
                 "C": "ic2:coil",
-                "A": "ic2:advanced_circuit",
+                "A": cfg.tag("circuits/advanced"),
                 "W": base_id,
             },
             f"ecc2:overclocked_{kind}_kinetic_generator",
@@ -792,7 +828,7 @@ def generate_crafting_recipes(out_root: Path, cfg: TargetConfig) -> int:
                     "W": f"ecc2:{src_tier}_{kind}_kinetic_generator",
                     "L": "ic2:lapotron_crystal",
                     "M": "ic2:advanced_machine",
-                    "E": "ic2:advanced_circuit",
+                    "E": cfg.tag("circuits/advanced"),
                 },
                 f"ecc2:precision_{kind}_kinetic_generator",
             ))
@@ -803,7 +839,7 @@ def generate_crafting_recipes(out_root: Path, cfg: TargetConfig) -> int:
         {
             "C": "ic2:carbon_plate",
             "A": "ic2:alloy",
-            "E": "ic2:circuit",
+            "E": cfg.tag("circuits/basic"),
             "M": "ic2:machine",
             "G": "ic2:reinforced_glass",
         },
@@ -825,32 +861,32 @@ def generate_crafting_recipes(out_root: Path, cfg: TargetConfig) -> int:
     emit("water_gas_machine", shaped(
         cfg, ["ISI", "UMU", "EIE"],
         {
-            "I": "ic2:iron_plate",
+            "I": cfg.tag("plates/iron"),
             "S": "ic2:solar_generator",
             "U": "ic2:fluid_cell",
             "M": "ic2:machine",
-            "E": "ic2:circuit",
+            "E": cfg.tag("circuits/basic"),
         },
         "ecc2:water_gas_machine",
     ))
     emit("pv_power_upgrade", shaped(
         cfg, ["TST", "CEC", "TCT"],
         {
-            "T": "ic2:tin_plate",
+            "T": cfg.tag("plates/tin"),
             "S": "ic2:solar_generator",
             "C": "ic2:insulated_copper_cable",
-            "E": "ic2:circuit",
+            "E": cfg.tag("circuits/basic"),
         },
         "ecc2:pv_power_upgrade",
     ))
     emit("gas_furnace", shaped(
         cfg, ["IFI", "UMU", "IEI"],
         {
-            "I": "ic2:iron_plate",
+            "I": cfg.tag("plates/iron"),
             "F": "ic2:iron_furnace",
             "U": "ic2:fluid_cell",
             "M": "ic2:machine",
-            "E": "ic2:circuit",
+            "E": cfg.tag("circuits/basic"),
         },
         "ecc2:gas_furnace",
     ))
@@ -861,7 +897,7 @@ def generate_crafting_recipes(out_root: Path, cfg: TargetConfig) -> int:
             "G": "ic2:generator",
             "U": "ic2:fluid_cell",
             "M": "ic2:machine",
-            "E": "ic2:circuit",
+            "E": cfg.tag("circuits/basic"),
             "O": "ic2:electric_motor",
         },
         "ecc2:gas_generator",
@@ -869,11 +905,11 @@ def generate_crafting_recipes(out_root: Path, cfg: TargetConfig) -> int:
     emit("culture_incubator", shaped(
         cfg, ["GGG", "UMU", "CEC"],
         {
-            "G": "minecraft:glass",
+            "G": cfg.tag("glass_blocks"),
             "U": "ic2:fluid_cell",
             "M": "ic2:machine",
-            "C": "ic2:copper_plate",
-            "E": "ic2:circuit",
+            "C": cfg.tag("plates/copper"),
+            "E": cfg.tag("circuits/basic"),
         },
         "ecc2:culture_incubator",
     ))
@@ -884,8 +920,8 @@ def generate_crafting_recipes(out_root: Path, cfg: TargetConfig) -> int:
             "F": "ic2:fermenter",
             "U": "ic2:fluid_cell",
             "M": "ic2:machine",
-            "E": "ic2:circuit",
-            "C": "ic2:copper_plate",
+            "E": cfg.tag("circuits/basic"),
+            "C": cfg.tag("plates/copper"),
         },
         "ecc2:organic_fermenter",
     ))
@@ -901,11 +937,11 @@ def generate_mt_recipes(out_root: Path, cfg: TargetConfig) -> int:
         # 13 unconditional vanilla + IC2 + EcC2 entries
         ("wither_skull_to_nether_star", "minecraft:wither_skeleton_skull", 1, "minecraft:nether_star", 1, 250_000_000, []),
         ("iron_to_iridium_ore", cfg.tag("ingots/iron"), 1, "ic2:iridium_ore", 1, 9_000_000, []),
-        ("netherrack_to_gunpowder", "minecraft:netherrack", 1, "minecraft:gunpowder", 2, 70_000, []),
-        ("sand_to_gravel", "minecraft:sand", 1, "minecraft:gravel", 1, 50_000, []),
+        ("netherrack_to_gunpowder", cfg.tag("netherracks"), 1, "minecraft:gunpowder", 2, 70_000, []),
+        ("sand_to_gravel", cfg.tag("sands"), 1, "minecraft:gravel", 1, 50_000, []),
         ("dirt_to_clay", "minecraft:dirt", 1, "minecraft:clay", 1, 50_000, []),
         ("charcoal_to_coal", "minecraft:charcoal", 1, "minecraft:coal", 1, 60_000, []),
-        ("glowstone_dust_to_sunnarium_part", "minecraft:glowstone_dust", 1, "ecc2:sunnarium_part", 1, 1_000_000, []),
+        ("glowstone_dust_to_sunnarium_part", cfg.tag("dusts/glowstone"), 1, "ecc2:sunnarium_part", 1, 1_000_000, []),
         ("glowstone_to_sunnarium", "minecraft:glowstone", 1, "ecc2:sunnarium", 1, 9_000_000, []),
         ("yellow_wool_to_glowstone", "minecraft:yellow_wool", 1, "minecraft:glowstone", 1, 500_000, []),
         ("blue_wool_to_lapis_block", "minecraft:blue_wool", 1, "minecraft:lapis_block", 1, 500_000, []),
@@ -913,11 +949,11 @@ def generate_mt_recipes(out_root: Path, cfg: TargetConfig) -> int:
         ("coal_to_industrial_diamond", "minecraft:coal", 1, "ic2:industrial_diamond", 1, 9_000_000, []),
         ("industrial_diamond_to_diamond", "ic2:industrial_diamond", 1, "minecraft:diamond", 1, 1_000_000, []),
         # 9 conditional external-mod tag-aware entries
-        ("lapis_to_sapphire", "minecraft:lapis_lazuli", 1, cfg.tag("gems/sapphire"), 1, 5_000_000, [cfg.tag("gems/sapphire")]),
-        ("redstone_to_ruby", "minecraft:redstone", 1, cfg.tag("gems/ruby"), 1, 5_000_000, [cfg.tag("gems/ruby")]),
+        ("lapis_to_sapphire", cfg.tag("gems/lapis"), 1, cfg.tag("gems/sapphire"), 1, 5_000_000, [cfg.tag("gems/sapphire")]),
+        ("redstone_to_ruby", cfg.tag("dusts/redstone"), 1, cfg.tag("gems/ruby"), 1, 5_000_000, [cfg.tag("gems/ruby")]),
         ("titanium_dust_to_chrome_dust", cfg.tag("dusts/titanium"), 1, cfg.tag("dusts/chrome"), 1, 500_000, [cfg.tag("dusts/titanium"), cfg.tag("dusts/chrome")]),
         ("titanium_ingot_to_chrome_ingot", cfg.tag("ingots/titanium"), 1, cfg.tag("ingots/chrome"), 1, 500_000, [cfg.tag("ingots/titanium"), cfg.tag("ingots/chrome")]),
-        ("quartz_to_certus_quartz", "minecraft:quartz", 1, cfg.tag("gems/certus_quartz"), 1, 500_000, [cfg.tag("gems/certus_quartz")]),
+        ("quartz_to_certus_quartz", cfg.tag("gems/quartz"), 1, cfg.tag("gems/certus_quartz"), 1, 500_000, [cfg.tag("gems/certus_quartz")]),
         ("copper_to_nickel", cfg.tag("ingots/copper"), 1, cfg.tag("ingots/nickel"), 1, 300_000, [cfg.tag("ingots/nickel")]),
         ("tin_to_silver", cfg.tag("ingots/tin"), 1, cfg.tag("ingots/silver"), 1, 500_000, [cfg.tag("ingots/tin"), cfg.tag("ingots/silver")]),
         ("silver_to_gold", cfg.tag("ingots/silver"), 1, "minecraft:gold_ingot", 1, 500_000, [cfg.tag("ingots/silver")]),
@@ -991,12 +1027,53 @@ def generate_tags(out_root: Path, cfg: TargetConfig) -> int:
     )
     emit_tag("minecraft", cfg.tag_block_dir, "needs_iron_tool", [f"{MOD_ID}:{b}" for b in iron_tier_blocks])
 
-    # Vanilla dyeable tag (enables workbench dyeing for Hybrid & Ultimate Solar Helmets)
-    emit_tag("minecraft", cfg.tag_item_dir, "dyeable", [f"{MOD_ID}:{h}" for h in sorted(DYEABLE_HELMETS)])
+    # Vanilla 1.21+ armor, enchantable, and dyeable item tags (absent on Forge 1.19.2)
+    if not cfg.is_1192:
+        emit_tag("minecraft", cfg.tag_item_dir, "dyeable", [f"{MOD_ID}:{h}" for h in sorted(DYEABLE_HELMETS)])
+        emit_tag("minecraft", cfg.tag_item_dir, "head_armor", [f"{MOD_ID}:{h}" for h in SOLAR_HELMETS])
+        emit_tag("minecraft", cfg.tag_item_dir, "enchantable/armor", [f"{MOD_ID}:{h}" for h in SOLAR_HELMETS])
+        emit_tag("minecraft", cfg.tag_item_dir, "enchantable/head_armor", [f"{MOD_ID}:{h}" for h in SOLAR_HELMETS])
+        emit_tag("minecraft", cfg.tag_item_dir, "enchantable/equippable", [f"{MOD_ID}:{h}" for h in SOLAR_HELMETS])
 
-    # Common ingot tags (c: for 1.21.1/26.x, forge: for 1.19.2)
+    # Common armor tags + parent (c: for 1.21.1/26.x, forge: for 1.19.2)
+    emit_tag(cfg.common_ns, cfg.tag_item_dir, "armors/helmets", [f"{MOD_ID}:{h}" for h in SOLAR_HELMETS])
+    emit_tag(cfg.common_ns, cfg.tag_item_dir, "armors", [f"#{cfg.common_ns}:armors/helmets"])
+
+    # Common ingot tags + parent (IC2 1.0.11 publishes ingots/uranium natively)
     emit_tag(cfg.common_ns, cfg.tag_item_dir, "ingots/iridium", [f"{MOD_ID}:iridium_ingot"])
-    emit_tag(cfg.common_ns, cfg.tag_item_dir, "ingots/uranium", ["ic2:uranium_ingot"])
+    emit_tag(cfg.common_ns, cfg.tag_item_dir, "ingots", [f"#{cfg.common_ns}:ingots/iridium"])
+
+    # Common plate tags + parent (irradiant_glass_pane intentionally omitted from glass_panes)
+    emit_tag(cfg.common_ns, cfg.tag_item_dir, "plates/iridium_iron", [f"{MOD_ID}:iridium_iron_plate"])
+    emit_tag(cfg.common_ns, cfg.tag_item_dir, "plates/reinforced_iridium_iron", [f"{MOD_ID}:reinforced_iridium_iron_plate"])
+    emit_tag(cfg.common_ns, cfg.tag_item_dir, "plates/irradiant_reinforced", [f"{MOD_ID}:irradiant_reinforced_plate"])
+    emit_tag(cfg.common_ns, cfg.tag_item_dir, "plates", [
+        f"#{cfg.common_ns}:plates/iridium_iron",
+        f"#{cfg.common_ns}:plates/reinforced_iridium_iron",
+        f"#{cfg.common_ns}:plates/irradiant_reinforced",
+    ])
+
+    # Common fluid bucket tags + parent
+    emit_tag(cfg.common_ns, cfg.tag_item_dir, "buckets/water_gas", [f"{MOD_ID}:water_gas_bucket"])
+    emit_tag(cfg.common_ns, cfg.tag_item_dir, "buckets/natural_gas", [f"{MOD_ID}:natural_gas_bucket"])
+    emit_tag(cfg.common_ns, cfg.tag_item_dir, "buckets/culture_medium", [f"{MOD_ID}:culture_medium_bucket"])
+    emit_tag(cfg.common_ns, cfg.tag_item_dir, "buckets", [
+        f"#{cfg.common_ns}:buckets/water_gas",
+        f"#{cfg.common_ns}:buckets/natural_gas",
+        f"#{cfg.common_ns}:buckets/culture_medium",
+    ])
+
+    # Relocation protection for 3x3x3 multiblock units and molecular transformer
+    emit_tag(
+        cfg.common_ns,
+        cfg.tag_block_dir,
+        "relocation_not_supported",
+        [f"{MOD_ID}:{b}" for b in GIANT_UNIT_BLOCKS + ["molecular_transformer"]],
+    )
+
+    # Specific methane_ice ore tag (intentionally NOT registered in parent ores to keep no-fortune/no-doubling rules)
+    emit_tag(cfg.common_ns, cfg.tag_block_dir, "ores/methane_ice", [f"{MOD_ID}:methane_ice_cluster"])
+    emit_tag(cfg.common_ns, cfg.tag_item_dir, "ores/methane_ice", [f"{MOD_ID}:methane_ice_cluster"])
 
     # Common fluid tags
     emit_tag(cfg.common_ns, cfg.tag_fluid_dir, "water_gas", [f"{MOD_ID}:water_gas", f"{MOD_ID}:flowing_water_gas"])
@@ -1006,15 +1083,26 @@ def generate_tags(out_root: Path, cfg: TargetConfig) -> int:
         {"id": "ic2:biogas", "required": False},
         {"id": "ic2:flowing_biogas", "required": False},
     ])
+    if not cfg.is_1192:
+        emit_tag(cfg.common_ns, cfg.tag_fluid_dir, "gaseous", [
+            f"#{cfg.common_ns}:water_gas",
+            f"#{cfg.common_ns}:natural_gas",
+            {"id": f"#{cfg.common_ns}:biogas", "required": False},
+        ])
 
-    # EcoCraft 2 unified gas_fuel fluid tag (Water Gas + Natural Gas + Biogas)
+    # EcoCraft 2 unified gas_fuel fluid tag (Water Gas + Natural Gas + Biogas via common fluid tags)
     emit_tag(MOD_ID, cfg.tag_fluid_dir, "gas_fuel", [
-        f"{MOD_ID}:water_gas",
-        f"{MOD_ID}:flowing_water_gas",
-        f"{MOD_ID}:natural_gas",
-        f"{MOD_ID}:flowing_natural_gas",
-        {"id": "ic2:biogas", "required": False},
-        {"id": "ic2:flowing_biogas", "required": False},
+        f"#{cfg.common_ns}:water_gas",
+        f"#{cfg.common_ns}:natural_gas",
+        {"id": f"#{cfg.common_ns}:biogas", "required": False},
+    ])
+
+    # EcoCraft 2 Culture Incubator nutrients item tag
+    emit_tag(MOD_ID, cfg.tag_item_dir, "culture_nutrients", [
+        "minecraft:bone_meal",
+        "minecraft:rotten_flesh",
+        {"id": f"#{cfg.common_ns}:fertilizers", "required": False},
+        {"id": "ic2:fertilizer", "required": False},
     ])
 
     # Biome tag for seafloor Methane Ice Cluster worldgen
