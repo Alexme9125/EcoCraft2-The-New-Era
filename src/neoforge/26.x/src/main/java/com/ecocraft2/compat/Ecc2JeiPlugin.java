@@ -721,7 +721,7 @@ public final class Ecc2JeiPlugin implements IModPlugin {
         @Override
         public Component getTitle() {
             return Component.translatableWithFallback(
-                    "jei.ecc2.category.ic2_recipes", "IC2 Canning & ASP Processing");
+                    "jei.ecc2.category.ic2_recipes", "Industrial Canning & Metal Processing");
         }
 
         @Override
