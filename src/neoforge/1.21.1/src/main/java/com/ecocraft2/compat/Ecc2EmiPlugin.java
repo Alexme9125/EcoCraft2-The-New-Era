@@ -65,7 +65,8 @@ public final class Ecc2EmiPlugin implements EmiPlugin {
                     @Override
                     public Component getName() {
                         return Component.translatableWithFallback(
-                                "emi.category.ecc2.ic2_recipes", "IC2 Canning & ASP Processing");
+                                "emi.category.ecc2.ic2_recipes",
+                                "Industrial Canning & Metal Processing");
                     }
                 };
         EmiRecipeCategory giantMachineCategory =
