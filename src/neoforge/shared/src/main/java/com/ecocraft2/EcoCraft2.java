@@ -83,6 +83,7 @@ public final class EcoCraft2 {
         registerDefaultIc2Bridges();
 
         var gameBus = NeoForge.EVENT_BUS;
+        Ecc2BridgePlatform.registerWrenchListener(gameBus);
 
         CREATIVE_TABS.register(modBus);
         installKnownModules(modBus, gameBus, container, dist);
@@ -116,18 +117,18 @@ public final class EcoCraft2 {
         Ecc2ExternalRecipes.registerCanningBottle(
                 "ic2:fluid_cell", 1, "ecc2:methane_ice_cluster", 3, "ecc2:natural_gas_cell", 1);
 
-        // 3. ASP 2 compressor recipes (Iridium Ore -> ecc2:iridium_ingot; Uranium ores/dusts/fuel -> ic2:uranium_ingot).
-        Ecc2ExternalRecipes.registerCompressor("ic2:iridium_ore", 1, "ecc2:iridium_ingot", 1);
+        // 3. ASP 2 compressor recipes via #c: common tags (Iridium -> ecc2:iridium_ingot; Uranium -> ic2:uranium_ingot).
+        Ecc2ExternalRecipes.registerCompressor("#c:ores/iridium", 1, "ecc2:iridium_ingot", 1);
         Ecc2ExternalRecipes.registerCompressor(
-                "ic2:uranium_ore", 1, Ecc2Ids.IC2_URANIUM_INGOT, 1);
+                "#c:raw_materials/iridium", 1, "ecc2:iridium_ingot", 1);
+        Ecc2ExternalRecipes.registerCompressor("#c:ores/uranium", 1, Ecc2Ids.IC2_URANIUM_INGOT, 1);
         Ecc2ExternalRecipes.registerCompressor(
-                "ic2:deepslate_uranium_ore", 1, Ecc2Ids.IC2_URANIUM_INGOT, 1);
+                "#c:raw_materials/uranium", 1, Ecc2Ids.IC2_URANIUM_INGOT, 1);
         Ecc2ExternalRecipes.registerCompressor(
-                "ic2:raw_uranium", 1, Ecc2Ids.IC2_URANIUM_INGOT, 1);
+                "#c:crushed_raw_materials/uranium", 1, Ecc2Ids.IC2_URANIUM_INGOT, 1);
         Ecc2ExternalRecipes.registerCompressor(
-                "ic2:crushed_uranium", 1, Ecc2Ids.IC2_URANIUM_INGOT, 1);
-        Ecc2ExternalRecipes.registerCompressor(
-                "ic2:purified_uranium", 1, Ecc2Ids.IC2_URANIUM_INGOT, 1);
+                "#c:purified_ores/uranium", 1, Ecc2Ids.IC2_URANIUM_INGOT, 1);
+        Ecc2ExternalRecipes.registerCompressor("#c:dusts/uranium", 1, Ecc2Ids.IC2_URANIUM_INGOT, 1);
         Ecc2ExternalRecipes.registerCompressor("ic2:uranium", 1, Ecc2Ids.IC2_URANIUM_INGOT, 1);
 
         // 4. ASP 2 metal former extruding recipe (Reinforced Iridium Plate ic2:iridium -> ecc2:iridium_ingot).

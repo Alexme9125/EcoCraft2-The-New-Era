@@ -1,5 +1,6 @@
 package com.ecocraft2.giant;
 
+import com.ecocraft2.bridge.Ecc2WrenchHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionHand;
@@ -36,6 +37,10 @@ public abstract class Ecc2BlockBase extends Block {
             Player player,
             InteractionHand hand,
             BlockHitResult hit) {
+        if (Ecc2WrenchHelper.tryHandleThirdPartyWrench(
+                this, state, level, pos, player, hand, hit.getDirection())) {
+            return InteractionResult.SUCCESS;
+        }
         return onUseBlock(state, level, pos, player, hand, hit.getDirection())
                 ? InteractionResult.SUCCESS
                 : InteractionResult.TRY_WITH_EMPTY_HAND;

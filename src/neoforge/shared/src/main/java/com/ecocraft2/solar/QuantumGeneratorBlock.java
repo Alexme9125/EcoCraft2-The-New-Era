@@ -1,6 +1,7 @@
 package com.ecocraft2.solar;
 
 import com.ecocraft2.bridge.Ecc2PowerConnectable;
+import com.industrialage.ia2.wrench.WrenchTarget;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
@@ -11,6 +12,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -27,7 +29,8 @@ import net.minecraft.world.phys.BlockHitResult;
  * <p>Uses redstone-inverted active logic: defaults to {@code active = true} when unpowered,
  * including non-player placement via {@code /setblock} or structure blocks.
  */
-public final class QuantumGeneratorBlock extends Ecc2BaseBlock implements Ecc2PowerConnectable {
+public final class QuantumGeneratorBlock extends Ecc2BaseBlock
+        implements Ecc2PowerConnectable, WrenchTarget {
 
     public static final EnumProperty<Direction> FACING = BlockStateProperties.HORIZONTAL_FACING;
     public static final BooleanProperty ACTIVE = BooleanProperty.create("active");
@@ -52,6 +55,11 @@ public final class QuantumGeneratorBlock extends Ecc2BaseBlock implements Ecc2Po
         return defaultBlockState()
                 .setValue(FACING, context.getHorizontalDirection().getOpposite())
                 .setValue(ACTIVE, !powered);
+    }
+
+    @Override
+    protected BlockState rotate(BlockState state, Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
     }
 
     @Override

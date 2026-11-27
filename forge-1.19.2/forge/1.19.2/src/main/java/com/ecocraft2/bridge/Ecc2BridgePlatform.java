@@ -1,12 +1,19 @@
 package com.ecocraft2.bridge;
 
 import com.ecocraft2.EcoCraft2;
+import com.ecocraft2.common.config.Ecc2Ids;
 import com.ecocraft2.common.gas.GasFuelSpec;
 import com.ecocraft2.common.giant.GiantCornerPort;
 import com.ecocraft2.common.giant.PortAccessMode;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
+import net.minecraft.core.Registry;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.FluidTags;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -91,6 +98,88 @@ public final class Ecc2BridgePlatform {
     /** Returns the namespaced fluid registry ID of {@code stack}, or {@code ""} if empty. */
     public static String fluidId(FluidStack stack) {
         return stack == null || stack.isEmpty() ? "" : fluidId(stack.getFluid());
+    }
+
+    /** Returns {@code true} if {@code stack} matches the given item tag ID (with or without {@code '#'}). */
+    public static boolean hasItemTag(ItemStack stack, String tagId) {
+        if (stack == null || stack.isEmpty() || tagId == null || tagId.isEmpty()) {
+            return false;
+        }
+        String raw = tagId.startsWith("#") ? tagId.substring(1) : tagId;
+        var key = ResourceLocation.tryParse(raw);
+        return key != null && stack.is(TagKey.create(Registry.ITEM_REGISTRY, key));
+    }
+
+    /** Returns all registered items currently matching {@code tagId} as stacks of {@code count}. */
+    public static List<ItemStack> allItemsInTag(String tagId, int count) {
+        if (tagId == null || tagId.isEmpty() || count <= 0) {
+            return List.of();
+        }
+        String raw = tagId.startsWith("#") ? tagId.substring(1) : tagId;
+        var key = ResourceLocation.tryParse(raw);
+        if (key == null) {
+            return List.of();
+        }
+        var tags = ForgeRegistries.ITEMS.tags();
+        if (tags == null) {
+            return List.of();
+        }
+        var tag = tags.getTag(TagKey.create(Registry.ITEM_REGISTRY, key));
+        var result = new ArrayList<ItemStack>();
+        for (Item item : tag) {
+            if (item != null && item != Items.AIR) {
+                result.add(new ItemStack(item, count));
+            }
+        }
+        return result;
+    }
+
+    /** Returns {@code true} if {@code fluid} matches the given fluid tag ID (with or without {@code '#'}). */
+    public static boolean hasFluidTag(Fluid fluid, String tagId) {
+        if (fluid == null || fluid == Fluids.EMPTY || tagId == null || tagId.isEmpty()) {
+            return false;
+        }
+        String raw = tagId.startsWith("#") ? tagId.substring(1) : tagId;
+        var key = ResourceLocation.tryParse(raw);
+        return key != null && fluid.defaultFluidState().is(TagKey.create(Registry.FLUID_REGISTRY, key));
+    }
+
+    /** Returns {@code true} if {@code stack}'s fluid matches the given fluid tag ID. */
+    public static boolean hasFluidTag(FluidStack stack, String tagId) {
+        return stack != null && !stack.isEmpty() && hasFluidTag(stack.getFluid(), tagId);
+    }
+
+    /** Returns {@code true} if {@code fluid} is vanilla water or tagged {@code #minecraft:water}/{@code #forge:water}. */
+    public static boolean isWaterFluid(Fluid fluid) {
+        if (fluid == null || fluid == Fluids.EMPTY) {
+            return false;
+        }
+        return fluid == Fluids.WATER
+                || fluid.defaultFluidState().is(FluidTags.WATER)
+                || hasFluidTag(fluid, Ecc2Ids.commonTag("forge", Ecc2Ids.COMMON_TAG_WATER));
+    }
+
+    /** Returns {@code true} if {@code stack} holds water or a water-tagged fluid. */
+    public static boolean isWaterFluid(FluidStack stack) {
+        return stack != null && !stack.isEmpty() && isWaterFluid(stack.getFluid());
+    }
+
+    /** Returns {@code true} if {@code stack} holds culture medium or a {@code #forge:culture_medium} fluid. */
+    public static boolean isCultureMediumFluid(FluidStack stack) {
+        if (stack == null || stack.isEmpty()) {
+            return false;
+        }
+        return Ecc2Ids.CULTURE_MEDIUM_ID.equals(fluidId(stack))
+                || hasFluidTag(stack, Ecc2Ids.commonTag("forge", Ecc2Ids.COMMON_TAG_CULTURE_MEDIUM));
+    }
+
+    /** Resolves a Forge {@link FluidStack} to a {@link GasFuelSpec} via exact ID or Forge/EcC2 fluid tags. */
+    public static Optional<GasFuelSpec> resolveGasFuel(FluidStack stack) {
+        if (stack == null || stack.isEmpty()) {
+            return Optional.empty();
+        }
+        Fluid fluid = stack.getFluid();
+        return GasFuelSpec.resolve(fluidId(fluid), "forge", tag -> hasFluidTag(fluid, tag));
     }
 
     /** Returns a copy of {@code stack} with stack count set to {@code count}. */

@@ -6,10 +6,11 @@ if (file('../../minecraft/shared/src/main/java').isDirectory()) {
     sourceSets.main.java.srcDir('../../minecraft/shared/src/main/java')
 }
 
+def ic2Version = providers.gradleProperty('ic2_version').getOrElse('1.0.11')
 def ic2LibsDir = rootProject.file(providers.gradleProperty('ic2_libs_dir').getOrElse('../.ic2-libs'))
-def ic2Jar = new File(ic2LibsDir, "ic2-neoforge-${minecraftVersion}-1.0.8.jar")
+def ic2Jar = new File(ic2LibsDir, "ic2-neoforge-${minecraftVersion}-${ic2Version}.jar")
 if (!ic2Jar.isFile()) {
-    throw new GradleException("Required IC2NE 1.0.8 JAR not found at ${ic2Jar.absolutePath}")
+    throw new GradleException("Required IC2NE ${ic2Version} JAR not found at ${ic2Jar.absolutePath}")
 }
 
 configurations {
@@ -19,7 +20,7 @@ configurations {
 
 dependencies {
     implementation project(':common')
-    // Compile against IC2NE 1.0.6 and load it in dev runs, but NEVER bundle it inside EcoCraft 2's JAR.
+    // Compile against IC2NE ${ic2Version} and load it in dev runs, but NEVER bundle it inside EcoCraft 2's JAR.
     compileOnly files(ic2Jar)
     localRuntime files(ic2Jar)
 }

@@ -66,7 +66,7 @@ public final class GasGeneratorBlockEntity extends GasMachineBlockEntityBase
                         this::acceptsGasFluid,
                         GasGeneratorEngine.GAS_TANK_CAPACITY_MB - engine.gasMb(),
                         (fid, amt) ->
-                                GasFuelSpec.byFluidId(fid)
+                                GiantGasPlatform.resolveGasFuel(fid)
                                         .ifPresent(spec -> engine.fillGas(spec, amt, false)));
 
         // Burn gas & charge internal electric item slot prior to grid draw
@@ -87,7 +87,7 @@ public final class GasGeneratorBlockEntity extends GasMachineBlockEntityBase
     }
 
     private boolean acceptsGasFluid(String fluidId) {
-        var specOpt = GasFuelSpec.byFluidId(fluidId);
+        var specOpt = GiantGasPlatform.resolveGasFuel(fluidId);
         if (specOpt.isEmpty()) {
             return false;
         }
@@ -184,7 +184,7 @@ public final class GasGeneratorBlockEntity extends GasMachineBlockEntityBase
                 if (tank != -1 && tank != 0) {
                     return 0;
                 }
-                return GasFuelSpec.byFluidId(fluidId)
+                return GiantGasPlatform.resolveGasFuel(fluidId)
                         .map(spec -> engine.fillGas(spec, amount, simulate))
                         .orElse(0);
             }

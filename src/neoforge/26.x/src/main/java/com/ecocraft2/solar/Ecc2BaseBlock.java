@@ -1,5 +1,6 @@
 package com.ecocraft2.solar;
 
+import com.ecocraft2.bridge.Ecc2WrenchHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -48,6 +49,10 @@ public abstract class Ecc2BaseBlock extends Block implements EntityBlock {
             Player player,
             InteractionHand hand,
             BlockHitResult hit) {
+        if (Ecc2WrenchHelper.tryHandleThirdPartyWrench(
+                this, state, level, pos, player, hand, hit.getDirection())) {
+            return InteractionResult.SUCCESS;
+        }
         var result = onEcc2Use(state, level, pos, player, hand, hit);
         return result.consumesAction()
                 ? InteractionResult.SUCCESS

@@ -4,6 +4,7 @@ import com.ecocraft2.common.kinetic.KineticMachineTier;
 import com.ecocraft2.solar.Ecc2BaseBlock;
 import com.ecocraft2.solar.SolarKineticModule;
 import com.ecocraft2.solar.SolarPlatform;
+import com.industrialage.ia2.wrench.WrenchTarget;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
@@ -23,7 +24,7 @@ import net.minecraft.world.phys.BlockHitResult;
  * Shared abstract block for the six Advanced Wind &amp; Water Kinetic Generators (Durable,
  * Overclocked, and Precision).
  */
-public abstract class AdvancedKineticBlock extends Ecc2BaseBlock {
+public abstract class AdvancedKineticBlock extends Ecc2BaseBlock implements WrenchTarget {
 
     public static final BooleanProperty ACTIVE = BooleanProperty.create("active");
 

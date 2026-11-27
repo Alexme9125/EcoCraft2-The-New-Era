@@ -27,7 +27,6 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.state.BlockState;
 
 /**
@@ -85,7 +84,7 @@ public final class OrganicFermenterBlockEntity extends GasMachineBlockEntityBase
             if (drawn > 0.0) {
                 engine.injectEu(drawn);
                 changed = true;
-            } else if (battery.is(Items.REDSTONE) && engine.demandedEu() >= 800.0) {
+            } else if (GiantGasPlatform.isRedstoneDust(battery) && engine.demandedEu() >= 800.0) {
                 engine.injectEu(800.0);
                 battery.shrink(1);
                 changed = true;
@@ -97,7 +96,7 @@ public final class OrganicFermenterBlockEntity extends GasMachineBlockEntityBase
                 drainContainerSlot(
                         SLOT_CULTURE_CELL_IN,
                         SLOT_CULTURE_CELL_OUT,
-                        Ecc2Ids.CULTURE_MEDIUM_ID::equals,
+                        GiantGasPlatform::isCultureMediumFluid,
                         OrganicFermenterEngine.CULTURE_TANK_CAPACITY_MB - engine.cultureMb(),
                         (fid, amt) -> engine.fillCulture(amt, false));
 
@@ -151,7 +150,7 @@ public final class OrganicFermenterBlockEntity extends GasMachineBlockEntityBase
                         level,
                         upgrades,
                         endpoints,
-                        Ecc2Ids.CULTURE_MEDIUM_ID::equals,
+                        GiantGasPlatform::isCultureMediumFluid,
                         (fid, amt) -> engine.fillCulture(amt, false),
                         () -> OrganicFermenterEngine.CULTURE_TANK_CAPACITY_MB - engine.cultureMb(),
                         () -> Ecc2Ids.IC2_BIOGAS_ID,
@@ -239,7 +238,7 @@ public final class OrganicFermenterBlockEntity extends GasMachineBlockEntityBase
 
             @Override
             public boolean acceptsFluid(int tank, String fluidId) {
-                return tank == 0 && Ecc2Ids.CULTURE_MEDIUM_ID.equals(fluidId);
+                return tank == 0 && GiantGasPlatform.isCultureMediumFluid(fluidId);
             }
 
             @Override
@@ -254,7 +253,7 @@ public final class OrganicFermenterBlockEntity extends GasMachineBlockEntityBase
 
             @Override
             public int fillFluid(int tank, String fluidId, int amount, boolean simulate) {
-                if ((tank != -1 && tank != 0) || !Ecc2Ids.CULTURE_MEDIUM_ID.equals(fluidId)) {
+                if ((tank != -1 && tank != 0) || !GiantGasPlatform.isCultureMediumFluid(fluidId)) {
                     return 0;
                 }
                 return engine.fillCulture(amount, simulate);
@@ -301,12 +300,13 @@ public final class OrganicFermenterBlockEntity extends GasMachineBlockEntityBase
         return switch (slot) {
             case SLOT_FOOD_INPUT -> GiantGasPlatform.foodNutrition(stack) > 0;
             case SLOT_CULTURE_CELL_IN ->
-                    GiantGasPlatform.isDrainableContainer(stack, Ecc2Ids.CULTURE_MEDIUM_ID::equals);
+                    GiantGasPlatform.isDrainableContainer(
+                            stack, GiantGasPlatform::isCultureMediumFluid);
             case SLOT_BIOGAS_CELL_IN ->
                     GiantGasPlatform.isFillableContainer(stack, Ecc2Ids.IC2_BIOGAS_ID);
             case SLOT_BATTERY ->
                     PortableGear.canDischarge(stack, engine.inputTier())
-                            || stack.is(Items.REDSTONE);
+                            || GiantGasPlatform.isRedstoneDust(stack);
             case 7, 8, 9, 10 -> Ecc2UpgradeHelper.isAcceptedUpgrade(stack, true, true);
             default -> false;
         };
@@ -319,7 +319,7 @@ public final class OrganicFermenterBlockEntity extends GasMachineBlockEntityBase
         }
         if (slot == SLOT_BATTERY) {
             return PortableGear.canSupplyCharge(stack, engine.inputTier())
-                    || stack.is(Items.REDSTONE);
+                    || GiantGasPlatform.isRedstoneDust(stack);
         }
         return (slot == SLOT_FOOD_INPUT
                         || slot == SLOT_CULTURE_CELL_IN

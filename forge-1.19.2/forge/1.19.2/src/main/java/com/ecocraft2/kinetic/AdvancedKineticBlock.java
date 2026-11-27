@@ -1,11 +1,14 @@
 package com.ecocraft2.kinetic;
 
+import com.ecocraft2.bridge.Ecc2WrenchHelper;
 import com.ecocraft2.common.kinetic.KineticMachineTier;
+import com.industrialage.ia2.wrench.WrenchTarget;
 import java.util.List;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Containers;
 import net.minecraft.world.InteractionHand;
@@ -18,6 +21,7 @@ import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.EntityBlock;
+import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
@@ -36,7 +40,7 @@ import org.jetbrains.annotations.Nullable;
  * Block for the 6 Advanced Wind (H4 facing) and Water (6-direction facing) Kinetic Generators:
  * Durable (0.80x / 0.50x wear), Overclocked (2.20x / 2.00x wear), Precision (2.40x / 0.50x wear).
  */
-public class AdvancedKineticBlock extends Block implements EntityBlock {
+public class AdvancedKineticBlock extends Block implements EntityBlock, WrenchTarget {
 
     public static final BooleanProperty ACTIVE = BooleanProperty.create("active");
 
@@ -93,6 +97,12 @@ public class AdvancedKineticBlock extends Block implements EntityBlock {
     }
 
     @Override
+    public BlockState rotate(BlockState state, Rotation rotation) {
+        DirectionProperty prop = facingProperty();
+        return state.setValue(prop, rotation.rotate(state.getValue(prop)));
+    }
+
+    @Override
     public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
         return new AdvancedKineticBlockEntity(pos, state, water, tier);
     }
@@ -116,6 +126,10 @@ public class AdvancedKineticBlock extends Block implements EntityBlock {
             Player player,
             InteractionHand hand,
             BlockHitResult hit) {
+        if (Ecc2WrenchHelper.tryHandleThirdPartyWrench(
+                this, state, level, pos, player, hand, hit.getDirection())) {
+            return InteractionResult.sidedSuccess(level.isClientSide);
+        }
         if (!level.isClientSide
                 && player instanceof ServerPlayer serverPlayer
                 && level.getBlockEntity(pos) instanceof AdvancedKineticBlockEntity gen) {
@@ -169,6 +183,21 @@ public class AdvancedKineticBlock extends Block implements EntityBlock {
         @Override
         public DirectionProperty facingProperty() {
             return BlockStateProperties.FACING;
+        }
+
+        @Override
+        public boolean wrenchSide(BlockState state, Direction side) {
+            return side != null;
+        }
+
+        @Override
+        public boolean wrenchTurn(ServerLevel level, BlockPos pos, BlockState state, Direction side) {
+            if (side == null || state.getValue(BlockStateProperties.FACING) == side) {
+                return false;
+            }
+            level.setBlock(
+                    pos, state.setValue(BlockStateProperties.FACING, side), Block.UPDATE_ALL);
+            return true;
         }
     }
 }

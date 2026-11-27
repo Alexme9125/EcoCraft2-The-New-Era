@@ -1,7 +1,9 @@
 package com.ecocraft2.giant;
 
 import com.ecocraft2.bridge.Ecc2PowerConnectable;
+import com.ecocraft2.bridge.Ecc2WrenchHelper;
 import com.ecocraft2.common.giant.GiantMachineKind;
+import com.industrialage.ia2.wrench.WrenchTarget;
 import java.util.List;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
@@ -21,6 +23,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.HorizontalDirectionalBlock;
+import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
@@ -39,7 +42,8 @@ import org.jetbrains.annotations.Nullable;
  * Unit block for all 5 3x3x3 Giant Machines (Macerator, Compressor, Recycler, Extractor, Ore
  * Washing Plant). Placing 27 matching units in a solid 3x3x3 cube automatically forms the machine.
  */
-public final class GiantMachineBlock extends Block implements EntityBlock, Ecc2PowerConnectable {
+public final class GiantMachineBlock extends Block
+        implements EntityBlock, Ecc2PowerConnectable, WrenchTarget {
 
     public static final DirectionProperty FACING = HorizontalDirectionalBlock.FACING;
     public static final BooleanProperty FORMED = BooleanProperty.create("formed");
@@ -85,6 +89,16 @@ public final class GiantMachineBlock extends Block implements EntityBlock, Ecc2P
                 .setValue(ACTIVE, Boolean.FALSE)
                 .setValue(ROLE, GiantUnitRole.UNFORMED)
                 .setValue(PORT_MODE, GiantPortVisual.FULL);
+    }
+
+    @Override
+    public BlockState rotate(BlockState state, Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+    }
+
+    @Override
+    public boolean wrenchable(BlockState state) {
+        return !state.getValue(FORMED);
     }
 
     @Override
@@ -155,6 +169,10 @@ public final class GiantMachineBlock extends Block implements EntityBlock, Ecc2P
             Player player,
             InteractionHand hand,
             BlockHitResult hit) {
+        if (Ecc2WrenchHelper.tryHandleThirdPartyWrench(
+                this, state, level, pos, player, hand, hit.getDirection())) {
+            return InteractionResult.sidedSuccess(level.isClientSide);
+        }
         if (level.isClientSide) {
             return InteractionResult.SUCCESS;
         }

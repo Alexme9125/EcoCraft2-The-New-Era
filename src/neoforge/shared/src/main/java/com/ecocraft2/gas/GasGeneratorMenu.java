@@ -39,7 +39,7 @@ public final class GasGeneratorMenu extends DeviceAccessMenu {
                         return switch (slot) {
                             case GasGeneratorBlockEntity.SLOT_GAS_CELL_IN ->
                                     GiantGasPlatform.isDrainableContainer(
-                                            stack, id -> GasFuelSpec.byFluidId(id).isPresent());
+                                            stack, GiantGasPlatform::isGasFuel);
                             case GasGeneratorBlockEntity.SLOT_CHARGE ->
                                     PortableGear.acceptsCharge(
                                             stack, GasGeneratorEngine.OUTPUT_TIER);
@@ -148,7 +148,7 @@ public final class GasGeneratorMenu extends DeviceAccessMenu {
             }
         } else {
             if (GiantGasPlatform.isDrainableContainer(
-                    stack, id -> GasFuelSpec.byFluidId(id).isPresent())) {
+                    stack, GiantGasPlatform::isGasFuel)) {
                 moveItemStackTo(stack, 0, 1, false);
             } else if (container.canPlaceItem(GasGeneratorBlockEntity.SLOT_CHARGE, stack)) {
                 moveItemStackTo(stack, 2, 3, false);

@@ -1,6 +1,5 @@
 package com.ecocraft2.giant;
 
-import com.ecocraft2.common.config.Ecc2Ids;
 import com.ecocraft2.common.giant.GiantCornerPort;
 import com.ecocraft2.common.giant.GiantMachineEngine;
 import com.ecocraft2.common.giant.GiantPortPermissions;
@@ -18,7 +17,6 @@ import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.inventory.SimpleContainerData;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 
 /**
  * Container menu for all 3x3x3 Giant Machines, pixel-aligned to {@code assets-gen/gui_coordinates.json}
@@ -100,7 +98,7 @@ public final class GiantMachineMenu extends Ecc2MenuBase {
                         }
                         if (slot == GiantUnitBlockEntity.SLOT_BATTERY) {
                             return PortableGear.canDischarge(stack, Math.max(initialTier, 14))
-                                    || stack.is(Items.REDSTONE);
+                                    || GiantGasPlatform.isRedstoneDust(stack);
                         }
                         if (slot >= GiantUnitBlockEntity.UPGRADE_START
                                 && slot
@@ -111,7 +109,7 @@ public final class GiantMachineMenu extends Ecc2MenuBase {
                         if (slot == GiantUnitBlockEntity.SLOT_WASHER_IN) {
                             return waterFlag
                                     && GiantGasPlatform.isDrainableContainer(
-                                            stack, Ecc2Ids.MINECRAFT_WATER_ID::equals);
+                                            stack, GiantGasPlatform::isWaterFluid);
                         }
                         return false;
                     }
@@ -325,7 +323,7 @@ public final class GiantMachineMenu extends Ecc2MenuBase {
             if (!stack.isEmpty()
                     && usesWater()
                     && GiantGasPlatform.isDrainableContainer(
-                            stack, Ecc2Ids.MINECRAFT_WATER_ID::equals)) {
+                            stack, GiantGasPlatform::isWaterFluid)) {
                 moveItemStackTo(
                         stack,
                         GiantUnitBlockEntity.SLOT_WASHER_IN,

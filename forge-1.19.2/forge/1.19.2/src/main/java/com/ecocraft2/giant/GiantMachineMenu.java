@@ -16,7 +16,6 @@ import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.inventory.SimpleContainerData;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.material.Fluids;
 import net.minecraftforge.fluids.FluidUtil;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.ItemStackHandler;
@@ -69,7 +68,7 @@ public final class GiantMachineMenu extends AbstractContainerMenu {
                 }
                 if (slot == GiantMachineBlockEntity.WASHER_IN_SLOT) {
                     return FluidUtil.getFluidContained(Ecc2BridgePlatform.copyWithCount(stack, 1))
-                            .map(fs -> !fs.isEmpty() && fs.getFluid() == Fluids.WATER)
+                            .map(Ecc2BridgePlatform::isWaterFluid)
                             .orElse(false);
                 }
                 return false;

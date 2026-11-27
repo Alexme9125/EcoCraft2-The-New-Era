@@ -86,7 +86,7 @@ public final class CompatRecipes {
     public record Ic2BridgeEntry(
             String id,
             Component machineLabel,
-            List<ItemStack> inputs,
+            List<List<ItemStack>> inputSlots,
             ItemStack output,
             List<ItemStack> catalystMachines) {}
 
@@ -197,24 +197,14 @@ public final class CompatRecipes {
         return list;
     }
 
-    /** Builds the canonical Culture Incubator recipe entries (Bone Meal and Rotten Flesh). */
+    /** Builds the canonical Culture Incubator recipe entry from {@code #ecc2:culture_nutrients}. */
     public static List<FluidProcessEntry> cultureIncubatorRecipes() {
         Fluid culture = Ecc2Fluids.CULTURE_MEDIUM_SOURCE.get();
         Component note = Component.translatable("jei.ecc2.culture_incubator.note");
         return List.of(
                 new FluidProcessEntry(
-                        "ecc2:culture_incubator/bone_meal",
-                        List.of(new ItemStack(Items.BONE_MEAL)),
-                        Fluids.WATER,
-                        CultureIncubatorEngine.WATER_PER_OP_MB,
-                        culture,
-                        CultureIncubatorEngine.CULTURE_OUTPUT_PER_OP_MB,
-                        CultureIncubatorEngine.BASE_EU_PER_OP,
-                        CultureIncubatorEngine.BASE_TICKS_PER_OP,
-                        note),
-                new FluidProcessEntry(
-                        "ecc2:culture_incubator/rotten_flesh",
-                        List.of(new ItemStack(Items.ROTTEN_FLESH)),
+                        "ecc2:culture_incubator/nutrients",
+                        collectCultureNutrientInputs(),
                         Fluids.WATER,
                         CultureIncubatorEngine.WATER_PER_OP_MB,
                         culture,
@@ -287,10 +277,10 @@ public final class CompatRecipes {
                 resolveItemStacks("ic2:canner", "ic2:solid_canner", "ic2:classic_canner");
         int canIdx = 0;
         for (var entry : Ecc2ExternalRecipes.canningBottleRecipes()) {
-            ItemStack ingredient =
-                    GiantGasPlatform.itemStack(entry.ingredientId(), entry.ingredientCount());
-            ItemStack container =
-                    GiantGasPlatform.itemStack(entry.containerId(), entry.containerCount());
+            List<ItemStack> ingredient =
+                    resolveSpecStacks(entry.ingredientId(), entry.ingredientCount());
+            List<ItemStack> container =
+                    resolveSpecStacks(entry.containerId(), entry.containerCount());
             ItemStack output = GiantGasPlatform.itemStack(entry.outputId(), entry.outputCount());
             if (!ingredient.isEmpty() && !container.isEmpty() && !output.isEmpty()) {
                 list.add(
@@ -307,7 +297,7 @@ public final class CompatRecipes {
         compressors.add(new ItemStack(GiantGasModule.GIANT_COMPRESSOR_UNIT.get()));
         int compIdx = 0;
         for (var entry : Ecc2ExternalRecipes.compressorRecipes()) {
-            ItemStack input = GiantGasPlatform.itemStack(entry.inputId(), entry.inputCount());
+            List<ItemStack> input = resolveSpecStacks(entry.inputId(), entry.inputCount());
             ItemStack output = GiantGasPlatform.itemStack(entry.outputId(), entry.outputCount());
             if (!input.isEmpty() && !output.isEmpty()) {
                 list.add(
@@ -323,7 +313,7 @@ public final class CompatRecipes {
         List<ItemStack> formers = resolveItemStacks("ic2:metal_former");
         int extIdx = 0;
         for (var entry : Ecc2ExternalRecipes.extruderRecipes()) {
-            ItemStack input = GiantGasPlatform.itemStack(entry.inputId(), entry.inputCount());
+            List<ItemStack> input = resolveSpecStacks(entry.inputId(), entry.inputCount());
             ItemStack output = GiantGasPlatform.itemStack(entry.outputId(), entry.outputCount());
             if (!input.isEmpty() && !output.isEmpty()) {
                 list.add(
@@ -494,7 +484,9 @@ public final class CompatRecipes {
         if (ic2CoalDust != null && ic2CoalDust != Items.AIR) {
             unique.put(ic2CoalDust, new ItemStack(ic2CoalDust));
         }
-        for (ItemStack tagged : SolarPlatform.allItemsInTag("c:dusts/coal", 1)) {
+        for (ItemStack tagged :
+                SolarPlatform.allItemsInTag(
+                        Ecc2Ids.commonTag("c", Ecc2Ids.COMMON_TAG_DUSTS_COAL), 1)) {
             if (!tagged.isEmpty()) {
                 unique.putIfAbsent(tagged.getItem(), tagged);
             }
@@ -503,6 +495,29 @@ public final class CompatRecipes {
             unique.put(Items.COAL, new ItemStack(Items.COAL));
         }
         return new ArrayList<>(unique.values());
+    }
+
+    private static List<ItemStack> collectCultureNutrientInputs() {
+        Map<Item, ItemStack> unique = new LinkedHashMap<>();
+        unique.put(Items.BONE_MEAL, new ItemStack(Items.BONE_MEAL));
+        unique.put(Items.ROTTEN_FLESH, new ItemStack(Items.ROTTEN_FLESH));
+        for (ItemStack tagged : SolarPlatform.allItemsInTag(Ecc2Ids.TAG_CULTURE_NUTRIENTS, 1)) {
+            if (!tagged.isEmpty()) {
+                unique.putIfAbsent(tagged.getItem(), tagged);
+            }
+        }
+        return new ArrayList<>(unique.values());
+    }
+
+    private static List<ItemStack> resolveSpecStacks(String spec, int count) {
+        if (spec == null || spec.isEmpty() || count <= 0) {
+            return List.of();
+        }
+        if (spec.startsWith("#")) {
+            return SolarPlatform.allItemsInTag(spec.substring(1), count);
+        }
+        ItemStack stack = GiantGasPlatform.itemStack(spec, count);
+        return stack.isEmpty() ? List.of() : List.of(stack);
     }
 
     private static List<ItemStack> resolveItemStacks(String... ids) {

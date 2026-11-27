@@ -16,7 +16,6 @@ import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.inventory.SimpleContainerData;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 
 /** Container menu for {@code ecc2:water_gas_machine} aligned to {@code water_gas_machine.png}. */
 public final class WaterGasMachineMenu extends DeviceAccessMenu {
@@ -45,13 +44,13 @@ public final class WaterGasMachineMenu extends DeviceAccessMenu {
                                     WaterGasMachineBlockEntity.isCoalDust(stack);
                             case WaterGasMachineBlockEntity.SLOT_WATER_CELL_IN ->
                                     GiantGasPlatform.isDrainableContainer(
-                                            stack, Ecc2Ids.MINECRAFT_WATER_ID::equals);
+                                            stack, GiantGasPlatform::isWaterFluid);
                             case WaterGasMachineBlockEntity.SLOT_GAS_CELL_IN ->
                                     GiantGasPlatform.isFillableContainer(
                                             stack, Ecc2Ids.WATER_GAS_ID);
                             case WaterGasMachineBlockEntity.SLOT_BATTERY ->
                                     PortableGear.canDischarge(stack, 14)
-                                            || stack.is(Items.REDSTONE);
+                                            || GiantGasPlatform.isRedstoneDust(stack);
                             case 6, 7, 8, 9 ->
                                     WaterGasMachineBlockEntity.isAcceptedUpgrade(stack);
                             default -> false;
@@ -156,7 +155,7 @@ public final class WaterGasMachineMenu extends DeviceAccessMenu {
             } else if (WaterGasMachineBlockEntity.isCoalDust(stack)) {
                 moveItemStackTo(stack, 0, 1, false);
             } else if (GiantGasPlatform.isDrainableContainer(
-                    stack, Ecc2Ids.MINECRAFT_WATER_ID::equals)) {
+                    stack, GiantGasPlatform::isWaterFluid)) {
                 moveItemStackTo(stack, 1, 2, false);
             } else if (GiantGasPlatform.isFillableContainer(stack, Ecc2Ids.WATER_GAS_ID)) {
                 moveItemStackTo(stack, 3, 4, false);

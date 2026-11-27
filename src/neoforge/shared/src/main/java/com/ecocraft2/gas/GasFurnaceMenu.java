@@ -40,7 +40,7 @@ public final class GasFurnaceMenu extends DeviceAccessMenu {
                             case GasFurnaceBlockEntity.SLOT_INPUT -> !stack.isEmpty();
                             case GasFurnaceBlockEntity.SLOT_GAS_CELL_IN ->
                                     GiantGasPlatform.isDrainableContainer(
-                                            stack, id -> GasFuelSpec.byFluidId(id).isPresent());
+                                            stack, GiantGasPlatform::isGasFuel);
                             case 4, 5, 6, 7 ->
                                     Ecc2UpgradeHelper.isAcceptedUpgrade(stack, false, true);
                             default -> false;
@@ -167,7 +167,7 @@ public final class GasFurnaceMenu extends DeviceAccessMenu {
             if (Ecc2UpgradeHelper.isAcceptedUpgrade(stack, false, true)) {
                 moveItemStackTo(stack, 4, 8, false);
             } else if (GiantGasPlatform.isDrainableContainer(
-                    stack, id -> GasFuelSpec.byFluidId(id).isPresent())) {
+                    stack, GiantGasPlatform::isGasFuel)) {
                 moveItemStackTo(stack, 2, 3, false);
             } else {
                 moveItemStackTo(stack, 0, 1, false);

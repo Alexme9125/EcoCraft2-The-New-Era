@@ -1,9 +1,12 @@
 package com.ecocraft2.kinetic;
 
 import com.ecocraft2.common.kinetic.KineticMachineTier;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
@@ -33,6 +36,25 @@ public final class AdvancedWaterKineticBlock extends AdvancedKineticBlock {
         return defaultBlockState()
                 .setValue(FACING, context.getNearestLookingDirection().getOpposite())
                 .setValue(ACTIVE, false);
+    }
+
+    @Override
+    protected BlockState rotate(BlockState state, Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+    }
+
+    @Override
+    public boolean wrenchSide(BlockState state, Direction side) {
+        return side != null;
+    }
+
+    @Override
+    public boolean wrenchTurn(ServerLevel level, BlockPos pos, BlockState state, Direction side) {
+        if (side == null || state.getValue(FACING) == side) {
+            return false;
+        }
+        level.setBlock(pos, state.setValue(FACING, side), Block.UPDATE_ALL);
+        return true;
     }
 
     @Override

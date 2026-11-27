@@ -417,7 +417,7 @@ public final class GiantUnitBlockEntity extends Ecc2BlockEntityBase
             engine.injectEu(extracted);
             return true;
         }
-        if (stack.is(Items.REDSTONE) && engine.demandedEu() >= 800.0) {
+        if (GiantGasPlatform.isRedstoneDust(stack) && engine.demandedEu() >= 800.0) {
             engine.injectEu(800.0);
             stack.shrink(1);
             return true;
@@ -433,7 +433,7 @@ public final class GiantUnitBlockEntity extends Ecc2BlockEntityBase
         }
         var drained =
                 GiantGasPlatform.drainFluidContainer(
-                        in, Ecc2Ids.MINECRAFT_WATER_ID::equals, room);
+                        in, GiantGasPlatform::isWaterFluid, room);
         if (drained == null || drained.amountMb() <= 0) {
             return false;
         }
@@ -611,7 +611,7 @@ public final class GiantUnitBlockEntity extends Ecc2BlockEntityBase
                             level,
                             upgradeList,
                             endpoints,
-                            Ecc2Ids.MINECRAFT_WATER_ID::equals,
+                            GiantGasPlatform::isWaterFluid,
                             (fid, amt) -> engine.fillWater(amt, false),
                             () -> engine.waterTankCapacityMb() - engine.waterMb(),
                             null,
@@ -1120,7 +1120,7 @@ public final class GiantUnitBlockEntity extends Ecc2BlockEntityBase
 
             @Override
             public boolean acceptsFluid(int tank, String fluidId) {
-                return tank == 0 && Ecc2Ids.MINECRAFT_WATER_ID.equals(fluidId);
+                return tank == 0 && GiantGasPlatform.isWaterFluid(fluidId);
             }
 
             @Override
@@ -1135,7 +1135,7 @@ public final class GiantUnitBlockEntity extends Ecc2BlockEntityBase
 
             @Override
             public int fillFluid(int tank, String fluidId, int amount, boolean simulate) {
-                if (!allowIn || !Ecc2Ids.MINECRAFT_WATER_ID.equals(fluidId)) {
+                if (!allowIn || !GiantGasPlatform.isWaterFluid(fluidId)) {
                     return 0;
                 }
                 return engine.fillWater(amount, simulate);
@@ -1180,7 +1180,7 @@ public final class GiantUnitBlockEntity extends Ecc2BlockEntityBase
         }
         if (slot == SLOT_BATTERY) {
             return PortableGear.canDischarge(stack, engine.inputTier())
-                    || stack.is(Items.REDSTONE);
+                    || GiantGasPlatform.isRedstoneDust(stack);
         }
         if (slot >= UPGRADE_START && slot < UPGRADE_START + UPGRADE_COUNT) {
             return Ecc2UpgradeHelper.isAcceptedUpgrade(stack, true, usesWater());
@@ -1188,7 +1188,7 @@ public final class GiantUnitBlockEntity extends Ecc2BlockEntityBase
         if (slot == SLOT_WASHER_IN) {
             return usesWater()
                     && GiantGasPlatform.isDrainableContainer(
-                            stack, Ecc2Ids.MINECRAFT_WATER_ID::equals);
+                            stack, GiantGasPlatform::isWaterFluid);
         }
         return false;
     }
@@ -1237,7 +1237,7 @@ public final class GiantUnitBlockEntity extends Ecc2BlockEntityBase
             }
             if (slot == SLOT_BATTERY) {
                 return PortableGear.canSupplyCharge(stack, engine.inputTier())
-                        || stack.is(Items.REDSTONE);
+                        || GiantGasPlatform.isRedstoneDust(stack);
             }
             return GiantUnitBlockEntity.this.canPlaceItem(slot, stack);
         }

@@ -70,7 +70,9 @@ public final class WaterGasMachineBlockEntity extends BlockEntity
     public static final int TOTAL_SLOTS = 10;
 
     private static final TagKey<Item> COAL_DUST_TAG =
-            TagKey.create(Registry.ITEM_REGISTRY, new ResourceLocation("forge", "dusts/coal"));
+            TagKey.create(
+                    Registry.ITEM_REGISTRY,
+                    new ResourceLocation("forge", Ecc2Ids.COMMON_TAG_DUSTS_COAL));
 
     private final WaterGasEngine engine = new WaterGasEngine();
     private final MachinePortCache portCache = new MachinePortCache(this);
@@ -169,13 +171,13 @@ public final class WaterGasMachineBlockEntity extends BlockEntity
                 @Override
                 public boolean isFluidValid(int tank, @NotNull FluidStack stack) {
                     return tank == 0
-                            ? stack.getFluid() == Fluids.WATER
+                            ? Ecc2BridgePlatform.isWaterFluid(stack)
                             : stack.getFluid() == GasRegistry.WATER_GAS.get();
                 }
 
                 @Override
                 public int fill(FluidStack resource, FluidAction action) {
-                    if (resource.isEmpty() || resource.getFluid() != Fluids.WATER) {
+                    if (resource.isEmpty() || !Ecc2BridgePlatform.isWaterFluid(resource)) {
                         return 0;
                     }
                     int accepted = engine.fillWater(resource.getAmount(), action.simulate());
@@ -322,7 +324,7 @@ public final class WaterGasMachineBlockEntity extends BlockEntity
                 SLOT_WATER_IN,
                 SLOT_WATER_OUT,
                 WaterGasEngine.WATER_TANK_CAPACITY_MB - engine.waterMb(),
-                fs -> fs.getFluid() == Fluids.WATER,
+                Ecc2BridgePlatform::isWaterFluid,
                 fs -> engine.fillWater(fs.getAmount(), false))) {
             setChanged();
         }
@@ -370,7 +372,7 @@ public final class WaterGasMachineBlockEntity extends BlockEntity
                             serverLevel,
                             this,
                             upgrades,
-                            fs -> fs.getFluid() == Fluids.WATER,
+                            Ecc2BridgePlatform::isWaterFluid,
                             () -> WaterGasEngine.WATER_TANK_CAPACITY_MB - engine.waterMb(),
                             fs -> engine.fillWater(fs.getAmount(), false),
                             () ->

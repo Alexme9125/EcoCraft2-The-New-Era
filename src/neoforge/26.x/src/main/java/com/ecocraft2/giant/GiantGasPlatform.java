@@ -1,6 +1,8 @@
 package com.ecocraft2.giant;
 
 import com.ecocraft2.EcoCraft2;
+import com.ecocraft2.common.config.Ecc2Ids;
+import com.ecocraft2.common.gas.GasFuelSpec;
 import com.industrialage.ia2.access.MachineAccess;
 import com.industrialage.ia2.access.MachinePorts;
 import com.industrialage.ia2.access.ProcessingItemPort;
@@ -8,6 +10,7 @@ import com.industrialage.ia2.access.ProcessingSlots;
 import com.industrialage.ia2.logistics.CellFamily;
 import com.industrialage.ia2.logistics.CellItem;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
@@ -22,6 +25,7 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.tags.FluidTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.SimpleContainer;
@@ -227,6 +231,63 @@ public final class GiantGasPlatform {
         String raw = tagId.startsWith("#") ? tagId.substring(1) : tagId;
         var key = Identifier.tryParse(raw);
         return key != null && stack.is(TagKey.create(Registries.ITEM, key));
+    }
+
+    public static boolean hasFluidTag(Fluid fluid, String tagId) {
+        if (fluid == null || fluid == Fluids.EMPTY || tagId == null || tagId.isEmpty()) {
+            return false;
+        }
+        String raw = tagId.startsWith("#") ? tagId.substring(1) : tagId;
+        var key = Identifier.tryParse(raw);
+        return key != null && fluid.defaultFluidState().is(TagKey.create(Registries.FLUID, key));
+    }
+
+    public static boolean hasFluidTag(String fluidId, String tagId) {
+        return hasFluidTag(findFluid(fluidId), tagId);
+    }
+
+    public static boolean isWaterFluid(String fluidId) {
+        if (fluidId == null || fluidId.isEmpty()) {
+            return false;
+        }
+        if (Ecc2Ids.MINECRAFT_WATER_ID.equals(fluidId)) {
+            return true;
+        }
+        Fluid fluid = findFluid(fluidId);
+        return fluid != Fluids.EMPTY
+                && (fluid.defaultFluidState().is(FluidTags.WATER)
+                        || hasFluidTag(fluid, Ecc2Ids.commonTag("c", Ecc2Ids.COMMON_TAG_WATER)));
+    }
+
+    public static boolean isCultureMediumFluid(String fluidId) {
+        if (fluidId == null || fluidId.isEmpty()) {
+            return false;
+        }
+        return Ecc2Ids.CULTURE_MEDIUM_ID.equals(fluidId)
+                || hasFluidTag(fluidId, Ecc2Ids.commonTag("c", Ecc2Ids.COMMON_TAG_CULTURE_MEDIUM));
+    }
+
+    public static boolean isBiogasFluid(String fluidId) {
+        if (fluidId == null || fluidId.isEmpty()) {
+            return false;
+        }
+        return Ecc2Ids.IC2_BIOGAS_ID.equals(fluidId)
+                || hasFluidTag(fluidId, Ecc2Ids.commonTag("c", Ecc2Ids.COMMON_TAG_BIOGAS));
+    }
+
+    public static Optional<GasFuelSpec> resolveGasFuel(String fluidId) {
+        return GasFuelSpec.resolve(fluidId, "c", tag -> hasFluidTag(fluidId, tag));
+    }
+
+    public static boolean isGasFuel(String fluidId) {
+        return resolveGasFuel(fluidId).isPresent();
+    }
+
+    public static boolean isRedstoneDust(ItemStack stack) {
+        return stack != null
+                && !stack.isEmpty()
+                && (stack.is(Items.REDSTONE)
+                        || hasItemTag(stack, Ecc2Ids.commonTag("c", Ecc2Ids.COMMON_TAG_DUSTS_REDSTONE)));
     }
 
     public static int fluidRegistryId(String fluidId) {
