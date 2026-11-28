@@ -1,4 +1,6 @@
-# 绿能纪元（Ecolera）
+<h1><img src="assets/brand/icon.jpg" width="56" height="56" align="absmiddle" alt=""> 环保纪元 (Ecolera)</h1>
+
+![环保纪元 (Ecolera) 项目封面](assets/brand/cover.jpg)
 
 面向 **机电纪元（Machinera, `mhera` v2.0.0+）** 的独立开源附属模组（Mod ID: `ecera`）。
 
