@@ -6,7 +6,7 @@ license="LGPL-3.0-only"
 modId="ecera"
 version="${version}"
 displayName="Ecolera"
-displayURL="https://github.com/Alexme9125/EcoCraft2-The-New-Era"
+displayURL="https://github.com/Alexme9125/Ecolera"
 description="Clean-room clean energy and megastructure addon for Machinera (mhera) adding Advanced Solar Panels 2, Advanced Wind/Water Kinetic Generators with classic rotor wear, 3x3x3 Giant Machines, and Water Gas / Natural Gas / Biogas industry."
 
 [[dependencies.ecera]]
