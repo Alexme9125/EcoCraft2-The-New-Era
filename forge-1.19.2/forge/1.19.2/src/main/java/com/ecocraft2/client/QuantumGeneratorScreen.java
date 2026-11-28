@@ -81,7 +81,7 @@ public final class QuantumGeneratorScreen extends AbstractContainerScreen<Quantu
         int x = (int) (14 / 0.8f);
         font.draw(
                 poseStack,
-                Component.translatable("gui.ecc2.quantum_generator.production", menu.production()),
+                Component.translatable("gui.ecera.quantum_generator.production", menu.production()),
                 x,
                 (int) (22 / 0.8f),
                 0x8DF0FF);
@@ -89,7 +89,7 @@ public final class QuantumGeneratorScreen extends AbstractContainerScreen<Quantu
         font.draw(
                 poseStack,
                 Component.translatable(
-                        "gui.ecc2.quantum_generator.tier", tierStr, menu.tierPacketSize()),
+                        "gui.ecera.quantum_generator.tier", tierStr, menu.tierPacketSize()),
                 x,
                 (int) (33 / 0.8f),
                 0xD0E4F0);
@@ -97,7 +97,7 @@ public final class QuantumGeneratorScreen extends AbstractContainerScreen<Quantu
         font.draw(
                 poseStack,
                 Component.translatable(
-                        "gui.ecc2.quantum_generator.packets", menu.packetCount(), perPacket),
+                        "gui.ecera.quantum_generator.packets", menu.packetCount(), perPacket),
                 x,
                 (int) (44 / 0.8f),
                 0x7FFFB0);

@@ -170,19 +170,19 @@ public final class GasRegistry {
     // ---- 4 Named Fluid Cells (Biogas reuses ic2:biogas_cell) ----
     public static final RegistryObject<Item> WATER_GAS_CELL =
             Ecc2Registries.ITEMS.register(
-                    Ecc2Ids.WATER_GAS_CELL, () -> new Ecc2NamedCellItem("gui.ecc2.gas.water_gas"));
+                    Ecc2Ids.WATER_GAS_CELL, () -> new Ecc2NamedCellItem("gui.ecera.gas.water_gas"));
     public static final RegistryObject<Item> NATURAL_GAS_CELL =
             Ecc2Registries.ITEMS.register(
                     Ecc2Ids.NATURAL_GAS_CELL,
-                    () -> new Ecc2NamedCellItem("gui.ecc2.gas.natural_gas"));
+                    () -> new Ecc2NamedCellItem("gui.ecera.gas.natural_gas"));
     public static final RegistryObject<Item> CULTURE_MEDIUM_CELL =
             Ecc2Registries.ITEMS.register(
                     Ecc2Ids.CULTURE_MEDIUM_CELL,
-                    () -> new Ecc2NamedCellItem("gui.ecc2.gas.culture_medium"));
+                    () -> new Ecc2NamedCellItem("gui.ecera.gas.culture_medium"));
     public static final RegistryObject<Item> BASIC_CULTURE_MEDIUM_CELL =
             Ecc2Registries.ITEMS.register(
                     Ecc2Ids.BASIC_CULTURE_MEDIUM_CELL,
-                    () -> new Ecc2NamedCellItem("gui.ecc2.gas.culture_medium"));
+                    () -> new Ecc2NamedCellItem("gui.ecera.gas.culture_medium"));
 
     // ---- Seafloor Methane Ice Cluster ----
     public static final RegistryObject<Block> METHANE_ICE_CLUSTER =
@@ -196,7 +196,7 @@ public final class GasRegistry {
                             GasMachineBlock.powered(
                                     WaterGasMachineBlockEntity::new,
                                     GasRegistry.WATER_GAS_MACHINE_BE,
-                                    "tooltip.ecc2.water_gas_machine"));
+                                    "tooltip.ecera.water_gas_machine"));
 
     public static final RegistryObject<Item> PV_POWER_UPGRADE =
             Ecc2Registries.ITEMS.register(
@@ -214,7 +214,7 @@ public final class GasRegistry {
                                         List<Component> tooltip,
                                         TooltipFlag flag) {
                                     tooltip.add(
-                                            Component.translatable("tooltip.ecc2.pv_power_upgrade")
+                                            Component.translatable("tooltip.ecera.pv_power_upgrade")
                                                     .withStyle(ChatFormatting.GRAY));
                                 }
                             });
@@ -226,7 +226,7 @@ public final class GasRegistry {
                             new GasMachineBlock<>(
                                     GasFurnaceBlockEntity::new,
                                     GasRegistry.GAS_FURNACE_BE,
-                                    "tooltip.ecc2.gas_furnace"));
+                                    "tooltip.ecera.gas_furnace"));
 
     public static final RegistryObject<Block> GAS_GENERATOR =
             registerBlock(
@@ -235,7 +235,7 @@ public final class GasRegistry {
                             GasMachineBlock.powered(
                                     GasGeneratorBlockEntity::new,
                                     GasRegistry.GAS_GENERATOR_BE,
-                                    "tooltip.ecc2.gas_generator"));
+                                    "tooltip.ecera.gas_generator"));
 
     public static final RegistryObject<Block> CULTURE_INCUBATOR =
             registerBlock(
@@ -244,7 +244,7 @@ public final class GasRegistry {
                             GasMachineBlock.powered(
                                     CultureIncubatorBlockEntity::new,
                                     GasRegistry.CULTURE_INCUBATOR_BE,
-                                    "tooltip.ecc2.culture_incubator"));
+                                    "tooltip.ecera.culture_incubator"));
 
     public static final RegistryObject<Block> ORGANIC_FERMENTER =
             registerBlock(
@@ -253,7 +253,7 @@ public final class GasRegistry {
                             GasMachineBlock.powered(
                                     OrganicFermenterBlockEntity::new,
                                     GasRegistry.ORGANIC_FERMENTER_BE,
-                                    "tooltip.ecc2.organic_fermenter"));
+                                    "tooltip.ecera.organic_fermenter"));
 
     // ---- 5 Block Entities ----
     public static final RegistryObject<BlockEntityType<WaterGasMachineBlockEntity>>

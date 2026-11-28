@@ -342,7 +342,7 @@ public final class OrganicFermenterBlockEntity extends GasMachineBlockEntityBase
 
     @Override
     public Component getDisplayName() {
-        return Component.translatable("container.ecc2.organic_fermenter");
+        return Component.translatable("container.ecera.organic_fermenter");
     }
 
     @Override
@@ -352,25 +352,25 @@ public final class OrganicFermenterBlockEntity extends GasMachineBlockEntityBase
 
     @Override
     protected void saveState(Ecc2DataWriter out) {
-        out.putItems("ecc2_items", items);
-        out.putDouble("ecc2_eu", engine.storedEu());
-        out.putInt("ecc2_culture", engine.cultureMb());
-        out.putInt("ecc2_biogas", engine.biogasMb());
-        out.putInt("ecc2_progress", engine.progress());
-        out.putInt("ecc2_nutrition", engine.activeNutrition());
+        out.putItems("ecera_items", items);
+        out.putDouble("ecera_eu", engine.storedEu());
+        out.putInt("ecera_culture", engine.cultureMb());
+        out.putInt("ecera_biogas", engine.biogasMb());
+        out.putInt("ecera_progress", engine.progress());
+        out.putInt("ecera_nutrition", engine.activeNutrition());
     }
 
     @Override
     protected void loadState(Ecc2DataReader in) {
-        in.loadItems("ecc2_items", items);
+        in.loadItems("ecera_items", items);
         engine.setUpgrades(
                 Ecc2UpgradeHelper.readProfile(
                         items.subList(UPGRADE_START, UPGRADE_START + UPGRADE_COUNT)));
-        engine.setStoredEu(in.getDouble("ecc2_eu", 0.0));
-        engine.setCultureMb(in.getInt("ecc2_culture", 0));
-        engine.setBiogasMb(in.getInt("ecc2_biogas", 0));
-        engine.setProgress(in.getInt("ecc2_progress", 0));
-        engine.setActiveNutrition(in.getInt("ecc2_nutrition", 0));
+        engine.setStoredEu(in.getDouble("ecera_eu", 0.0));
+        engine.setCultureMb(in.getInt("ecera_culture", 0));
+        engine.setBiogasMb(in.getInt("ecera_biogas", 0));
+        engine.setProgress(in.getInt("ecera_progress", 0));
+        engine.setActiveNutrition(in.getInt("ecera_nutrition", 0));
     }
 
     // ---- Public Getters ----

@@ -59,7 +59,7 @@ public final class GiantMachineType {
 
     private static GiantMachineType registerBuiltIn(
             GiantMachineSpec spec, GiantRecipeAdapter adapter) {
-        var type = new GiantMachineType(spec, adapter, "container.ecc2.giant_" + spec.id());
+        var type = new GiantMachineType(spec, adapter, "container.ecera.giant_" + spec.id());
         BY_ID.put(spec.id(), type);
         BY_UNIT_PATH.put(spec.unitBlockPath(), type);
         return type;

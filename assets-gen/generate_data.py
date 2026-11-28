@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Multi-version resource & data pack generator for EcoCraft 2: The New Era (ecc2).
+"""Multi-version resource & data pack generator for Ecolera (ecera).
 
 Generates clean, version-accurate assets (blockstates, block/item models, 26.x item
 definitions & armor equipment JSONs) and data (crafting recipes, 22 Molecular
@@ -20,7 +20,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 TARGETS = ("neoforge-1.21.1", "neoforge-26.1.2", "neoforge-26.2", "forge-1.19.2")
-MOD_ID = "ecc2"
+MOD_ID = "ecera"
 
 SOLAR_PANELS = [
     "advanced_solar_panel",
@@ -552,7 +552,7 @@ def generate_assets(out_root: Path, cfg: TargetConfig) -> int:
                 },
             )
 
-    # --- 1.11 MC 1.21.4+ / 26.x Item Model Definitions (assets/ecc2/items/*.json) ---
+    # --- 1.11 MC 1.21.4+ / 26.x Item Model Definitions (assets/ecera/items/*.json) ---
     if cfg.is_26x:
         for all_id in ALL_PLACEABLE_BLOCKS + STANDALONE_ITEMS:
             if all_id in DYEABLE_HELMETS:
@@ -626,58 +626,58 @@ def generate_crafting_recipes(out_root: Path, cfg: TargetConfig) -> int:
 
     # --- ASP Crafting Ladder (12) ---
     emit("sunnarium_from_parts", shaped(
-        cfg, ["PPP", "PPP", "PPP"], {"P": "ecc2:sunnarium_part"}, "ecc2:sunnarium",
+        cfg, ["PPP", "PPP", "PPP"], {"P": "ecera:sunnarium_part"}, "ecera:sunnarium",
     ))
     emit("sunnarium_alloy", shaped(
-        cfg, ["AAA", "ASA", "AAA"], {"A": "ic2:alloy", "S": "ecc2:sunnarium"}, "ecc2:sunnarium_alloy",
+        cfg, ["AAA", "ASA", "AAA"], {"A": "mhera:alloy", "S": "ecera:sunnarium"}, "ecera:sunnarium_alloy",
     ))
     emit("irradiant_uranium", shaped(
-        cfg, ["GGG", "GUG", "GGG"], {"G": cfg.tag("dusts/glowstone"), "U": cfg.tag("ingots/uranium")}, "ecc2:irradiant_uranium",
+        cfg, ["GGG", "GUG", "GGG"], {"G": cfg.tag("dusts/glowstone"), "U": cfg.tag("ingots/uranium")}, "ecera:irradiant_uranium",
     ))
     emit("enriched_sunnarium", shaped(
-        cfg, ["UUU", "USU", "UUU"], {"U": "ecc2:irradiant_uranium", "S": "ecc2:sunnarium"}, "ecc2:enriched_sunnarium",
+        cfg, ["UUU", "USU", "UUU"], {"U": "ecera:irradiant_uranium", "S": "ecera:sunnarium"}, "ecera:enriched_sunnarium",
     ))
     emit("enriched_sunnarium_alloy", shaped(
-        cfg, [" A ", "ASA", " A "], {"A": "ecc2:sunnarium_alloy", "S": "ecc2:enriched_sunnarium"}, "ecc2:enriched_sunnarium_alloy",
+        cfg, [" A ", "ASA", " A "], {"A": "ecera:sunnarium_alloy", "S": "ecera:enriched_sunnarium"}, "ecera:enriched_sunnarium_alloy",
     ))
     emit("irradiant_glass_pane", shaped(
         cfg, ["GGG", "DSD", "GGG"],
-        {"G": "ic2:reinforced_glass", "D": cfg.tag("dusts/glowstone"), "S": "ecc2:sunnarium_part"},
-        "ecc2:irradiant_glass_pane", 6,
+        {"G": "mhera:reinforced_glass", "D": cfg.tag("dusts/glowstone"), "S": "ecera:sunnarium_part"},
+        "ecera:irradiant_glass_pane", 6,
     ))
     emit("iridium_iron_plate", shaped(
-        cfg, ["III", "IRI", "III"], {"I": cfg.tag("plates/iron"), "R": cfg.tag("ingots/iridium")}, "ecc2:iridium_iron_plate",
+        cfg, ["III", "IRI", "III"], {"I": cfg.tag("plates/iron"), "R": cfg.tag("ingots/iridium")}, "ecera:iridium_iron_plate",
     ))
     emit("reinforced_iridium_iron_plate", shaped(
         cfg, ["ACA", "CPC", "ACA"],
-        {"A": "ic2:alloy", "C": "ic2:carbon_plate", "P": "ecc2:iridium_iron_plate"},
-        "ecc2:reinforced_iridium_iron_plate",
+        {"A": "mhera:alloy", "C": "mhera:carbon_plate", "P": "ecera:iridium_iron_plate"},
+        "ecera:reinforced_iridium_iron_plate",
     ))
     emit("irradiant_reinforced_plate", shaped(
         cfg, ["RDR", "GPG", "RMR"],
         {
             "R": cfg.tag("dusts/redstone"),
-            "D": "ecc2:sunnarium_part",
+            "D": "ecera:sunnarium_part",
             "G": cfg.tag("dusts/glowstone"),
-            "P": "ecc2:reinforced_iridium_iron_plate",
-            "M": "ic2:industrial_diamond",
+            "P": "ecera:reinforced_iridium_iron_plate",
+            "M": "mhera:industrial_diamond",
         },
-        "ecc2:irradiant_reinforced_plate",
+        "ecera:irradiant_reinforced_plate",
     ))
     emit("mt_core", shaped(
         cfg, ["GNG", "G G", "GNG"],
-        {"G": "ecc2:irradiant_glass_pane", "N": "ic2:advanced_heat_vent"},
-        "ecc2:mt_core",
+        {"G": "ecera:irradiant_glass_pane", "N": "mhera:advanced_heat_vent"},
+        "ecera:mt_core",
     ))
     emit("quantum_core", shaped(
         cfg, ["EAE", "ANA", "EAE"],
-        {"E": "ecc2:enriched_sunnarium_alloy", "A": "minecraft:ender_eye", "N": cfg.tag("nether_stars")},
-        "ecc2:quantum_core",
+        {"E": "ecera:enriched_sunnarium_alloy", "A": "minecraft:ender_eye", "N": cfg.tag("nether_stars")},
+        "ecera:quantum_core",
     ))
     emit("molecular_transformer", shaped(
         cfg, ["MFM", "CTC", "MFM"],
-        {"M": "ic2:advanced_machine", "F": "ic2:ev_transformer", "C": cfg.tag("circuits/advanced"), "T": "ecc2:mt_core"},
-        "ecc2:molecular_transformer",
+        {"M": "mhera:advanced_machine", "F": "mhera:ev_transformer", "C": cfg.tag("circuits/advanced"), "T": "ecera:mt_core"},
+        "ecera:molecular_transformer",
         conditions=[cfg.config_flag_condition("molecular_transformer")],
     ))
 
@@ -685,176 +685,176 @@ def generate_crafting_recipes(out_root: Path, cfg: TargetConfig) -> int:
     emit("advanced_solar_panel", shaped(
         cfg, ["GGG", "ASA", "CMC"],
         {
-            "G": "ecc2:irradiant_glass_pane",
-            "A": "ic2:alloy",
-            "S": "ic2:solar_generator",
+            "G": "ecera:irradiant_glass_pane",
+            "A": "mhera:alloy",
+            "S": "mhera:solar_generator",
             "C": cfg.tag("circuits/advanced"),
-            "M": "ic2:advanced_machine",
+            "M": "mhera:advanced_machine",
         },
-        "ecc2:advanced_solar_panel",
+        "ecera:advanced_solar_panel",
         conditions=[cfg.config_flag_condition("advanced_solar_panel")],
     ))
     emit("advanced_solar_panel_easy", shaped(
         cfg, ["GGG", "ASA", "CMC"],
         {
-            "G": "ic2:reinforced_glass",
-            "A": "ic2:alloy",
-            "S": "ic2:solar_generator",
+            "G": "mhera:reinforced_glass",
+            "A": "mhera:alloy",
+            "S": "mhera:solar_generator",
             "C": cfg.tag("circuits/basic"),
-            "M": "ic2:machine",
+            "M": "mhera:machine",
         },
-        "ecc2:advanced_solar_panel",
+        "ecera:advanced_solar_panel",
         conditions=[cfg.config_flag_condition("advanced_solar_panel_easy")],
     ))
     emit("hybrid_solar_panel", shaped(
         cfg, ["CLC", "PAP", "EKE"],
         {
-            "C": "ic2:carbon_plate",
+            "C": "mhera:carbon_plate",
             "L": cfg.tag("storage_blocks/lapis"),
-            "P": "ecc2:irradiant_reinforced_plate",
-            "A": "ecc2:advanced_solar_panel",
+            "P": "ecera:irradiant_reinforced_plate",
+            "A": "ecera:advanced_solar_panel",
             "E": cfg.tag("circuits/advanced"),
-            "K": "ic2:lapotron_crystal",
+            "K": "mhera:lapotron_crystal",
         },
-        "ecc2:hybrid_solar_panel",
+        "ecera:hybrid_solar_panel",
         conditions=[cfg.config_flag_condition("hybrid_solar_panel")],
     ))
     emit("hybrid_solar_panel_normal", shaped(
         cfg, ["CLC", "SAS", "EIE"],
         {
-            "C": "ic2:carbon_plate",
+            "C": "mhera:carbon_plate",
             "L": cfg.tag("storage_blocks/lapis"),
-            "S": "ecc2:sunnarium",
-            "A": "ecc2:advanced_solar_panel",
+            "S": "ecera:sunnarium",
+            "A": "ecera:advanced_solar_panel",
             "E": cfg.tag("circuits/advanced"),
-            "I": "ic2:iridium",
+            "I": "mhera:iridium",
         },
-        "ecc2:hybrid_solar_panel",
+        "ecera:hybrid_solar_panel",
         conditions=[cfg.config_flag_condition("hybrid_solar_panel_normal")],
     ))
     emit("ultimate_hybrid_solar_panel", shaped(
-        cfg, ["GCG", "SHS", "ECE"],
+        cfg, ["GCG", "SHS", "ECERA"],
         {
             "G": cfg.tag("storage_blocks/lapis"),
-            "C": "ic2:coal_chunk",
-            "S": "ecc2:enriched_sunnarium_alloy",
-            "H": "ecc2:hybrid_solar_panel",
+            "C": "mhera:coal_chunk",
+            "S": "ecera:enriched_sunnarium_alloy",
+            "H": "ecera:hybrid_solar_panel",
             "E": cfg.tag("circuits/advanced"),
         },
-        "ecc2:ultimate_hybrid_solar_panel",
+        "ecera:ultimate_hybrid_solar_panel",
         conditions=[cfg.config_flag_condition("ultimate_hybrid_solar_panel")],
     ))
     emit("ultimate_hybrid_solar_panel_normal", shaped(
-        cfg, ["GCG", "SHS", "ECE"],
+        cfg, ["GCG", "SHS", "ECERA"],
         {
             "G": cfg.tag("storage_blocks/lapis"),
-            "C": "ic2:coal_chunk",
-            "S": "ecc2:sunnarium_alloy",
-            "H": "ecc2:hybrid_solar_panel",
+            "C": "mhera:coal_chunk",
+            "S": "ecera:sunnarium_alloy",
+            "H": "ecera:hybrid_solar_panel",
             "E": cfg.tag("circuits/advanced"),
         },
-        "ecc2:ultimate_hybrid_solar_panel",
+        "ecera:ultimate_hybrid_solar_panel",
         conditions=[cfg.config_flag_condition("ultimate_hybrid_solar_panel_normal")],
     ))
     emit("ultimate_hybrid_solar_panel_8x", shaped(
         cfg, ["HHH", "HCH", "HHH"],
-        {"H": "ecc2:hybrid_solar_panel", "C": cfg.tag("circuits/advanced")},
-        "ecc2:ultimate_hybrid_solar_panel",
+        {"H": "ecera:hybrid_solar_panel", "C": cfg.tag("circuits/advanced")},
+        "ecera:ultimate_hybrid_solar_panel",
         conditions=[cfg.config_flag_condition("ultimate_hybrid_solar_panel_any")],
     ))
     emit("hybrid_solar_panel_split", shapeless(
-        cfg, ["ecc2:ultimate_hybrid_solar_panel"], "ecc2:hybrid_solar_panel", 8,
+        cfg, ["ecera:ultimate_hybrid_solar_panel"], "ecera:hybrid_solar_panel", 8,
         conditions=[cfg.config_flag_condition("hybrid_solar_panel_any")],
     ))
     emit("quantum_solar_panel", shaped(
         cfg, ["UUU", "UQU", "UUU"],
-        {"U": "ecc2:ultimate_hybrid_solar_panel", "Q": "ecc2:quantum_core"},
-        "ecc2:quantum_solar_panel",
+        {"U": "ecera:ultimate_hybrid_solar_panel", "Q": "ecera:quantum_core"},
+        "ecera:quantum_solar_panel",
         conditions=[cfg.config_flag_condition("quantum_solar_panel")],
     ))
 
     # --- ASP Solar Helmets (3 + custom EU/dye-preserving upgrade from Hybrid -> Ultimate) ---
     emit("advanced_solar_helmet", shaped(
         cfg, [" S ", "CNC", "GGG"],
-        {"S": "ecc2:advanced_solar_panel", "C": cfg.tag("circuits/advanced"), "N": "ic2:nano_helmet", "G": "ic2:glass_fibre_cable"},
-        "ecc2:advanced_solar_helmet",
+        {"S": "ecera:advanced_solar_panel", "C": cfg.tag("circuits/advanced"), "N": "mhera:nano_helmet", "G": "mhera:glass_fibre_cable"},
+        "ecera:advanced_solar_helmet",
         conditions=[cfg.config_flag_condition("advanced_solar_helmet")],
     ))
     emit("hybrid_solar_helmet", shaped(
         cfg, [" S ", "CQC", "GGG"],
-        {"S": "ecc2:hybrid_solar_panel", "C": cfg.tag("circuits/advanced"), "Q": "ic2:quantum_helmet", "G": "ic2:glass_fibre_cable"},
-        "ecc2:hybrid_solar_helmet",
+        {"S": "ecera:hybrid_solar_panel", "C": cfg.tag("circuits/advanced"), "Q": "mhera:quantum_helmet", "G": "mhera:glass_fibre_cable"},
+        "ecera:hybrid_solar_helmet",
         conditions=[cfg.config_flag_condition("hybrid_solar_helmet")],
     ))
     emit("ultimate_hybrid_solar_helmet", shaped(
         cfg, [" S ", "CQC", "GGG"],
-        {"S": "ecc2:ultimate_hybrid_solar_panel", "C": cfg.tag("circuits/advanced"), "Q": "ic2:quantum_helmet", "G": "ic2:glass_fibre_cable"},
-        "ecc2:ultimate_hybrid_solar_helmet",
+        {"S": "ecera:ultimate_hybrid_solar_panel", "C": cfg.tag("circuits/advanced"), "Q": "mhera:quantum_helmet", "G": "mhera:glass_fibre_cable"},
+        "ecera:ultimate_hybrid_solar_helmet",
         conditions=[cfg.config_flag_condition("ultimate_hybrid_solar_helmet")],
     ))
     helmet_upgrade = shapeless(
-        cfg, ["ecc2:hybrid_solar_helmet", "ecc2:ultimate_hybrid_solar_panel"],
-        "ecc2:ultimate_hybrid_solar_helmet",
+        cfg, ["ecera:hybrid_solar_helmet", "ecera:ultimate_hybrid_solar_panel"],
+        "ecera:ultimate_hybrid_solar_helmet",
         conditions=[cfg.config_flag_condition("ultimate_hybrid_solar_helmet")],
     )
     helmet_upgrade["type"] = f"{MOD_ID}:solar_helmet_upgrade"
     emit("ultimate_hybrid_solar_helmet_upgrade", helmet_upgrade)
 
     # --- 6 Advanced Wind & Water Kinetic Generators (8 recipes incl. durable/overclocked -> precision) ---
-    for kind, base_id in [("wind", "ic2:wind_kinetic_generator"), ("water", "ic2:water_kinetic_generator")]:
+    for kind, base_id in [("wind", "mhera:wind_kinetic_generator"), ("water", "mhera:water_kinetic_generator")]:
         emit(f"durable_{kind}_kinetic_generator", shaped(
             cfg, ["ASA", "RWR", "ASA"],
-            {"A": "ic2:alloy", "S": cfg.tag("plates/steel"), "R": cfg.tag("rubbers"), "W": base_id},
-            f"ecc2:durable_{kind}_kinetic_generator",
+            {"A": "mhera:alloy", "S": cfg.tag("plates/steel"), "R": cfg.tag("rubbers"), "W": base_id},
+            f"ecera:durable_{kind}_kinetic_generator",
         ))
         emit(f"overclocked_{kind}_kinetic_generator", shaped(
             cfg, ["OMC", "AWA", "CMO"],
             {
-                "O": "ic2:overclocker_upgrade",
-                "M": "ic2:electric_motor",
-                "C": "ic2:coil",
+                "O": "mhera:overclocker_upgrade",
+                "M": "mhera:electric_motor",
+                "C": "mhera:coil",
                 "A": cfg.tag("circuits/advanced"),
                 "W": base_id,
             },
-            f"ecc2:overclocked_{kind}_kinetic_generator",
+            f"ecera:overclocked_{kind}_kinetic_generator",
         ))
         for src_tier in ("durable", "overclocked"):
             emit(f"precision_{kind}_kinetic_generator_from_{src_tier}", shaped(
                 cfg, ["ISI", "CWC", "LME"],
                 {
-                    "I": "ic2:iridium",
-                    "S": "ecc2:sunnarium_alloy",
-                    "C": "ic2:carbon_plate",
-                    "W": f"ecc2:{src_tier}_{kind}_kinetic_generator",
-                    "L": "ic2:lapotron_crystal",
-                    "M": "ic2:advanced_machine",
+                    "I": "mhera:iridium",
+                    "S": "ecera:sunnarium_alloy",
+                    "C": "mhera:carbon_plate",
+                    "W": f"ecera:{src_tier}_{kind}_kinetic_generator",
+                    "L": "mhera:lapotron_crystal",
+                    "M": "mhera:advanced_machine",
                     "E": cfg.tag("circuits/advanced"),
                 },
-                f"ecc2:precision_{kind}_kinetic_generator",
+                f"ecera:precision_{kind}_kinetic_generator",
             ))
 
     # --- Giant Machines (Mid-tier Megastructure Component + 5 Giant Machine Units) ---
     emit("megastructure_component", shaped(
         cfg, ["CAC", "EME", "GAG"],
         {
-            "C": "ic2:carbon_plate",
-            "A": "ic2:alloy",
+            "C": "mhera:carbon_plate",
+            "A": "mhera:alloy",
             "E": cfg.tag("circuits/basic"),
-            "M": "ic2:machine",
-            "G": "ic2:reinforced_glass",
+            "M": "mhera:machine",
+            "G": "mhera:reinforced_glass",
         },
-        "ecc2:megastructure_component", 2,
+        "ecera:megastructure_component", 2,
     ))
     giant_sources = [
-        ("macerator", "ic2:macerator"),
-        ("compressor", "ic2:compressor"),
-        ("recycler", "ic2:recycler"),
-        ("extractor", "ic2:extractor"),
-        ("ore_washer", "ic2:ore_washing_plant"),
+        ("macerator", "mhera:macerator"),
+        ("compressor", "mhera:compressor"),
+        ("recycler", "mhera:recycler"),
+        ("extractor", "mhera:extractor"),
+        ("ore_washer", "mhera:ore_washing_plant"),
     ]
     for kind, src_machine in giant_sources:
         emit(f"giant_{kind}_unit", shapeless(
-            cfg, [src_machine, "ecc2:megastructure_component"], f"ecc2:giant_{kind}_unit",
+            cfg, [src_machine, "ecera:megastructure_component"], f"ecera:giant_{kind}_unit",
         ))
 
     # --- Water Gas / PV Power Upgrade / Gas Furnace / Gas Generator / Culture Incubator / Organic Fermenter ---
@@ -862,68 +862,68 @@ def generate_crafting_recipes(out_root: Path, cfg: TargetConfig) -> int:
         cfg, ["ISI", "UMU", "EIE"],
         {
             "I": cfg.tag("plates/iron"),
-            "S": "ic2:solar_generator",
-            "U": "ic2:fluid_cell",
-            "M": "ic2:machine",
+            "S": "mhera:solar_generator",
+            "U": "mhera:fluid_cell",
+            "M": "mhera:machine",
             "E": cfg.tag("circuits/basic"),
         },
-        "ecc2:water_gas_machine",
+        "ecera:water_gas_machine",
     ))
     emit("pv_power_upgrade", shaped(
         cfg, ["TST", "CEC", "TCT"],
         {
             "T": cfg.tag("plates/tin"),
-            "S": "ic2:solar_generator",
-            "C": "ic2:insulated_copper_cable",
+            "S": "mhera:solar_generator",
+            "C": "mhera:insulated_copper_cable",
             "E": cfg.tag("circuits/basic"),
         },
-        "ecc2:pv_power_upgrade",
+        "ecera:pv_power_upgrade",
     ))
     emit("gas_furnace", shaped(
         cfg, ["IFI", "UMU", "IEI"],
         {
             "I": cfg.tag("plates/iron"),
-            "F": "ic2:iron_furnace",
-            "U": "ic2:fluid_cell",
-            "M": "ic2:machine",
+            "F": "mhera:iron_furnace",
+            "U": "mhera:fluid_cell",
+            "M": "mhera:machine",
             "E": cfg.tag("circuits/basic"),
         },
-        "ecc2:gas_furnace",
+        "ecera:gas_furnace",
     ))
     emit("gas_generator", shaped(
         cfg, ["CGC", "UMU", "EOE"],
         {
-            "C": "ic2:insulated_copper_cable",
-            "G": "ic2:generator",
-            "U": "ic2:fluid_cell",
-            "M": "ic2:machine",
+            "C": "mhera:insulated_copper_cable",
+            "G": "mhera:generator",
+            "U": "mhera:fluid_cell",
+            "M": "mhera:machine",
             "E": cfg.tag("circuits/basic"),
-            "O": "ic2:electric_motor",
+            "O": "mhera:electric_motor",
         },
-        "ecc2:gas_generator",
+        "ecera:gas_generator",
     ))
     emit("culture_incubator", shaped(
         cfg, ["GGG", "UMU", "CEC"],
         {
             "G": cfg.tag("glass_blocks"),
-            "U": "ic2:fluid_cell",
-            "M": "ic2:machine",
+            "U": "mhera:fluid_cell",
+            "M": "mhera:machine",
             "C": cfg.tag("plates/copper"),
             "E": cfg.tag("circuits/basic"),
         },
-        "ecc2:culture_incubator",
+        "ecera:culture_incubator",
     ))
     emit("organic_fermenter", shaped(
-        cfg, ["RFR", "UMU", "ECE"],
+        cfg, ["RFR", "UMU", "ECERA"],
         {
-            "R": "ic2:reinforced_glass",
-            "F": "ic2:fermenter",
-            "U": "ic2:fluid_cell",
-            "M": "ic2:machine",
+            "R": "mhera:reinforced_glass",
+            "F": "mhera:fermenter",
+            "U": "mhera:fluid_cell",
+            "M": "mhera:machine",
             "E": cfg.tag("circuits/basic"),
             "C": cfg.tag("plates/copper"),
         },
-        "ecc2:organic_fermenter",
+        "ecera:organic_fermenter",
     ))
 
     return count
@@ -934,20 +934,20 @@ def generate_mt_recipes(out_root: Path, cfg: TargetConfig) -> int:
     mt_dir = out_root / "data" / MOD_ID / cfg.recipe_dir / "molecular_transformer"
     # Tuple: (name, input_spec, input_count, output_spec_or_tag, output_count, energy_eu, required_tags)
     mt_entries: List[Tuple[str, str, int, str, int, int, List[str]]] = [
-        # 13 unconditional vanilla + IC2 + EcC2 entries
+        # 13 unconditional vanilla + MHERA + ECERA entries
         ("wither_skull_to_nether_star", "minecraft:wither_skeleton_skull", 1, "minecraft:nether_star", 1, 250_000_000, []),
-        ("iron_to_iridium_ore", cfg.tag("ingots/iron"), 1, "ic2:iridium_ore", 1, 9_000_000, []),
+        ("iron_to_iridium_ore", cfg.tag("ingots/iron"), 1, "mhera:iridium_ore", 1, 9_000_000, []),
         ("netherrack_to_gunpowder", cfg.tag("netherracks"), 1, "minecraft:gunpowder", 2, 70_000, []),
         ("sand_to_gravel", cfg.tag("sands"), 1, "minecraft:gravel", 1, 50_000, []),
         ("dirt_to_clay", "minecraft:dirt", 1, "minecraft:clay", 1, 50_000, []),
         ("charcoal_to_coal", "minecraft:charcoal", 1, "minecraft:coal", 1, 60_000, []),
-        ("glowstone_dust_to_sunnarium_part", cfg.tag("dusts/glowstone"), 1, "ecc2:sunnarium_part", 1, 1_000_000, []),
-        ("glowstone_to_sunnarium", "minecraft:glowstone", 1, "ecc2:sunnarium", 1, 9_000_000, []),
+        ("glowstone_dust_to_sunnarium_part", cfg.tag("dusts/glowstone"), 1, "ecera:sunnarium_part", 1, 1_000_000, []),
+        ("glowstone_to_sunnarium", "minecraft:glowstone", 1, "ecera:sunnarium", 1, 9_000_000, []),
         ("yellow_wool_to_glowstone", "minecraft:yellow_wool", 1, "minecraft:glowstone", 1, 500_000, []),
         ("blue_wool_to_lapis_block", "minecraft:blue_wool", 1, "minecraft:lapis_block", 1, 500_000, []),
         ("red_wool_to_redstone_block", "minecraft:red_wool", 1, "minecraft:redstone_block", 1, 500_000, []),
-        ("coal_to_industrial_diamond", "minecraft:coal", 1, "ic2:industrial_diamond", 1, 9_000_000, []),
-        ("industrial_diamond_to_diamond", "ic2:industrial_diamond", 1, "minecraft:diamond", 1, 1_000_000, []),
+        ("coal_to_industrial_diamond", "minecraft:coal", 1, "mhera:industrial_diamond", 1, 9_000_000, []),
+        ("industrial_diamond_to_diamond", "mhera:industrial_diamond", 1, "minecraft:diamond", 1, 1_000_000, []),
         # 9 conditional external-mod tag-aware entries
         ("lapis_to_sapphire", cfg.tag("gems/lapis"), 1, cfg.tag("gems/sapphire"), 1, 5_000_000, [cfg.tag("gems/sapphire")]),
         ("redstone_to_ruby", cfg.tag("dusts/redstone"), 1, cfg.tag("gems/ruby"), 1, 5_000_000, [cfg.tag("gems/ruby")]),
@@ -1039,7 +1039,7 @@ def generate_tags(out_root: Path, cfg: TargetConfig) -> int:
     emit_tag(cfg.common_ns, cfg.tag_item_dir, "armors/helmets", [f"{MOD_ID}:{h}" for h in SOLAR_HELMETS])
     emit_tag(cfg.common_ns, cfg.tag_item_dir, "armors", [f"#{cfg.common_ns}:armors/helmets"])
 
-    # Common ingot tags + parent (IC2 1.0.11 publishes ingots/uranium natively)
+    # Common ingot tags + parent (Machinera (mhera) 2.0.0 publishes ingots/uranium natively)
     emit_tag(cfg.common_ns, cfg.tag_item_dir, "ingots/iridium", [f"{MOD_ID}:iridium_ingot"])
     emit_tag(cfg.common_ns, cfg.tag_item_dir, "ingots", [f"#{cfg.common_ns}:ingots/iridium"])
 
@@ -1080,8 +1080,8 @@ def generate_tags(out_root: Path, cfg: TargetConfig) -> int:
     emit_tag(cfg.common_ns, cfg.tag_fluid_dir, "natural_gas", [f"{MOD_ID}:natural_gas", f"{MOD_ID}:flowing_natural_gas"])
     emit_tag(cfg.common_ns, cfg.tag_fluid_dir, "culture_medium", [f"{MOD_ID}:culture_medium", f"{MOD_ID}:flowing_culture_medium"])
     emit_tag(cfg.common_ns, cfg.tag_fluid_dir, "biogas", [
-        {"id": "ic2:biogas", "required": False},
-        {"id": "ic2:flowing_biogas", "required": False},
+        {"id": "mhera:biogas", "required": False},
+        {"id": "mhera:flowing_biogas", "required": False},
     ])
     if not cfg.is_1192:
         emit_tag(cfg.common_ns, cfg.tag_fluid_dir, "gaseous", [
@@ -1090,19 +1090,19 @@ def generate_tags(out_root: Path, cfg: TargetConfig) -> int:
             {"id": f"#{cfg.common_ns}:biogas", "required": False},
         ])
 
-    # EcoCraft 2 unified gas_fuel fluid tag (Water Gas + Natural Gas + Biogas via common fluid tags)
+    # Ecolera unified gas_fuel fluid tag (Water Gas + Natural Gas + Biogas via common fluid tags)
     emit_tag(MOD_ID, cfg.tag_fluid_dir, "gas_fuel", [
         f"#{cfg.common_ns}:water_gas",
         f"#{cfg.common_ns}:natural_gas",
         {"id": f"#{cfg.common_ns}:biogas", "required": False},
     ])
 
-    # EcoCraft 2 Culture Incubator nutrients item tag
+    # Ecolera Culture Incubator nutrients item tag
     emit_tag(MOD_ID, cfg.tag_item_dir, "culture_nutrients", [
         "minecraft:bone_meal",
         "minecraft:rotten_flesh",
         {"id": f"#{cfg.common_ns}:fertilizers", "required": False},
-        {"id": "ic2:fertilizer", "required": False},
+        {"id": "mhera:fertilizer", "required": False},
     ])
 
     # Biome tag for seafloor Methane Ice Cluster worldgen
@@ -1194,9 +1194,9 @@ def generate_target(target: str, output_dir: Path) -> Dict[str, int]:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Generate EcoCraft 2 multi-version resource & data JSONs.")
+    parser = argparse.ArgumentParser(description="Generate Ecolera multi-version resource & data JSONs.")
     parser.add_argument("--target", choices=TARGETS, default=None, help="Target platform version (omit to generate all 4 targets)")
-    parser.add_argument("--output", type=Path, default=Path("/tmp/ecc2-data-check"), help="Output resource/data root directory")
+    parser.add_argument("--output", type=Path, default=Path("/tmp/ecera-data-check"), help="Output resource/data root directory")
     args = parser.parse_args()
 
     if args.target is None:

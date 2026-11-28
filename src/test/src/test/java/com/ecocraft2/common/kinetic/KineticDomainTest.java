@@ -47,12 +47,12 @@ class KineticDomainTest {
         assertTrue(RotorSpec.CARBON.waterAllowed());
         assertEquals(168.0, RotorSpec.CARBON.nominalLifespanHours(), 1e-9);
 
-        assertEquals(RotorSpec.WOOD, RotorSpec.byItemId("ic2:wooden_rotor").orElseThrow());
-        assertEquals(RotorSpec.BRONZE, RotorSpec.byItemId("ic2:bronze_rotor").orElseThrow());
-        assertEquals(RotorSpec.IRON, RotorSpec.byItemId("ic2:iron_rotor").orElseThrow());
-        assertEquals(RotorSpec.STEEL, RotorSpec.byItemId("ic2:steel_rotor").orElseThrow());
-        assertEquals(RotorSpec.CARBON, RotorSpec.byItemId("ic2:carbon_rotor").orElseThrow());
-        assertTrue(RotorSpec.byItemId("ic2:unknown").isEmpty());
+        assertEquals(RotorSpec.WOOD, RotorSpec.byItemId("mhera:wooden_rotor").orElseThrow());
+        assertEquals(RotorSpec.BRONZE, RotorSpec.byItemId("mhera:bronze_rotor").orElseThrow());
+        assertEquals(RotorSpec.IRON, RotorSpec.byItemId("mhera:iron_rotor").orElseThrow());
+        assertEquals(RotorSpec.STEEL, RotorSpec.byItemId("mhera:steel_rotor").orElseThrow());
+        assertEquals(RotorSpec.CARBON, RotorSpec.byItemId("mhera:carbon_rotor").orElseThrow());
+        assertTrue(RotorSpec.byItemId("mhera:unknown").isEmpty());
         assertTrue(RotorSpec.byItemId(null).isEmpty());
     }
 

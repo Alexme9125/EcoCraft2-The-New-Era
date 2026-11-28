@@ -127,7 +127,7 @@ public final class MolecularTransformerBlock extends Block
             List<Component> tooltip,
             TooltipFlag flag) {
         tooltip.add(
-                Component.translatable("tooltip.ecc2.molecular_transformer.desc")
+                Component.translatable("tooltip.ecera.molecular_transformer.desc")
                         .withStyle(ChatFormatting.AQUA));
     }
 }

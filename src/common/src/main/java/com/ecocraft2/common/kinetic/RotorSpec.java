@@ -66,7 +66,7 @@ public enum RotorSpec {
         this.waterAllowed = waterAllowed;
     }
 
-    /** Returns the full IC2 item resource ID (e.g. {@code "ic2:carbon_rotor"}). */
+    /** Returns the full IC2 item resource ID (e.g. {@code "mhera:carbon_rotor"}). */
     public String itemId() {
         return itemId;
     }
@@ -138,7 +138,7 @@ public enum RotorSpec {
     }
 
     /**
-     * Looks up a {@link RotorSpec} by its full IC2 item ID (e.g. {@code "ic2:steel_rotor"}).
+     * Looks up a {@link RotorSpec} by its full IC2 item ID (e.g. {@code "mhera:steel_rotor"}).
      *
      * @param itemId full namespaced item ID
      * @return matching spec, or {@link Optional#empty()} if unrecognized

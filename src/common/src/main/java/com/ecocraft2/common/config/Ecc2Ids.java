@@ -10,10 +10,10 @@ import java.util.List;
 public final class Ecc2Ids {
 
     /** Mod namespace for EcoCraft 2. */
-    public static final String MOD_ID = "ecc2";
+    public static final String MOD_ID = "ecera";
 
     /** Host mod namespace for IndustrialCraft 2: The New Era. */
-    public static final String IC2_MOD_ID = "ic2";
+    public static final String IC2_MOD_ID = "mhera";
 
     /** Vanilla Minecraft namespace. */
     public static final String MINECRAFT_MOD_ID = "minecraft";
@@ -234,7 +234,7 @@ public final class Ecc2Ids {
      * Qualifies a path under the {@code ecc2} namespace.
      *
      * @param path lowercase registry path
-     * @return {@code "ecc2:" + path}
+     * @return {@code "ecera:" + path}
      */
     public static String ecc2(String path) {
         return MOD_ID + ":" + path;
@@ -244,7 +244,7 @@ public final class Ecc2Ids {
      * Qualifies a path under the {@code ic2} namespace.
      *
      * @param path lowercase registry path
-     * @return {@code "ic2:" + path}
+     * @return {@code "mhera:" + path}
      */
     public static String ic2(String path) {
         return IC2_MOD_ID + ":" + path;

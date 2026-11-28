@@ -298,7 +298,7 @@ public final class GiantGasPlatform {
     public static Component fluidDisplayName(String fluidId) {
         Fluid fluid = findFluid(fluidId);
         if (fluid == Fluids.EMPTY) {
-            return Component.translatable("gui.ecc2.gas.empty");
+            return Component.translatable("gui.ecera.gas.empty");
         }
         return fluid.getFluidType().getDescription();
     }

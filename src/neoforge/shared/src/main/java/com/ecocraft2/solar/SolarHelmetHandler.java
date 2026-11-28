@@ -280,7 +280,7 @@ public final class SolarHelmetHandler {
         if (plan.autoFeed() && !filledCan.isEmpty()) {
             filledCan.shrink(1);
             player.getFoodData().eat(1, 0.6F);
-            Item emptyCan = SolarPlatform.findItem("ic2:tin_can");
+            Item emptyCan = SolarPlatform.findItem("mhera:tin_can");
             if (emptyCan != null && emptyCan != Items.AIR) {
                 ItemStack tin = new ItemStack(emptyCan);
                 if (!player.getInventory().add(tin)) {
@@ -296,7 +296,7 @@ public final class SolarHelmetHandler {
     }
 
     private static ItemStack findFilledCan(ServerPlayer player) {
-        Item filledCanItem = SolarPlatform.findItem("ic2:filled_tin_can");
+        Item filledCanItem = SolarPlatform.findItem("mhera:filled_tin_can");
         if (filledCanItem == null || filledCanItem == Items.AIR) {
             return ItemStack.EMPTY;
         }
@@ -365,14 +365,14 @@ public final class SolarHelmetHandler {
             SolarHelmetSpec spec = helmet.spec();
             tooltip.add(
                     Component.translatable(
-                                    "tooltip.ecc2.helmet.energy",
+                                    "tooltip.ecera.helmet.energy",
                                     Ecc2DataSync.formatInt(Math.round(helmet.ecc2Stored(stack))),
                                     Ecc2DataSync.formatInt(spec.capacity()),
                                     spec.tier())
                             .withStyle(ChatFormatting.AQUA));
             tooltip.add(
                     Component.translatable(
-                                    "tooltip.ecc2.helmet.generation",
+                                    "tooltip.ecera.helmet.generation",
                                     Ecc2DataSync.formatInt(SolarHelmetLogic.configuredDayPower(spec)),
                                     Ecc2DataSync.formatInt(
                                             SolarHelmetLogic.configuredNightPower(spec)))
@@ -380,12 +380,12 @@ public final class SolarHelmetHandler {
             tooltip.add(
                     Component.translatable(
                                     spec.hasQuantumAbilities()
-                                            ? "tooltip.ecc2.helmet.quantum_suit"
-                                            : "tooltip.ecc2.helmet.nano_suit")
+                                            ? "tooltip.ecera.helmet.quantum_suit"
+                                            : "tooltip.ecera.helmet.nano_suit")
                             .withStyle(ChatFormatting.GRAY));
             if (spec.isDyeable()) {
                 tooltip.add(
-                        Component.translatable("tooltip.ecc2.helmet.dyeable")
+                        Component.translatable("tooltip.ecera.helmet.dyeable")
                                 .withStyle(ChatFormatting.DARK_AQUA));
             }
             return;
@@ -424,13 +424,13 @@ public final class SolarHelmetHandler {
                         };
                 tooltip.add(
                         Component.translatable(
-                                        "tooltip.ecc2.solar.generation",
+                                        "tooltip.ecera.solar.generation",
                                         Ecc2DataSync.formatInt(day),
                                         Ecc2DataSync.formatInt(night))
                                 .withStyle(ChatFormatting.GOLD));
                 tooltip.add(
                         Component.translatable(
-                                        "tooltip.ecc2.solar.storage",
+                                        "tooltip.ecera.solar.storage",
                                         Ecc2DataSync.formatInt(cap),
                                         outTier,
                                         Ecc2DataSync.formatInt(
@@ -440,22 +440,22 @@ public final class SolarHelmetHandler {
                                 .withStyle(ChatFormatting.AQUA));
             } else if (block instanceof QuantumGeneratorBlock) {
                 tooltip.add(
-                        Component.translatable("tooltip.ecc2.quantum_generator.creative")
+                        Component.translatable("tooltip.ecera.quantum_generator.creative")
                                 .withStyle(ChatFormatting.LIGHT_PURPLE));
                 tooltip.add(
-                        Component.translatable("tooltip.ecc2.quantum_generator.redstone")
+                        Component.translatable("tooltip.ecera.quantum_generator.redstone")
                                 .withStyle(ChatFormatting.GRAY));
             } else if (block instanceof MolecularTransformerBlock) {
                 tooltip.add(
-                        Component.translatable("tooltip.ecc2.molecular_transformer.desc")
+                        Component.translatable("tooltip.ecera.molecular_transformer.desc")
                                 .withStyle(ChatFormatting.AQUA));
             } else if (block instanceof AdvancedKineticBlock kineticBlock) {
                 String tierKey =
                         switch (kineticBlock.getKineticTier()) {
-                            case DURABLE -> "tooltip.ecc2.kinetic.durable";
-                            case OVERCLOCKED -> "tooltip.ecc2.kinetic.overclocked";
-                            case PRECISION -> "tooltip.ecc2.kinetic.precision";
-                            default -> "tooltip.ecc2.kinetic.durable";
+                            case DURABLE -> "tooltip.ecera.kinetic.durable";
+                            case OVERCLOCKED -> "tooltip.ecera.kinetic.overclocked";
+                            case PRECISION -> "tooltip.ecera.kinetic.precision";
+                            default -> "tooltip.ecera.kinetic.durable";
                         };
                 tooltip.add(Component.translatable(tierKey).withStyle(ChatFormatting.AQUA));
             }

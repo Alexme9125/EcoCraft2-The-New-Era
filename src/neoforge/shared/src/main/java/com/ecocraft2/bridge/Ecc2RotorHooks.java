@@ -31,24 +31,24 @@ public final class Ecc2RotorHooks {
     private static final Map<String, RotorEntry> BY_PATH =
             Map.of(
                     "wooden_rotor",
-                    new RotorEntry("wooden_rotor", "ic2:wooden_rotor", 10_800, 60, 70, 5, 4, false),
+                    new RotorEntry("wooden_rotor", "mhera:wooden_rotor", 10_800, 60, 70, 5, 4, false),
                     "bronze_rotor",
-                    new RotorEntry("bronze_rotor", "ic2:bronze_rotor", 86_400, 75, 100, 7, 4, true),
+                    new RotorEntry("bronze_rotor", "mhera:bronze_rotor", 86_400, 75, 100, 7, 4, true),
                     "iron_rotor",
-                    new RotorEntry("iron_rotor", "ic2:iron_rotor", 86_400, 75, 100, 7, 4, true),
+                    new RotorEntry("iron_rotor", "mhera:iron_rotor", 86_400, 75, 100, 7, 4, true),
                     "steel_rotor",
-                    new RotorEntry("steel_rotor", "ic2:steel_rotor", 172_800, 90, 120, 9, 6, true),
+                    new RotorEntry("steel_rotor", "mhera:steel_rotor", 172_800, 90, 120, 9, 6, true),
                     "carbon_rotor",
                     new RotorEntry(
-                            "carbon_rotor", "ic2:carbon_rotor", 604_800, 110, 150, 11, 8, true));
+                            "carbon_rotor", "mhera:carbon_rotor", 604_800, 110, 150, 11, 8, true));
 
     private static final Map<String, RotorEntry> BY_ITEM_ID =
             Map.of(
-                    "ic2:wooden_rotor", BY_PATH.get("wooden_rotor"),
-                    "ic2:bronze_rotor", BY_PATH.get("bronze_rotor"),
-                    "ic2:iron_rotor", BY_PATH.get("iron_rotor"),
-                    "ic2:steel_rotor", BY_PATH.get("steel_rotor"),
-                    "ic2:carbon_rotor", BY_PATH.get("carbon_rotor"));
+                    "mhera:wooden_rotor", BY_PATH.get("wooden_rotor"),
+                    "mhera:bronze_rotor", BY_PATH.get("bronze_rotor"),
+                    "mhera:iron_rotor", BY_PATH.get("iron_rotor"),
+                    "mhera:steel_rotor", BY_PATH.get("steel_rotor"),
+                    "mhera:carbon_rotor", BY_PATH.get("carbon_rotor"));
 
     private Ecc2RotorHooks() {}
 

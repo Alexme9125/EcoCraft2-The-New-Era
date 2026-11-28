@@ -78,8 +78,8 @@ public final class WaterGasMachineScreen extends Ecc2ScreenBase<WaterGasMachineM
             c.renderTooltip(
                     List.of(
                             Component.translatable(
-                                    "gui.ecc2.gas.tank",
-                                    Component.translatable("gui.ecc2.gas.water"),
+                                    "gui.ecera.gas.tank",
+                                    Component.translatable("gui.ecera.gas.water"),
                                     menu.waterMb(),
                                     WaterGasEngine.WATER_TANK_CAPACITY_MB)),
                     screenX,
@@ -88,8 +88,8 @@ public final class WaterGasMachineScreen extends Ecc2ScreenBase<WaterGasMachineM
             c.renderTooltip(
                     List.of(
                             Component.translatable(
-                                    "gui.ecc2.gas.tank",
-                                    Component.translatable("gui.ecc2.gas.water_gas"),
+                                    "gui.ecera.gas.tank",
+                                    Component.translatable("gui.ecera.gas.water_gas"),
                                     menu.waterGasMb(),
                                     WaterGasEngine.GAS_TANK_CAPACITY_MB)),
                     screenX,
@@ -98,16 +98,16 @@ public final class WaterGasMachineScreen extends Ecc2ScreenBase<WaterGasMachineM
             Component solarTip =
                     menu.isSolarActive()
                             ? Component.translatable(
-                                    "gui.ecc2.gas.solar_active",
+                                    "gui.ecera.gas.solar_active",
                                     WaterGasEngine.formatSolarRateDeci(
                                             menu.effectiveSolarDeciEuPerTick()))
-                            : Component.translatable("gui.ecc2.gas.solar_inactive");
+                            : Component.translatable("gui.ecera.gas.solar_inactive");
             c.renderTooltip(List.of(solarTip), screenX, screenY);
         } else if (inside(relMouseX, relMouseY, 62, 65, 14, 14)) {
             c.renderTooltip(
                     List.of(
                             Component.translatable(
-                                    "gui.ecc2.giant.eu_stored",
+                                    "gui.ecera.giant.eu_stored",
                                     menu.storedEu(),
                                     menu.energyCapacity())),
                     screenX,

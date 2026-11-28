@@ -156,10 +156,10 @@ public class AdvancedKineticBlock extends Block implements EntityBlock, WrenchTa
             TooltipFlag flag) {
         String key =
                 switch (tier) {
-                    case DURABLE -> "tooltip.ecc2.kinetic.durable";
-                    case OVERCLOCKED -> "tooltip.ecc2.kinetic.overclocked";
-                    case PRECISION -> "tooltip.ecc2.kinetic.precision";
-                    default -> "tooltip.ecc2.kinetic.durable";
+                    case DURABLE -> "tooltip.ecera.kinetic.durable";
+                    case OVERCLOCKED -> "tooltip.ecera.kinetic.overclocked";
+                    case PRECISION -> "tooltip.ecera.kinetic.precision";
+                    default -> "tooltip.ecera.kinetic.durable";
                 };
         tooltip.add(Component.translatable(key).withStyle(ChatFormatting.AQUA));
     }

@@ -16,6 +16,8 @@ logs/
 # Clean-room isolation (never include research, decompilations, or legacy jars)
 asp-research/
 .ic2-libs/
+.mce-libs/
+.mhera-libs/
 reference/
 raw-extract/
 

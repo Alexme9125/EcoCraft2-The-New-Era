@@ -59,12 +59,12 @@ public final class GasFurnaceScreen extends Ecc2ScreenBase<GasFurnaceMenu> {
             GasFuelSpec fuel = menu.currentFuel();
             Component name =
                     fuel == null
-                            ? Component.translatable("gui.ecc2.gas.empty")
+                            ? Component.translatable("gui.ecera.gas.empty")
                             : fuelName(fuel);
             c.renderTooltip(
                     List.of(
                             Component.translatable(
-                                    "gui.ecc2.gas.tank",
+                                    "gui.ecera.gas.tank",
                                     name,
                                     menu.gasMb(),
                                     GasFurnaceEngine.GAS_TANK_CAPACITY_MB)),
@@ -75,9 +75,9 @@ public final class GasFurnaceScreen extends Ecc2ScreenBase<GasFurnaceMenu> {
 
     static Component fuelName(GasFuelSpec fuel) {
         return switch (fuel) {
-            case WATER_GAS -> Component.translatable("gui.ecc2.gas.water_gas");
-            case NATURAL_GAS -> Component.translatable("gui.ecc2.gas.natural_gas");
-            case BIOGAS -> Component.translatable("gui.ecc2.gas.biogas");
+            case WATER_GAS -> Component.translatable("gui.ecera.gas.water_gas");
+            case NATURAL_GAS -> Component.translatable("gui.ecera.gas.natural_gas");
+            case BIOGAS -> Component.translatable("gui.ecera.gas.biogas");
         };
     }
 }

@@ -60,7 +60,7 @@ public enum GasFuelSpec {
         this.euPerTick = euPerTick;
     }
 
-    /** Returns the full fluid resource ID (e.g. {@code "ecc2:water_gas"} or {@code "ic2:biogas"}). */
+    /** Returns the full fluid resource ID (e.g. {@code "ecera:water_gas"} or {@code "mhera:biogas"}). */
     public String fluidId() {
         return fluidId;
     }

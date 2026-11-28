@@ -34,7 +34,7 @@ public final class MethaneIceClusterBlock extends Block {
             List<Component> tooltip,
             TooltipFlag flag) {
         tooltip.add(
-                Component.translatable("tooltip.ecc2.methane_ice_cluster")
+                Component.translatable("tooltip.ecera.methane_ice_cluster")
                         .withStyle(ChatFormatting.AQUA));
     }
 }

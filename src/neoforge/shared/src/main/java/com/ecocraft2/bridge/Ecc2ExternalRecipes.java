@@ -137,8 +137,8 @@ public final class Ecc2ExternalRecipes {
      *
      * @param basicFamily {@code true} for {@code ic2:empty_cell} (BASIC), {@code false} for
      *     {@code ic2:fluid_cell} (UNIVERSAL)
-     * @param cellItemId full namespaced item ID (e.g. {@code "ecc2:water_gas_cell"})
-     * @param fluidId full namespaced fluid ID (e.g. {@code "ecc2:water_gas"})
+     * @param cellItemId full namespaced item ID (e.g. {@code "ecera:water_gas_cell"})
+     * @param fluidId full namespaced fluid ID (e.g. {@code "ecera:water_gas"})
      */
     public static void registerNamedCell(boolean basicFamily, String cellItemId, String fluidId) {
         var entry = new NamedCellEntry(basicFamily, cellItemId, fluidId);

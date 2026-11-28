@@ -7,19 +7,23 @@ ext {
     minecraftVersion = minecraft_version
 }
 
-base.archivesName = "ecc2-forge-${minecraft_version}"
+base.archivesName = "ecera-forge-${minecraft_version}"
 
 def repoRoot = rootProject.file('..')
-def ic2LibsDir = rootProject.file(providers.gradleProperty('ic2_libs_dir').getOrElse('../../.ic2-libs'))
-def ic2Jar = new File(ic2LibsDir, "ic2-forge-${minecraft_version}-${ic2_version}.jar")
-if (!ic2Jar.isFile()) {
-    throw new GradleException("Required IC2NE ${ic2_version} Forge 1.19.2 JAR not found at ${ic2Jar.absolutePath}")
+def mheraLibsDir = rootProject.file(
+        providers.gradleProperty('mhera_libs_dir')
+                .orElse(providers.environmentVariable('ECERA_MHERA_LIBS_DIR'))
+                .getOrElse('../../.mhera-libs')
+)
+def mheraJar = new File(mheraLibsDir, "mhera-forge-${minecraft_version}-${mhera_version}.jar")
+if (!mheraJar.isFile()) {
+    throw new GradleException("Required Machinera (mhera) ${mhera_version} Forge 1.19.2 JAR not found at ${mheraJar.absolutePath}")
 }
 
 repositories {
     flatDir {
-        name = 'LocalIc2Libs'
-        dirs ic2LibsDir
+        name = 'LocalMheraLibs'
+        dirs mheraLibsDir
     }
     maven {
         name = 'SpongePowered'
@@ -34,9 +38,9 @@ minecraft {
         configureEach {
             workingDirectory layout.buildDirectory.dir("run/$name").get().asFile
             property 'forge.logging.console.level', 'info'
-            arg '-mixin.config=ecc2.mixins.json'
+            arg '-mixin.config=ecera.mixins.json'
             mods {
-                ecc2 {
+                ecera {
                     source sourceSets.main
                     source project(':common').sourceSets.main
                 }
@@ -59,10 +63,10 @@ dependencies {
 
     implementation project(':common')
 
-    // Compile against deobfuscated IC2NE 1.0.6 and load in dev runs, NEVER bundle inside ecc2 JAR.
-    def ic2Deobf = fg.deobf("com.industrialage:ic2-forge-${minecraft_version}:${ic2_version}")
-    compileOnly ic2Deobf
-    localRuntime ic2Deobf
+    // Compile against deobfuscated Machinera (mhera) and load in dev runs, NEVER bundle inside ecera JAR.
+    def mheraDeobf = fg.deobf("com.industrialage.ia2:mhera-forge-${minecraft_version}:${mhera_version}")
+    compileOnly mheraDeobf
+    localRuntime mheraDeobf
 
     // SpongePowered Mixin annotation processor for compile-time validation & refmap generation.
     annotationProcessor 'org.spongepowered:mixin:0.8.5'
@@ -76,7 +80,7 @@ dependencies {
 
 apply from: new File(repoRoot, 'gradle/optional-mods.gradle')
 
-def mixinRefMapFile = layout.buildDirectory.file('mixin/ecc2.refmap.json')
+def mixinRefMapFile = layout.buildDirectory.file('mixin/ecera.refmap.json')
 
 tasks.named('compileJava', JavaCompile) {
     dependsOn tasks.named('createMcpToSrg')
@@ -100,10 +104,10 @@ tasks.named('compileJava', JavaCompile) {
     }
 }
 
-def generatedEcc2Resources = layout.buildDirectory.dir('generated/ecc2-resources')
+def generatedEceraResources = layout.buildDirectory.dir('generated/ecera-resources')
 def dataGeneratorScript = new File(repoRoot, 'assets-gen/generate_data.py')
 
-def generateEcc2Resources = tasks.register('generateEcc2Resources', Exec) {
+def generateEceraResources = tasks.register('generateEceraResources', Exec) {
     onlyIf { dataGeneratorScript.isFile() }
     inputs.property('minecraftTarget', 'forge-1.19.2')
     if (dataGeneratorScript.isFile()) {
@@ -112,15 +116,15 @@ def generateEcc2Resources = tasks.register('generateEcc2Resources', Exec) {
             include '*.py', '*.json', '*.tsv'
         })
     }
-    outputs.dir(generatedEcc2Resources)
-    commandLine providers.gradleProperty('ecc2.python').getOrElse('python3'),
+    outputs.dir(generatedEceraResources)
+    commandLine providers.gradleProperty('ecera.python').getOrElse('python3'),
             dataGeneratorScript.absolutePath,
             '--target', 'forge-1.19.2',
-            '--output', generatedEcc2Resources.get().asFile.absolutePath
+            '--output', generatedEceraResources.get().asFile.absolutePath
 }
 
 tasks.named('processResources') {
-    dependsOn generateEcc2Resources
+    dependsOn generateEceraResources
     filteringCharset = 'UTF-8'
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     includeEmptyDirs = false
@@ -143,8 +147,8 @@ tasks.named('processResources') {
             exclude '**/*.md', '**/*.csv', '**/.git*', '**/.DS_Store'
         }
     }
-    from(generatedEcc2Resources) {
-        exclude '.ecc2-generated-output'
+    from(generatedEceraResources) {
+        exclude '.ecera-generated-output'
     }
 }
 
@@ -152,12 +156,12 @@ tasks.named('jar') {
     dependsOn tasks.named('compileJava')
     manifest {
         attributes(
-                'Specification-Title': 'EcoCraft 2: The New Era',
-                'Specification-Vendor': 'EcoCraft 2 Contributors',
+                'Specification-Title': 'Ecolera',
+                'Specification-Vendor': 'Ecolera Contributors',
                 'Specification-Version': '1',
-                'Implementation-Title': 'ecc2',
+                'Implementation-Title': 'ecera',
                 'Implementation-Version': project.version,
-                'MixinConfigs': 'ecc2.mixins.json'
+                'MixinConfigs': 'ecera.mixins.json'
         )
     }
     from project(':common').sourceSets.main.output

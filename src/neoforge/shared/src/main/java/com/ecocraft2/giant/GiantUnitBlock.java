@@ -124,7 +124,7 @@ public final class GiantUnitBlock extends Ecc2BlockBase
                 if (!GiantMultiblockController.tryForm(
                         (ServerLevel) level, pos, machineType, state.getValue(FACING))) {
                     GiantGasPlatform.sendActionBar(
-                            player, Component.translatable("gui.ecc2.giant.unformed"));
+                            player, Component.translatable("gui.ecera.giant.unformed"));
                 }
             }
             return true;
@@ -136,7 +136,7 @@ public final class GiantUnitBlock extends Ecc2BlockBase
         if (core == null) {
             if (level instanceof ServerLevel server && unitBe.tryRecoverOrphan(server, state)) {
                 GiantGasPlatform.sendActionBar(
-                        player, Component.translatable("gui.ecc2.giant.unformed"));
+                        player, Component.translatable("gui.ecera.giant.unformed"));
                 return true;
             }
             return false;

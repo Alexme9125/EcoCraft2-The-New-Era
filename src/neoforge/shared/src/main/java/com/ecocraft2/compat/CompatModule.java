@@ -48,7 +48,7 @@ public final class CompatModule {
         boolean wthit = mods.isLoaded("wthit");
         boolean top = mods.isLoaded("theoneprobe");
         LOG.info(
-                "EcoCraft 2 optional compat detected: jei={}, emi={}, jade={}, wthit={}, theoneprobe={}",
+                "Ecolera optional compat detected: jei={}, emi={}, jade={}, wthit={}, theoneprobe={}",
                 jei,
                 emi,
                 jade,

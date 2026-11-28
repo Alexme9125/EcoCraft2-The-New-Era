@@ -1,4 +1,4 @@
-# EcoCraft 2: The New Era (`ecc2`) — Canonical IDs, Packages & Inter-Module Contracts
+# Ecolera (`ecera`) — Canonical IDs, Packages & Inter-Module Contracts
 
 > **Single Source of Truth for ALL workers (`core-logic`, `art-assets`, `ic2-bridge`, `solar-kinetic`, `giant-gas`, `compat-mod`, `forge-1192`, `qa-verifier`).**
 > Do NOT invent different IDs, package names, or method signatures. Follow this contract verbatim.
@@ -7,20 +7,20 @@
 
 ## 1. Identity & Clean-Room Isolation
 
-- **Mod ID**: `ecc2`
+- **Mod ID**: `ecera`
 - **Root Package**: `com.ecocraft2`
 - **Repository Root**: `<repo-root>`
-- **IC2NE 1.0.6 External JAR Dir (READ-ONLY, NEVER COPY INTO REPO)**: `../.ic2-libs/` (or `-Pic2_libs_dir=<path>`)
-  - `ic2-neoforge-1.21.1-1.0.6.jar`
-  - `ic2-neoforge-26.1.2-1.0.6.jar`
-  - `ic2-neoforge-26.2-1.0.6.jar`
-  - `ic2-forge-1.19.2-1.0.6.jar`
+- **Machinera 2.0.0 External JAR Dir (READ-ONLY, NEVER COPY INTO REPO)**: `../.mhera-libs/` (or `-Pmhera_libs_dir=<path>`)
+  - `mhera-neoforge-1.21.1-2.0.0.jar`
+  - `mhera-neoforge-26.1.2-2.0.0.jar`
+  - `mhera-neoforge-26.2-2.0.0.jar`
+  - `mhera-forge-1.19.2-2.0.0.jar`
 - **Clean-room rule**: Never include decompiled third-party source code, legacy jars, or third-party original textures in this repository.
-- **Host isolation**: Never modify IC2NE source files; integrate strictly through runtime Mixins and public hooks.
+- **Host isolation**: Never modify Machinera source files; integrate strictly through runtime Mixins and public hooks.
 
 ---
 
-## 2. Complete Registry ID Table (`ecc2:*`)
+## 2. Complete Registry ID Table (`ecera:*`)
 
 ### 2.1 Blocks (with matching BlockItems unless fluid block) — 23 Placeable Blocks + 3 Fluid Blocks
 
@@ -48,28 +48,28 @@
 | Gas Industry | `gas_generator` | Gas Generator (MV Tier 2, 16k EU/gas) | `facing` (H4), `active` |
 | Natural Gas | `methane_ice_cluster` | Methane Ice Cluster (seafloor ore, iron pickaxe+, light 4) | default |
 | Biogas | `culture_incubator` | Culture Incubator (bonemeal/rotten_flesh+100mB water→100mB culture_medium) | `facing` (H4), `active` |
-| Biogas | `organic_fermenter` | Organic Fermenter (50mB culture_medium+food→30mB×H ic2:biogas) | `facing` (H4), `active` |
+| Biogas | `organic_fermenter` | Organic Fermenter (50mB culture_medium+food→30mB×H mhera:biogas) | `facing` (H4), `active` |
 | Fluid Blocks | `water_gas`, `natural_gas`, `culture_medium` | LiquidBlock (no BlockItem) | fluid level |
 
 ### 2.2 Standalone Items — 25 Items
 
 | Category | Registry Path | Notes |
 | --- | --- | --- |
-| ASP Crafting (13) | `sunnarium`, `sunnarium_part`, `sunnarium_alloy`, `irradiant_uranium`, `enriched_sunnarium`, `enriched_sunnarium_alloy`, `irradiant_glass_pane`, `iridium_iron_plate`, `reinforced_iridium_iron_plate`, `irradiant_reinforced_plate`, `iridium_ingot`, `mt_core`, `quantum_core` | Independent items; `iridium_ingot` in `#c:ingots/iridium` / `#forge:ingots/iridium`; uranium ingot reuses `ic2:uranium_ingot` (`#c:ingots/uranium` / `#forge:ingots/uranium`) |
+| ASP Crafting (13) | `sunnarium`, `sunnarium_part`, `sunnarium_alloy`, `irradiant_uranium`, `enriched_sunnarium`, `enriched_sunnarium_alloy`, `irradiant_glass_pane`, `iridium_iron_plate`, `reinforced_iridium_iron_plate`, `irradiant_reinforced_plate`, `iridium_ingot`, `mt_core`, `quantum_core` | Independent items; `iridium_ingot` in `#c:ingots/iridium` / `#forge:ingots/iridium`; uranium ingot reuses `mhera:uranium_ingot` (`#c:ingots/uranium` / `#forge:ingots/uranium`) |
 | ASP Helmets (3) | `advanced_solar_helmet`, `hybrid_solar_helmet`, `ultimate_hybrid_solar_helmet` | Electric helmets; hybrid & ultimate dyeable (vanilla `dyed_color` / `display.color` + upgrade color preservation) + full quantum helmet abilities |
 | Giant Component (1) | `megastructure_component` | Mid-tier crafting item (`orig machine + megastructure_component -> giant_*_unit`) |
 | Gas Upgrade (1) | `pv_power_upgrade` | Water Gas Machine upgrade (`stacksTo(2)`, +1.5 EU/t top PV each, max 2 effective → 5 EU/t daytime self-sufficiency) |
-| Named Cells (4) | `water_gas_cell`, `natural_gas_cell`, `culture_medium_cell`, `basic_culture_medium_cell` | Full 1000 mB fluid cells (biogas reuses `ic2:biogas_cell`); emptying returns `ic2:fluid_cell` (or `ic2:empty_cell` for `basic_culture_medium_cell`) |
-| Buckets (3) | `water_gas_bucket`, `natural_gas_bucket`, `culture_medium_bucket` | Standard fluid buckets (`ic2:biogas_bucket` already exists in IC2NE!) |
+| Named Cells (4) | `water_gas_cell`, `natural_gas_cell`, `culture_medium_cell`, `basic_culture_medium_cell` | Full 1000 mB fluid cells (biogas reuses `mhera:biogas_cell`); emptying returns `mhera:fluid_cell` (or `mhera:empty_cell` for `basic_culture_medium_cell`) |
+| Buckets (3) | `water_gas_bucket`, `natural_gas_bucket`, `culture_medium_bucket` | Standard fluid buckets (`mhera:biogas_bucket` already exists in Machinera!) |
 
-### 2.3 Fluids — 3 New Fluids + 1 Reused IC2NE Fluid
+### 2.3 Fluids — 3 New Fluids + 1 Reused Machinera Fluid
 
 | Fluid ID | Flowing ID | Density | Viscosity | Temp | Light | ARGB Tint | Tags |
 | --- | --- | ---: | ---: | ---: | ---: | --- | --- |
-| `ecc2:water_gas` | `ecc2:flowing_water_gas` | -400 | 400 | 310 | 2 | `0xD89BD0D6` | `c:water_gas`, `ecc2:gas_fuel` |
-| `ecc2:natural_gas` | `ecc2:flowing_natural_gas` | -600 | 350 | 290 | 0 | `0xC888D4FF` | `c:natural_gas`, `ecc2:gas_fuel` |
-| `ecc2:culture_medium` | `ecc2:flowing_culture_medium` | 1020 | 1800 | 300 | 1 | `0xE84CC77A` | `c:culture_medium` |
-| `ic2:biogas` (REUSED) | `ic2:flowing_biogas` | (IC2NE) | (IC2NE) | (IC2NE) | (IC2NE) | (IC2NE) | `c:biogas`, `ecc2:gas_fuel` |
+| `ecera:water_gas` | `ecera:flowing_water_gas` | -400 | 400 | 310 | 2 | `0xD89BD0D6` | `c:water_gas`, `ecera:gas_fuel` |
+| `ecera:natural_gas` | `ecera:flowing_natural_gas` | -600 | 350 | 290 | 0 | `0xC888D4FF` | `c:natural_gas`, `ecera:gas_fuel` |
+| `ecera:culture_medium` | `ecera:flowing_culture_medium` | 1020 | 1800 | 300 | 1 | `0xE84CC77A` | `c:culture_medium` |
+| `mhera:biogas` (REUSED) | `mhera:flowing_biogas` | (Machinera) | (Machinera) | (Machinera) | (Machinera) | (Machinera) | `c:biogas`, `ecera:gas_fuel` |
 
 ---
 
@@ -85,7 +85,7 @@ Package root: `com.ecocraft2.common` (MUST compile with Java 17 and have ZERO Mi
    - `MolecularTransformerEngine` — fixes ALL ASP bugs: `demanded() = max(0, totalEu - energyUsed - energyIn)`, `inject(amount)` accepts `min(amount, demanded)` and returns `amount - accepted`, clears `energyIn` on recipe completion, pauses completion if output cannot fit (zero item loss!), `int idleTicks` capped at `40` (no byte overflow!).
    - `SolarHelmetSpec` (enum: `ADVANCED`, `HYBRID`, `ULTIMATE_HYBRID`) + `SolarHelmetEngine` (per-stack/per-player state, charging order: feet → legs → chest → offhand → main inventory → self).
 2. `com.ecocraft2.common.kinetic`:
-   - `RotorSpec` (enum: `WOOD("ic2:wooden_rotor", 10_800, 60, 70, 5, 4, false)`, `BRONZE("ic2:bronze_rotor", 86_400, 75, 100, 7, 4, true)`, `IRON("ic2:iron_rotor", 86_400, 75, 100, 7, 4, true)`, `STEEL("ic2:steel_rotor", 172_800, 90, 120, 9, 6, true)`, `CARBON("ic2:carbon_rotor", 604_800, 110, 150, 11, 8, true)`).
+   - `RotorSpec` (enum: `WOOD("mhera:wooden_rotor", 10_800, 60, 70, 5, 4, false)`, `BRONZE("mhera:bronze_rotor", 86_400, 75, 100, 7, 4, true)`, `IRON("mhera:iron_rotor", 86_400, 75, 100, 7, 4, true)`, `STEEL("mhera:steel_rotor", 172_800, 90, 120, 9, 6, true)`, `CARBON("mhera:carbon_rotor", 604_800, 110, 150, 11, 8, true)`).
    - `KineticMachineTier` (enum: `STANDARD(1.0, 1.0)`, `DURABLE(0.80, 0.50)`, `OVERCLOCKED(2.20, 2.00)`, `PRECISION(2.40, 0.50)`).
    - `RotorWearAccumulator` — fractional wear accumulator; every 20 active ticks adds `(overWind ? 4.0 : 1.0) * tier.wearMultiplier()`, returns whole durability points to deduct (`int`).
 3. `com.ecocraft2.common.giant`:
@@ -95,18 +95,18 @@ Package root: `com.ecocraft2.common` (MUST compile with Java 17 and have ZERO Mi
    - `GiantMachineEngine` — 9 independent lanes (`0..8`), each lane processes up to **3 operations per batch** (`batch = min(3, availableInput / recipeInputCount, outputSpaceForBatch, fluidSpaceForBatch)`), energy cost per tick = `sum(activeLaneBatch[i]) * singleUpgradedEuPerTick`, base Tier 3 (HV, 512 EU/t), base capacity `max(32_000, 27 * baseReserve) + 10_000 * storageUpgrades`, supports IC2 `ProcessingUpgrades` (`overclockers`, `transformers`, `storage`).
    - `MultiblockGeometry` — pure coordinate math finding 3×3×3 bounding box & bottom-center core position from any unit block.
 4. `com.ecocraft2.common.gas`:
-   - `GasFuelSpec` (enum: `WATER_GAS("ecc2:water_gas", 10_000, 32)`, `NATURAL_GAS("ecc2:natural_gas", 10_000, 64)`, `BIOGAS("ic2:biogas", 16_000, 32)`).
+   - `GasFuelSpec` (enum: `WATER_GAS("ecera:water_gas", 10_000, 32)`, `NATURAL_GAS("ecera:natural_gas", 10_000, 64)`, `BIOGAS("mhera:biogas", 16_000, 32)`).
    - `WaterGasEngine` — solar 2.0 EU/t daytime base (+1.5 EU/t per `pv_power_upgrade`, max 2 effective → 5.0 EU/t daytime self-sufficiency when sky visible & not raining) + LV grid input; recipe: `100 mB water + 1 coal_dust + 1000 EU / 200t -> 1000 mB water_gas`; tank capacities 8,000 mB each.
    - `GasFurnaceEngine` — `50 mB` of any `GasFuelSpec` per smelted item; base `100 tick/item`; overclocker accelerates ticks while preserving exact `50 mB/item` total gas cost.
    - `GasGeneratorEngine` — burns `GasFuelSpec` from 16,000 mB tank into 16,000 EU buffer (Tier 2 MV, 128 EU/t output packet limit), exact fractional EU/mB accounting (10 EU/mB for water_gas & natural_gas, 16 EU/mB for biogas).
    - `CultureIncubatorEngine` — `1 bonemeal or rotten_flesh + 100 mB water + 200 EU / 100t -> 100 mB culture_medium` (LV Tier 1, 8,000 mB water & culture tanks).
-   - `OrganicFermenterEngine` — `50 mB culture_medium + any food with nutrition H > 0 + 200 EU / 100t -> 30 * H mB ic2:biogas` (LV Tier 1, 8,000 mB culture tank, 16,000 mB biogas tank).
+   - `OrganicFermenterEngine` — `50 mB culture_medium + any food with nutrition H > 0 + 200 EU / 100t -> 30 * H mB mhera:biogas` (LV Tier 1, 8,000 mB culture tank, 16,000 mB biogas tank).
 5. `com.ecocraft2.common.config`:
-   - `Ecc2ConfigDefaults` — all 31+ ASP config defaults + EcoCraft 2 kinetic/giant/gas balance defaults.
+   - `Ecc2ConfigDefaults` — all 31+ ASP config defaults + Ecolera kinetic/giant/gas balance defaults.
 
 ---
 
-## 4. IC2NE 1.0.6 Bridge Interfaces (`com.ecocraft2.bridge`)
+## 4. Machinera 2.0.0 Bridge Interfaces (`com.ecocraft2.bridge`)
 
 Shared between `ic2-bridge` (which implements Mixins calling these interfaces) and `solar-kinetic` / `giant-gas` / `forge-1192` (which implement these interfaces on their Blocks/BEs/Items):
 
@@ -134,23 +134,23 @@ Shared between `ic2-bridge` (which implements Mixins calling these interfaces) a
 
 ---
 
-## 5. Texture & GUI Asset Paths (`assets/ecc2/...`)
+## 5. Texture & GUI Asset Paths (`assets/ecera/...`)
 
 All paths strictly lowercase `[a-z0-9/._-]`:
-- Block textures: `assets/ecc2/textures/block/<name>.png` (with `_top`, `_bottom`, `_side`, `_front`, `_front_active`, `_port_full`, `_port_in`, `_port_out`, `_port_blocked`, etc.)
-- Item textures: `assets/ecc2/textures/item/<name>.png` (hybrid/ultimate helmets also have `_overlay.png` for dyeing layer1)
-- Armor textures: `assets/ecc2/textures/models/armor/advanced_solar_layer_1.png`, `hybrid_solar_layer_1.png`, `hybrid_solar_layer_1_overlay.png`, `ultimate_hybrid_solar_layer_1.png`, `ultimate_hybrid_solar_layer_1_overlay.png`
-- Fluid textures: `assets/ecc2/textures/block/fluid/<fluid>_still.png` & `<fluid>_flow.png` (with `.mcmeta` animation)
-- 3D MT model textures: `assets/ecc2/textures/entity/molecular_transformer.png`, `plasma.png` (4×4 grid), `particles.png` (8×8 grid)
+- Block textures: `assets/ecera/textures/block/<name>.png` (with `_top`, `_bottom`, `_side`, `_front`, `_front_active`, `_port_full`, `_port_in`, `_port_out`, `_port_blocked`, etc.)
+- Item textures: `assets/ecera/textures/item/<name>.png` (hybrid/ultimate helmets also have `_overlay.png` for dyeing layer1)
+- Armor textures: `assets/ecera/textures/models/armor/advanced_solar_layer_1.png`, `hybrid_solar_layer_1.png`, `hybrid_solar_layer_1_overlay.png`, `ultimate_hybrid_solar_layer_1.png`, `ultimate_hybrid_solar_layer_1_overlay.png`
+- Fluid textures: `assets/ecera/textures/block/fluid/<fluid>_still.png` & `<fluid>_flow.png` (with `.mcmeta` animation)
+- 3D MT model textures: `assets/ecera/textures/entity/molecular_transformer.png`, `plasma.png` (4×4 grid), `particles.png` (8×8 grid)
 - GUI textures:
-  - `assets/ecc2/textures/gui/solar_panel.png` (194×168, includes sun/moon/rain icons + energy bar)
-  - `assets/ecc2/textures/gui/quantum_generator.png` (176×193)
-  - `assets/ecc2/textures/gui/molecular_transformer.png` (220×193)
-  - `assets/ecc2/textures/gui/kinetic_generator.png` (176×166, LCD + rotor durability bar + tier badge)
-  - `assets/ecc2/textures/gui/giant_machine.png` (256×236, redesigned IC2NE blue-slate sci-fi layout: 3×3 input with 9 micro-progress bars, central EU core + optional 64k mB water column, 3×3 output, 4 upgrade slots, battery slot, side access gear button + 8-corner port matrix overlay!)
-  - `assets/ecc2/textures/gui/water_gas_machine.png` (176×180, solar status + water/gas dual tanks + coal dust + cell slots + upgrades)
-  - `assets/ecc2/textures/gui/gas_furnace.png` (176×166, gas tank + blue flame gauge + input/output/cell + upgrades)
-  - `assets/ecc2/textures/gui/gas_generator.png` (176×166, gas tank + EU bar + charge slot + cell slots)
-  - `assets/ecc2/textures/gui/culture_incubator.png` (176×180, water/culture tanks + bonemeal + cell slots + upgrades)
-  - `assets/ecc2/textures/gui/organic_fermenter.png` (176×180, culture/biogas tanks + food + container return + cell slots + upgrades)
-- Lang: `assets/ecc2/lang/en_us.json`, `assets/ecc2/lang/zh_cn.json`
+  - `assets/ecera/textures/gui/solar_panel.png` (194×168, includes sun/moon/rain icons + energy bar)
+  - `assets/ecera/textures/gui/quantum_generator.png` (176×193)
+  - `assets/ecera/textures/gui/molecular_transformer.png` (220×193)
+  - `assets/ecera/textures/gui/kinetic_generator.png` (176×166, LCD + rotor durability bar + tier badge)
+  - `assets/ecera/textures/gui/giant_machine.png` (256×236, redesigned Machinera blue-slate sci-fi layout: 3×3 input with 9 micro-progress bars, central EU core + optional 64k mB water column, 3×3 output, 4 upgrade slots, battery slot, side access gear button + 8-corner port matrix overlay!)
+  - `assets/ecera/textures/gui/water_gas_machine.png` (176×180, solar status + water/gas dual tanks + coal dust + cell slots + upgrades)
+  - `assets/ecera/textures/gui/gas_furnace.png` (176×166, gas tank + blue flame gauge + input/output/cell + upgrades)
+  - `assets/ecera/textures/gui/gas_generator.png` (176×166, gas tank + EU bar + charge slot + cell slots)
+  - `assets/ecera/textures/gui/culture_incubator.png` (176×180, water/culture tanks + bonemeal + cell slots + upgrades)
+  - `assets/ecera/textures/gui/organic_fermenter.png` (176×180, culture/biogas tanks + food + container return + cell slots + upgrades)
+- Lang: `assets/ecera/lang/en_us.json`, `assets/ecera/lang/zh_cn.json`

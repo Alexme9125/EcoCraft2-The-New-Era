@@ -183,7 +183,7 @@ public final class QuantumGeneratorBlockEntity extends BlockEntity
 
     @Override
     public Component getDisplayName() {
-        return Component.translatable("container.ecc2.quantum_generator");
+        return Component.translatable("container.ecera.quantum_generator");
     }
 
     @Override

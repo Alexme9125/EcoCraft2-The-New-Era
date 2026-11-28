@@ -1,12 +1,12 @@
 {
-  "ecc2:machines": {
+  "ecera:machines": {
     "entrypoints": {
       "common": "com.ecocraft2.compat.Ecc2WthitPlugin",
       "client": "com.ecocraft2.compat.Ecc2WthitPlugin"
     },
     "side": "*",
     "required": [
-      "ecc2"
+      "ecera"
     ]
   }
 }

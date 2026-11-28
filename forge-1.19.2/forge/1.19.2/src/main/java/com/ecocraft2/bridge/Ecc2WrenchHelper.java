@@ -37,7 +37,7 @@ public final class Ecc2WrenchHelper {
             return false;
         }
         String id = Ecc2BridgePlatform.itemId(stack);
-        if ("ic2:wrench".equals(id) || "ic2:electric_wrench".equals(id)) {
+        if ("mhera:wrench".equals(id) || "mhera:electric_wrench".equals(id)) {
             return false;
         }
         return Ecc2BridgePlatform.hasItemTag(

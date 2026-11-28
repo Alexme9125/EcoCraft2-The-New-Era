@@ -34,7 +34,7 @@ public final class GiantRegistry {
                                         TooltipFlag flag) {
                                     tooltip.add(
                                             Component.translatable(
-                                                            "tooltip.ecc2.megastructure_component")
+                                                            "tooltip.ecera.megastructure_component")
                                                     .withStyle(ChatFormatting.GRAY));
                                 }
                             });

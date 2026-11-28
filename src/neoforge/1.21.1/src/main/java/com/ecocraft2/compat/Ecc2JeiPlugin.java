@@ -81,7 +81,7 @@ public final class Ecc2JeiPlugin implements IModPlugin {
 
     public static final RecipeType<CompatRecipes.Ic2BridgeEntry> IC2_RECIPES_TYPE =
             RecipeType.create(
-                    EcoCraft2.MOD_ID, "ic2_recipes", CompatRecipes.Ic2BridgeEntry.class);
+                    EcoCraft2.MOD_ID, "mhera_recipes", CompatRecipes.Ic2BridgeEntry.class);
 
     public static final RecipeType<CompatRecipes.GiantMachineEntry> GIANT_MACHINE_TYPE =
             RecipeType.create(
@@ -100,7 +100,7 @@ public final class Ecc2JeiPlugin implements IModPlugin {
                 new FluidProcessCategory(
                         gui,
                         WATER_GAS_TYPE,
-                        Component.translatable("jei.ecc2.category.water_gas"),
+                        Component.translatable("jei.ecera.category.water_gas"),
                         new ItemStack(GiantGasModule.WATER_GAS_MACHINE.get()),
                         TEX_WATER_GAS),
                 new GasFurnaceCategory(gui),
@@ -108,7 +108,7 @@ public final class Ecc2JeiPlugin implements IModPlugin {
                 new FluidProcessCategory(
                         gui,
                         CULTURE_TYPE,
-                        Component.translatable("jei.ecc2.category.culture_incubator"),
+                        Component.translatable("jei.ecera.category.culture_incubator"),
                         new ItemStack(GiantGasModule.CULTURE_INCUBATOR.get()),
                         TEX_CULTURE),
                 new FermenterCategory(gui),
@@ -219,7 +219,7 @@ public final class Ecc2JeiPlugin implements IModPlugin {
 
         @Override
         public Component getTitle() {
-            return Component.translatable("jei.ecc2.category.molecular_transformer");
+            return Component.translatable("jei.ecera.category.molecular_transformer");
         }
 
         @Override
@@ -270,7 +270,7 @@ public final class Ecc2JeiPlugin implements IModPlugin {
             }
             String euLine =
                     Component.translatable(
-                                    "jei.ecc2.energy_cost",
+                                    "jei.ecera.energy_cost",
                                     Ecc2DataSync.formatInt(recipe.energyEu()))
                             .getString();
 
@@ -278,7 +278,7 @@ public final class Ecc2JeiPlugin implements IModPlugin {
                     font,
                     trim(
                             font,
-                            Component.translatable("gui.ecc2.mt.input", inName).getString(),
+                            Component.translatable("gui.ecera.mt.input", inName).getString(),
                             maxW),
                     38,
                     7,
@@ -288,7 +288,7 @@ public final class Ecc2JeiPlugin implements IModPlugin {
                     font,
                     trim(
                             font,
-                            Component.translatable("gui.ecc2.mt.output", outName).getString(),
+                            Component.translatable("gui.ecera.mt.output", outName).getString(),
                             maxW),
                     38,
                     20,
@@ -299,7 +299,7 @@ public final class Ecc2JeiPlugin implements IModPlugin {
                     trim(
                             font,
                             Component.translatable(
-                                            "gui.ecc2.mt.energy",
+                                            "gui.ecera.mt.energy",
                                             Ecc2DataSync.formatInt(recipe.energyEu()))
                                     .getString(),
                             maxW),
@@ -311,7 +311,7 @@ public final class Ecc2JeiPlugin implements IModPlugin {
                     font,
                     trim(
                             font,
-                            Component.translatable("jei.ecc2.mt.tier_unlimited", euLine)
+                            Component.translatable("jei.ecera.mt.tier_unlimited", euLine)
                                     .getString(),
                             maxW),
                     38,
@@ -412,7 +412,7 @@ public final class Ecc2JeiPlugin implements IModPlugin {
             Font font = Minecraft.getInstance().font;
             String euTicks =
                     Component.translatable(
-                                            "jei.ecc2.energy_cost",
+                                            "jei.ecera.energy_cost",
                                             Ecc2DataSync.formatInt(recipe.euCost()))
                                     .getString()
                             + " / "
@@ -463,7 +463,7 @@ public final class Ecc2JeiPlugin implements IModPlugin {
 
         @Override
         public Component getTitle() {
-            return Component.translatable("jei.ecc2.category.gas_furnace");
+            return Component.translatable("jei.ecera.category.gas_furnace");
         }
 
         @Override
@@ -510,7 +510,7 @@ public final class Ecc2JeiPlugin implements IModPlugin {
                     trim(
                             font,
                             Component.translatable(
-                                            "jei.ecc2.gas_furnace.rate",
+                                            "jei.ecera.gas_furnace.rate",
                                             recipe.mbPerOp(),
                                             recipe.baseTicks())
                                     .getString(),
@@ -550,7 +550,7 @@ public final class Ecc2JeiPlugin implements IModPlugin {
 
         @Override
         public Component getTitle() {
-            return Component.translatable("jei.ecc2.category.gas_generator");
+            return Component.translatable("jei.ecera.category.gas_generator");
         }
 
         @Override
@@ -593,7 +593,7 @@ public final class Ecc2JeiPlugin implements IModPlugin {
             Component fuelName = Component.translatable(CompatTelemetry.fuelLangKey(recipe.spec()));
             Component stats =
                     Component.translatable(
-                            "jei.ecc2.fuel_output",
+                            "jei.ecera.fuel_output",
                             Ecc2DataSync.formatInt(recipe.euPerBucket()),
                             Ecc2DataSync.formatInt(recipe.euPerTick()));
             graphics.drawString(font, fuelName, 54, 10, 0xFF1E3A52, false);
@@ -633,7 +633,7 @@ public final class Ecc2JeiPlugin implements IModPlugin {
 
         @Override
         public Component getTitle() {
-            return Component.translatable("jei.ecc2.category.organic_fermenter");
+            return Component.translatable("jei.ecera.category.organic_fermenter");
         }
 
         @Override
@@ -690,13 +690,13 @@ public final class Ecc2JeiPlugin implements IModPlugin {
             Font font = Minecraft.getInstance().font;
             String formula =
                     Component.translatable(
-                                    "jei.ecc2.fermenter.yield",
+                                    "jei.ecera.fermenter.yield",
                                     recipe.nutrition(),
                                     Ecc2DataSync.formatInt(recipe.biogasMb()))
                             .getString();
             String cost =
                     Component.translatable(
-                                    "jei.ecc2.fermenter.cost",
+                                    "jei.ecera.fermenter.cost",
                                     recipe.cultureMb(),
                                     recipe.euCost(),
                                     recipe.ticks())
@@ -733,7 +733,7 @@ public final class Ecc2JeiPlugin implements IModPlugin {
         @Override
         public Component getTitle() {
             return Component.translatableWithFallback(
-                    "jei.ecc2.category.ic2_recipes", "Industrial Canning & Metal Processing");
+                    "jei.ecera.category.mhera_recipes", "Industrial Canning & Metal Processing");
         }
 
         @Override
@@ -824,7 +824,7 @@ public final class Ecc2JeiPlugin implements IModPlugin {
 
         @Override
         public Component getTitle() {
-            return Component.translatable("jei.ecc2.category.giant_machine");
+            return Component.translatable("jei.ecera.category.giant_machine");
         }
 
         @Override

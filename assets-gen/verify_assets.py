@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Comprehensive asset, localization, GUI coordinate, and 4-target data pack verifier for EcoCraft 2."""
+"""Comprehensive asset, localization, GUI coordinate, and 4-target data pack verifier for Ecolera."""
 
 from __future__ import annotations
 
@@ -29,21 +29,21 @@ from generate_data import (
 )
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-ASSETS_ROOT = REPO_ROOT / "assets" / "ecc2"
+ASSETS_ROOT = REPO_ROOT / "assets" / "ecera"
 TEX_ROOT = ASSETS_ROOT / "textures"
 LANG_ROOT = ASSETS_ROOT / "lang"
 GUI_COORDS_PATH = Path(__file__).resolve().parent / "gui_coordinates.json"
-IC2_LIBS_DIR = Path(os.environ.get("ECC2_IC2_LIBS_DIR", str(REPO_ROOT.parent / ".ic2-libs")))
-IC2_REF_JAR = IC2_LIBS_DIR / "ic2-neoforge-1.21.1-1.0.11.jar"
+MHERA_LIBS_DIR = Path(os.environ.get("ECERA_MHERA_LIBS_DIR", str(REPO_ROOT.parent / ".mhera-libs")))
+MHERA_REF_JAR = MHERA_LIBS_DIR / "mhera-neoforge-1.21.1-2.0.0.jar"
 
 FORBIDDEN_HARDCODED_RECIPE_ITEMS = {
-    "ic2:iron_plate",
-    "ic2:copper_plate",
-    "ic2:tin_plate",
-    "ic2:steel_plate",
-    "ic2:rubber",
-    "ic2:circuit",
-    "ic2:advanced_circuit",
+    "mhera:iron_plate",
+    "mhera:copper_plate",
+    "mhera:tin_plate",
+    "mhera:steel_plate",
+    "mhera:rubber",
+    "mhera:circuit",
+    "mhera:advanced_circuit",
     "minecraft:glass",
     "minecraft:glowstone_dust",
     "minecraft:redstone",
@@ -62,18 +62,18 @@ class Verifier:
     def fail(self, msg: str) -> None:
         self.errors.append(msg)
 
-    def load_ic2_known_ids(self) -> Set[str]:
-        """Load verified IC2NE 1.0.11 item/block IDs from read-only local JAR if present."""
-        if not IC2_REF_JAR.exists():
+    def load_mhera_known_ids(self) -> Set[str]:
+        """Load verified Machinera 2.0.0 item/block IDs from read-only local JAR if present."""
+        if not MHERA_REF_JAR.exists():
             return set()
-        with zipfile.ZipFile(IC2_REF_JAR) as z:
-            lang = json.loads(z.read("assets/ic2/lang/en_us.json"))
+        with zipfile.ZipFile(MHERA_REF_JAR) as z:
+            lang = json.loads(z.read("assets/mhera/lang/en_us.json"))
         ids = set()
         for k in lang:
-            if k.startswith(("item.ic2.", "block.ic2.")):
+            if k.startswith(("item.mhera.", "block.mhera.")):
                 parts = k.split(".")
                 if len(parts) == 3:
-                    ids.add(f"ic2:{parts[2]}")
+                    ids.add(f"mhera:{parts[2]}")
         return ids
 
     def verify_textures(self) -> None:
@@ -83,7 +83,7 @@ class Verifier:
         self.stats["mcmeta_count"] = len(mcmetas)
 
         if not pngs:
-            self.fail("No PNG files found under assets/ecc2/textures/")
+            self.fail("No PNG files found under assets/ecera/textures/")
             return
 
         for p in pngs:
@@ -172,7 +172,7 @@ class Verifier:
             ])
         for rel in must_exist:
             if not (TEX_ROOT / rel).exists():
-                self.fail(f"Required texture/mcmeta missing: assets/ecc2/textures/{rel}")
+                self.fail(f"Required texture/mcmeta missing: assets/ecera/textures/{rel}")
 
     def verify_gui_coordinates(self) -> None:
         if not GUI_COORDS_PATH.exists():
@@ -219,22 +219,22 @@ class Verifier:
 
         # Verify 100% coverage of all blocks, items, fluids
         for b in ALL_PLACEABLE_BLOCKS + FLUID_BLOCKS:
-            if f"block.ecc2.{b}" not in en:
-                self.fail(f"Missing block translation key: block.ecc2.{b}")
+            if f"block.ecera.{b}" not in en:
+                self.fail(f"Missing block translation key: block.ecera.{b}")
         for it in STANDALONE_ITEMS:
-            if f"item.ecc2.{it}" not in en:
-                self.fail(f"Missing item translation key: item.ecc2.{it}")
+            if f"item.ecera.{it}" not in en:
+                self.fail(f"Missing item translation key: item.ecera.{it}")
         for fl in FLUID_BLOCKS:
-            if f"fluid_type.ecc2.{fl}" not in en:
-                self.fail(f"Missing fluid_type translation key: fluid_type.ecc2.{fl}")
-        if en.get("item.ecc2.enriched_sunnarium_alloy") != "Enriched Sunnarium Alloy":
-            self.fail("item.ecc2.enriched_sunnarium_alloy must be 'Enriched Sunnarium Alloy'")
+            if f"fluid_type.ecera.{fl}" not in en:
+                self.fail(f"Missing fluid_type translation key: fluid_type.ecera.{fl}")
+        if en.get("item.ecera.enriched_sunnarium_alloy") != "Enriched Sunnarium Alloy":
+            self.fail("item.ecera.enriched_sunnarium_alloy must be 'Enriched Sunnarium Alloy'")
 
-    def verify_target_pack(self, target: str, out_dir: Path, ic2_ids: Set[str]) -> Dict[str, int]:
+    def verify_target_pack(self, target: str, out_dir: Path, mhera_ids: Set[str]) -> Dict[str, int]:
         cfg = TargetConfig(target)
         stats = generate_target(target, out_dir)
-        assets_dir = out_dir / "assets" / "ecc2"
-        data_dir = out_dir / "data" / "ecc2"
+        assets_dir = out_dir / "assets" / "ecera"
+        data_dir = out_dir / "data" / "ecera"
 
         all_jsons = sorted(out_dir.rglob("*.json"))
         for jp in all_jsons:
@@ -257,7 +257,7 @@ class Verifier:
                 entries = entry if isinstance(entry, list) else [entry]
                 for e in entries:
                     m = e.get("model", "")
-                    if m.startswith("ecc2:"):
+                    if m.startswith("ecera:"):
                         mpath = assets_dir / "models" / f"{m.split(':', 1)[1]}.json"
                         if not mpath.exists():
                             self.fail(f"[{target}] Blockstate {bs.name} ({state_key}) references missing model {m}")
@@ -266,14 +266,14 @@ class Verifier:
         for mp in sorted((assets_dir / "models").rglob("*.json")):
             doc = json.loads(mp.read_text(encoding="utf-8"))
             parent = doc.get("parent", "")
-            if parent.startswith("ecc2:"):
+            if parent.startswith("ecera:"):
                 ppath = assets_dir / "models" / f"{parent.split(':', 1)[1]}.json"
                 if not ppath.exists():
                     self.fail(f"[{target}] Model {mp.relative_to(assets_dir)} references missing parent {parent}")
             for tkey, tval in doc.get("textures", {}).items():
                 if tval.startswith("#"):
                     continue
-                if tval.startswith("ecc2:"):
+                if tval.startswith("ecera:"):
                     tex_rel = tval.split(":", 1)[1]
                     if not PATH_RE.match(tex_rel):
                         self.fail(f"[{target}] Illegal texture path {tval} in {mp.name}")
@@ -287,11 +287,11 @@ class Verifier:
             expected_items = set(ALL_PLACEABLE_BLOCKS + STANDALONE_ITEMS)
             actual_items = {p.stem for p in items_dir.glob("*.json")}
             for missing in sorted(expected_items - actual_items):
-                self.fail(f"[{target}] Missing 26.x item definition: assets/ecc2/items/{missing}.json")
+                self.fail(f"[{target}] Missing 26.x item definition: assets/ecera/items/{missing}.json")
             for ip in sorted(items_dir.glob("*.json")):
                 doc = json.loads(ip.read_text(encoding="utf-8"))
                 m = doc.get("model", {}).get("model", "")
-                if m.startswith("ecc2:"):
+                if m.startswith("ecera:"):
                     mpath = assets_dir / "models" / f"{m.split(':', 1)[1]}.json"
                     if not mpath.exists():
                         self.fail(f"[{target}] Item def {ip.name} references missing model {m}")
@@ -302,27 +302,27 @@ class Verifier:
                 doc = json.loads(ep.read_text(encoding="utf-8"))
                 for layer in doc.get("layers", {}).get("humanoid", []):
                     tex = layer.get("texture", "")
-                    if tex.startswith("ecc2:"):
+                    if tex.startswith("ecera:"):
                         tpath = TEX_ROOT / "entity" / "equipment" / "humanoid" / f"{tex.split(':', 1)[1]}.png"
                         if not tpath.exists():
                             self.fail(f"[{target}] Equipment {ep.name} references missing humanoid texture {tex}")
 
-        # 4. Check crafting recipes + ensure quantum_generator has NO survival recipe + validate IC2 IDs
+        # 4. Check crafting recipes + ensure quantum_generator has NO survival recipe + validate MHERA IDs
         rdir = data_dir / cfg.recipe_dir
         craft_files = sorted(rdir.glob("*.json"))
         mt_files = sorted((rdir / "molecular_transformer").glob("*.json"))
         if len(mt_files) != 22:
             self.fail(f"[{target}] Expected 22 Molecular Transformer recipes, found {len(mt_files)}")
 
-        ecc2_valid = {f"ecc2:{x}" for x in ALL_PLACEABLE_BLOCKS + STANDALONE_ITEMS}
+        ecera_valid = {f"ecera:{x}" for x in ALL_PLACEABLE_BLOCKS + STANDALONE_ITEMS}
 
         def check_item_id(item_id: str, src: str) -> None:
             if item_id.startswith("#"):
                 return
-            if item_id.startswith("ecc2:") and item_id not in ecc2_valid:
-                self.fail(f"[{target}] Unknown ecc2 item {item_id} in {src}")
-            if item_id.startswith("ic2:") and ic2_ids and item_id not in ic2_ids:
-                self.fail(f"[{target}] Unknown IC2NE 1.0.11 item {item_id} in {src}")
+            if item_id.startswith("ecera:") and item_id not in ecera_valid:
+                self.fail(f"[{target}] Unknown ecera item {item_id} in {src}")
+            if item_id.startswith("mhera:") and mhera_ids and item_id not in mhera_ids:
+                self.fail(f"[{target}] Unknown Machinera 2.0.0 item {item_id} in {src}")
 
         def check_ingredient_item(item_id: str, src: str) -> None:
             check_item_id(item_id, src)
@@ -335,7 +335,7 @@ class Verifier:
             res_id = res.get("item") if cfg.is_1192 else res.get("id")
             if not res_id:
                 self.fail(f"[{target}] Recipe {rf.name} missing version-appropriate result key")
-            elif res_id == "ecc2:quantum_generator":
+            elif res_id == "ecera:quantum_generator":
                 self.fail(f"[{target}] Creative-only ecc2:quantum_generator MUST NOT have a crafting recipe!")
             else:
                 check_item_id(res_id, rf.name)
@@ -352,7 +352,7 @@ class Verifier:
                             self.fail(f"[{target}] {target} shaped key {k} in {rf.name} must be item/tag dict")
                         elif "item" in v:
                             check_ingredient_item(v["item"], rf.name)
-            elif doc.get("type") in ("minecraft:crafting_shapeless", "ecc2:solar_helmet_upgrade"):
+            elif doc.get("type") in ("minecraft:crafting_shapeless", "ecera:solar_helmet_upgrade"):
                 for ing in doc.get("ingredients", []):
                     if cfg.is_26x:
                         if not isinstance(ing, str):
@@ -367,7 +367,7 @@ class Verifier:
 
         for mf in mt_files:
             doc = json.loads(mf.read_text(encoding="utf-8"))
-            if doc.get("type") != "ecc2:molecular_transformer":
+            if doc.get("type") != "ecera:molecular_transformer":
                 self.fail(f"[{target}] MT recipe {mf.name} wrong type {doc.get('type')}")
             if not isinstance(doc.get("energy"), int) or doc["energy"] <= 0:
                 self.fail(f"[{target}] MT recipe {mf.name} invalid energy {doc.get('energy')}")
@@ -438,23 +438,23 @@ class Verifier:
         ns = cfg.common_ns
         # Parent aggregation gates
         assert_pairs = [
-            (ns, cfg.tag_item_dir, "ingots/iridium", ["ecc2:iridium_ingot"]),
+            (ns, cfg.tag_item_dir, "ingots/iridium", ["ecera:iridium_ingot"]),
             (ns, cfg.tag_item_dir, "ingots", [f"#{ns}:ingots/iridium"]),
-            (ns, cfg.tag_item_dir, "armors/helmets", [f"ecc2:{h}" for h in SOLAR_HELMETS]),
+            (ns, cfg.tag_item_dir, "armors/helmets", [f"ecera:{h}" for h in SOLAR_HELMETS]),
             (ns, cfg.tag_item_dir, "armors", [f"#{ns}:armors/helmets"]),
-            (ns, cfg.tag_item_dir, "plates/iridium_iron", ["ecc2:iridium_iron_plate"]),
-            (ns, cfg.tag_item_dir, "plates/reinforced_iridium_iron", ["ecc2:reinforced_iridium_iron_plate"]),
-            (ns, cfg.tag_item_dir, "plates/irradiant_reinforced", ["ecc2:irradiant_reinforced_plate"]),
+            (ns, cfg.tag_item_dir, "plates/iridium_iron", ["ecera:iridium_iron_plate"]),
+            (ns, cfg.tag_item_dir, "plates/reinforced_iridium_iron", ["ecera:reinforced_iridium_iron_plate"]),
+            (ns, cfg.tag_item_dir, "plates/irradiant_reinforced", ["ecera:irradiant_reinforced_plate"]),
             (ns, cfg.tag_item_dir, "plates", [f"#{ns}:plates/iridium_iron", f"#{ns}:plates/reinforced_iridium_iron", f"#{ns}:plates/irradiant_reinforced"]),
-            (ns, cfg.tag_item_dir, "buckets/water_gas", ["ecc2:water_gas_bucket"]),
-            (ns, cfg.tag_item_dir, "buckets/natural_gas", ["ecc2:natural_gas_bucket"]),
-            (ns, cfg.tag_item_dir, "buckets/culture_medium", ["ecc2:culture_medium_bucket"]),
+            (ns, cfg.tag_item_dir, "buckets/water_gas", ["ecera:water_gas_bucket"]),
+            (ns, cfg.tag_item_dir, "buckets/natural_gas", ["ecera:natural_gas_bucket"]),
+            (ns, cfg.tag_item_dir, "buckets/culture_medium", ["ecera:culture_medium_bucket"]),
             (ns, cfg.tag_item_dir, "buckets", [f"#{ns}:buckets/water_gas", f"#{ns}:buckets/natural_gas", f"#{ns}:buckets/culture_medium"]),
-            (ns, cfg.tag_block_dir, "relocation_not_supported", [f"ecc2:{b}" for b in GIANT_UNIT_BLOCKS + ["molecular_transformer"]]),
-            (ns, cfg.tag_block_dir, "ores/methane_ice", ["ecc2:methane_ice_cluster"]),
-            (ns, cfg.tag_item_dir, "ores/methane_ice", ["ecc2:methane_ice_cluster"]),
-            ("ecc2", cfg.tag_fluid_dir, "gas_fuel", [f"#{ns}:water_gas", f"#{ns}:natural_gas"]),
-            ("ecc2", cfg.tag_item_dir, "culture_nutrients", ["minecraft:bone_meal", "minecraft:rotten_flesh"]),
+            (ns, cfg.tag_block_dir, "relocation_not_supported", [f"ecera:{b}" for b in GIANT_UNIT_BLOCKS + ["molecular_transformer"]]),
+            (ns, cfg.tag_block_dir, "ores/methane_ice", ["ecera:methane_ice_cluster"]),
+            (ns, cfg.tag_item_dir, "ores/methane_ice", ["ecera:methane_ice_cluster"]),
+            ("ecera", cfg.tag_fluid_dir, "gas_fuel", [f"#{ns}:water_gas", f"#{ns}:natural_gas"]),
+            ("ecera", cfg.tag_item_dir, "culture_nutrients", ["minecraft:bone_meal", "minecraft:rotten_flesh"]),
         ]
         for t_ns, kdir, t_name, required_vals in assert_pairs:
             vals = read_tag_values(t_ns, kdir, t_name)
@@ -505,12 +505,12 @@ class Verifier:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Verify EcoCraft 2 art, lang, GUI coords, and 4-target packs.")
-    parser.add_argument("--check-dir", type=Path, default=Path("/tmp/ecc2-data-check"), help="Directory for 4-target generation check")
+    parser = argparse.ArgumentParser(description="Verify Ecolera art, lang, GUI coords, and 4-target packs.")
+    parser.add_argument("--check-dir", type=Path, default=Path("/tmp/ecera-data-check"), help="Directory for 4-target generation check")
     args = parser.parse_args()
 
     v = Verifier()
-    ic2_ids = v.load_ic2_known_ids()
+    mhera_ids = v.load_mhera_known_ids()
     v.verify_textures()
     v.verify_gui_coordinates()
     v.verify_lang()
@@ -521,13 +521,13 @@ def main() -> None:
 
     target_stats: Dict[str, Dict[str, int]] = {}
     for t in TARGETS:
-        target_stats[t] = v.verify_target_pack(t, args.check_dir / t, ic2_ids)
+        target_stats[t] = v.verify_target_pack(t, args.check_dir / t, mhera_ids)
 
-    print("=== EcoCraft 2 Asset & Data Verification Summary ===")
+    print("=== Ecolera Asset & Data Verification Summary ===")
     print(f"PNG textures: {v.stats.get('png_count', 0)} | .mcmeta animations: {v.stats.get('mcmeta_count', 0)}")
     print(f"GUIs documented in gui_coordinates.json: {v.stats.get('gui_count', 0)} (+ port_access_gear icon)")
     print(f"Lang keys: en_us={v.stats.get('lang_keys_en', 0)}, zh_cn={v.stats.get('lang_keys_zh', 0)}")
-    print(f"IC2NE 1.0.11 IDs cross-checked: {len(ic2_ids)}")
+    print(f"Machinera 2.0.0 IDs cross-checked: {len(mhera_ids)}")
     for t, st in target_stats.items():
         print(f"  Target {t:16s}: {st} (total={sum(st.values())} JSONs)")
 

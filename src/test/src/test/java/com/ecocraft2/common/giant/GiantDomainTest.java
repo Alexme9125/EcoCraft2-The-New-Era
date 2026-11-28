@@ -47,7 +47,7 @@ class GiantDomainTest {
         GiantMachineSpec custom = new GiantMachineSpec(
                 "induction_furnace",
                 "giant_induction_furnace_unit",
-                "ic2:induction_furnace",
+                "mhera:induction_furnace",
                 100,
                 16,
                 3,

@@ -44,19 +44,19 @@ public final class Ecc2JeiPlugin implements IModPlugin {
     private static final ResourceLocation UID = Ecc2BridgePlatform.rl("jei_plugin");
 
     public static final RecipeType<MolecularTransformerRecipe> MT_TYPE =
-            RecipeType.create("ecc2", "molecular_transformer", MolecularTransformerRecipe.class);
+            RecipeType.create("ecera", "molecular_transformer", MolecularTransformerRecipe.class);
 
     public static final RecipeType<GasFuelEntry> GAS_GEN_TYPE =
-            RecipeType.create("ecc2", "gas_generator", GasFuelEntry.class);
+            RecipeType.create("ecera", "gas_generator", GasFuelEntry.class);
 
     public static final RecipeType<SimpleProcessEntry> WATER_GAS_TYPE =
-            RecipeType.create("ecc2", "water_gas", SimpleProcessEntry.class);
+            RecipeType.create("ecera", "water_gas", SimpleProcessEntry.class);
 
     public static final RecipeType<SimpleProcessEntry> CULTURE_TYPE =
-            RecipeType.create("ecc2", "culture_incubator", SimpleProcessEntry.class);
+            RecipeType.create("ecera", "culture_incubator", SimpleProcessEntry.class);
 
     public static final RecipeType<SimpleProcessEntry> FERMENTER_TYPE =
-            RecipeType.create("ecc2", "organic_fermenter", SimpleProcessEntry.class);
+            RecipeType.create("ecera", "organic_fermenter", SimpleProcessEntry.class);
 
     public record GasFuelEntry(FluidStack fluid, int euPerBucket, int euPerTick) {}
 
@@ -77,17 +77,17 @@ public final class Ecc2JeiPlugin implements IModPlugin {
                 new SimpleProcessCategory(
                         gui,
                         WATER_GAS_TYPE,
-                        "jei.ecc2.category.water_gas",
+                        "jei.ecera.category.water_gas",
                         new ItemStack(GasRegistry.WATER_GAS_MACHINE.get())),
                 new SimpleProcessCategory(
                         gui,
                         CULTURE_TYPE,
-                        "jei.ecc2.category.culture_incubator",
+                        "jei.ecera.category.culture_incubator",
                         new ItemStack(GasRegistry.CULTURE_INCUBATOR.get())),
                 new SimpleProcessCategory(
                         gui,
                         FERMENTER_TYPE,
-                        "jei.ecc2.category.organic_fermenter",
+                        "jei.ecera.category.organic_fermenter",
                         new ItemStack(GasRegistry.ORGANIC_FERMENTER.get())));
     }
 
@@ -170,7 +170,7 @@ public final class Ecc2JeiPlugin implements IModPlugin {
 
     private static List<ItemStack> collectCoalDustInputs() {
         Map<Item, ItemStack> unique = new LinkedHashMap<>();
-        Item coalDust = Ecc2BridgePlatform.findItem("ic2:coal_dust");
+        Item coalDust = Ecc2BridgePlatform.findItem("mhera:coal_dust");
         if (coalDust != null && coalDust != Items.AIR) {
             unique.put(coalDust, new ItemStack(coalDust));
         }
@@ -234,7 +234,7 @@ public final class Ecc2JeiPlugin implements IModPlugin {
 
         @Override
         public Component getTitle() {
-            return Component.translatable("jei.ecc2.category.molecular_transformer");
+            return Component.translatable("jei.ecera.category.molecular_transformer");
         }
 
         @Override
@@ -270,7 +270,7 @@ public final class Ecc2JeiPlugin implements IModPlugin {
                 double mouseX,
                 double mouseY) {
             var font = Minecraft.getInstance().font;
-            Component text = Component.translatable("jei.ecc2.energy_cost", recipe.energy());
+            Component text = Component.translatable("jei.ecera.energy_cost", recipe.energy());
             font.draw(poseStack, text, 38, 18, 0xFF334455);
         }
     }
@@ -291,7 +291,7 @@ public final class Ecc2JeiPlugin implements IModPlugin {
 
         @Override
         public Component getTitle() {
-            return Component.translatable("jei.ecc2.category.gas_generator");
+            return Component.translatable("jei.ecera.category.gas_generator");
         }
 
         @Override
@@ -322,7 +322,7 @@ public final class Ecc2JeiPlugin implements IModPlugin {
             var font = Minecraft.getInstance().font;
             Component text =
                     Component.translatable(
-                            "jei.ecc2.fuel_output", recipe.euPerBucket(), recipe.euPerTick());
+                            "jei.ecera.fuel_output", recipe.euPerBucket(), recipe.euPerTick());
             font.draw(poseStack, text, 34, 16, 0xFF334455);
         }
     }
@@ -385,7 +385,7 @@ public final class Ecc2JeiPlugin implements IModPlugin {
                 double mouseX,
                 double mouseY) {
             var font = Minecraft.getInstance().font;
-            Component text = Component.translatable("jei.ecc2.energy_cost", recipe.euCost());
+            Component text = Component.translatable("jei.ecera.energy_cost", recipe.euCost());
             font.draw(poseStack, text, 58, 18, 0xFF334455);
         }
     }

@@ -53,7 +53,7 @@ public final class MolecularTransformerScreen extends Ecc2ScreenBase<MolecularTr
             canvas.text(
                     Component.literal(
                             canvas.trimWidth(
-                                    Component.translatable("gui.ecc2.mt.idle").getString(),
+                                    Component.translatable("gui.ecera.mt.idle").getString(),
                                     LCD_MAX_W)),
                     LCD_TEXT_X,
                     50,
@@ -72,33 +72,33 @@ public final class MolecularTransformerScreen extends Ecc2ScreenBase<MolecularTr
 
         String row1 =
                 canvas.trimWidth(
-                        Component.translatable("gui.ecc2.mt.input", inName).getString(), LCD_MAX_W);
+                        Component.translatable("gui.ecera.mt.input", inName).getString(), LCD_MAX_W);
         String row2 =
                 canvas.trimWidth(
-                        Component.translatable("gui.ecc2.mt.output", outName).getString(),
+                        Component.translatable("gui.ecera.mt.output", outName).getString(),
                         LCD_MAX_W);
         String row3 =
                 canvas.trimWidth(
                         Component.translatable(
-                                        "gui.ecc2.mt.energy",
+                                        "gui.ecera.mt.energy",
                                         Ecc2DataSync.formatCompact(menu.totalEu()))
                                 .getString(),
                         LCD_MAX_W);
         String row4 =
                 canvas.trimWidth(
                         Component.translatable(
-                                        "gui.ecc2.mt.input_eu",
+                                        "gui.ecera.mt.input_eu",
                                         Ecc2DataSync.formatInt(menu.lastTickPower()))
                                 .getString(),
                         LCD_MAX_W);
         String row5 =
                 menu.isOutputBlocked()
                         ? canvas.trimWidth(
-                                Component.translatable("gui.ecc2.mt.output_full").getString(),
+                                Component.translatable("gui.ecera.mt.output_full").getString(),
                                 LCD_MAX_W)
                         : canvas.trimWidth(
                                 Component.translatable(
-                                                "gui.ecc2.mt.progress", menu.progressPercent())
+                                                "gui.ecera.mt.progress", menu.progressPercent())
                                         .getString(),
                                 LCD_MAX_W);
 
@@ -121,7 +121,7 @@ public final class MolecularTransformerScreen extends Ecc2ScreenBase<MolecularTr
                 && relMouseY >= PROG_Y
                 && relMouseY < PROG_Y + PROG_H) {
             return List.of(
-                    Component.translatable("gui.ecc2.mt.progress", menu.progressPercent()),
+                    Component.translatable("gui.ecera.mt.progress", menu.progressPercent()),
                     Component.literal(
                             Ecc2DataSync.formatInt(menu.energyUsed())
                                     + " / "

@@ -423,7 +423,7 @@ public final class AdvancedKineticBlockEntity extends Ecc2SaveBlockEntity
                 };
         String kind = waterType ? "water" : "wind";
         return Component.translatable(
-                "container.ecc2." + tierPrefix + "_" + kind + "_kinetic_generator");
+                "container.ecera." + tierPrefix + "_" + kind + "_kinetic_generator");
     }
 
     @Override

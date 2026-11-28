@@ -18,7 +18,7 @@ import net.minecraft.world.item.Items;
  * <p>Matches {@code assets-gen/generate_data.py}'s exact schema:
  * <pre>{@code
  * {
- *   "type": "ecc2:molecular_transformer",
+ *   "type": "ecera:molecular_transformer",
  *   "input": { "item": "..." } | { "tag": "..." },
  *   "input_count": 1,
  *   "output": { "id": "...", "count": 1 } | { "tag": "...", "count": 1 },

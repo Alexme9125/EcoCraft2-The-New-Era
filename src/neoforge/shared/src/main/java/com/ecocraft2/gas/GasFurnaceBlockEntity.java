@@ -242,7 +242,7 @@ public final class GasFurnaceBlockEntity extends GasMachineBlockEntityBase {
 
     @Override
     public Component getDisplayName() {
-        return Component.translatable("container.ecc2.gas_furnace");
+        return Component.translatable("container.ecera.gas_furnace");
     }
 
     @Override
@@ -252,28 +252,28 @@ public final class GasFurnaceBlockEntity extends GasMachineBlockEntityBase {
 
     @Override
     protected void saveState(Ecc2DataWriter out) {
-        out.putItems("ecc2_items", items);
+        out.putItems("ecera_items", items);
         out.putString(
-                "ecc2_fuel", engine.currentFuel() == null ? "" : engine.currentFuel().fluidId());
-        out.putInt("ecc2_gas", engine.gasMb());
-        out.putInt("ecc2_progress", engine.progress());
-        out.putInt("ecc2_spent", engine.gasSpentOnCurrentItem());
+                "ecera_fuel", engine.currentFuel() == null ? "" : engine.currentFuel().fluidId());
+        out.putInt("ecera_gas", engine.gasMb());
+        out.putInt("ecera_progress", engine.progress());
+        out.putInt("ecera_spent", engine.gasSpentOnCurrentItem());
     }
 
     @Override
     protected void loadState(Ecc2DataReader in) {
-        in.loadItems("ecc2_items", items);
+        in.loadItems("ecera_items", items);
         engine.configure(Ecc2Config.gasFurnaceGasPerItem(), Ecc2Config.gasFurnaceBaseTicks());
         engine.setOverclockers(
                 Ecc2UpgradeHelper.readProfile(
                                 items.subList(UPGRADE_START, UPGRADE_START + UPGRADE_COUNT))
                         .overclockers());
-        GasFuelSpec fuel = GasFuelSpec.byFluidId(in.getString("ecc2_fuel", "")).orElse(null);
+        GasFuelSpec fuel = GasFuelSpec.byFluidId(in.getString("ecera_fuel", "")).orElse(null);
         engine.restoreState(
                 fuel,
-                in.getInt("ecc2_gas", 0),
-                in.getInt("ecc2_progress", 0),
-                in.getInt("ecc2_spent", 0));
+                in.getInt("ecera_gas", 0),
+                in.getInt("ecera_progress", 0),
+                in.getInt("ecera_spent", 0));
     }
 
     // ---- Public Getters ----

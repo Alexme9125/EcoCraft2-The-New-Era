@@ -3,29 +3,29 @@ loaderVersion="[43,44)"
 license="LGPL-3.0-only"
 
 [[mods]]
-modId="ecc2"
+modId="ecera"
 version="${version}"
-displayName="EcoCraft 2: The New Era"
+displayName="Ecolera"
 displayURL="https://github.com/Alexme9125/EcoCraft2-The-New-Era"
-description="Clean-room addon for IndustrialCraft 2: The New Era adding Advanced Solar Panels 2, Advanced Wind/Water Kinetic Generators with classic rotor wear, 3x3x3 Giant Machines, and Water Gas / Natural Gas / Biogas industry."
+description="Clean-room clean energy and megastructure addon for Machinera (mhera) adding Advanced Solar Panels 2, Advanced Wind/Water Kinetic Generators with classic rotor wear, 3x3x3 Giant Machines, and Water Gas / Natural Gas / Biogas industry."
 
-[[dependencies.ecc2]]
+[[dependencies.ecera]]
 modId="forge"
 mandatory=true
 versionRange="[${forgeVersion},44)"
 ordering="NONE"
 side="BOTH"
 
-[[dependencies.ecc2]]
+[[dependencies.ecera]]
 modId="minecraft"
 mandatory=true
 versionRange="[${minecraftVersion}]"
 ordering="NONE"
 side="BOTH"
 
-[[dependencies.ecc2]]
-modId="ic2"
+[[dependencies.ecera]]
+modId="mhera"
 mandatory=true
-versionRange="[1.0.11,)"
+versionRange="[2.0.0,)"
 ordering="AFTER"
 side="BOTH"

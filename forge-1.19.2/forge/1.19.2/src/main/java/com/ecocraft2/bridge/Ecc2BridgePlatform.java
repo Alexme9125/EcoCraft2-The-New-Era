@@ -195,22 +195,22 @@ public final class Ecc2BridgePlatform {
     /** Returns the localized display name for a gas fuel (or empty). */
     public static Component fuelName(GasFuelSpec fuel) {
         if (fuel == null) {
-            return Component.translatable("gui.ecc2.gas.empty");
+            return Component.translatable("gui.ecera.gas.empty");
         }
         return switch (fuel) {
-            case WATER_GAS -> Component.translatable("gui.ecc2.gas.water_gas");
-            case NATURAL_GAS -> Component.translatable("gui.ecc2.gas.natural_gas");
-            case BIOGAS -> Component.translatable("gui.ecc2.gas.biogas");
+            case WATER_GAS -> Component.translatable("gui.ecera.gas.water_gas");
+            case NATURAL_GAS -> Component.translatable("gui.ecera.gas.natural_gas");
+            case BIOGAS -> Component.translatable("gui.ecera.gas.biogas");
         };
     }
 
     /** Returns the localized display name for a giant-machine lower-corner access port. */
     public static Component portName(GiantCornerPort port) {
-        return Component.translatable("gui.ecc2.port." + port.name().toLowerCase(Locale.ROOT));
+        return Component.translatable("gui.ecera.port." + port.name().toLowerCase(Locale.ROOT));
     }
 
     /** Returns the localized display name for a giant-machine port access mode. */
     public static Component modeName(PortAccessMode mode) {
-        return Component.translatable("gui.ecc2.port.mode." + mode.name().toLowerCase(Locale.ROOT));
+        return Component.translatable("gui.ecera.port.mode." + mode.name().toLowerCase(Locale.ROOT));
     }
 }

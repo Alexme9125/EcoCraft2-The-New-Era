@@ -1032,10 +1032,10 @@ public final class GiantMachineBlockEntity extends BlockEntity
             }
             String id = Ecc2BridgePlatform.itemId(u);
             boolean isItemEject =
-                    "ic2:ejector_upgrade".equals(id) || "ic2:advanced_ejector_upgrade".equals(id);
+                    "mhera:ejector_upgrade".equals(id) || "mhera:advanced_ejector_upgrade".equals(id);
             boolean isItemPull =
-                    "ic2:pulling_upgrade".equals(id) || "ic2:advanced_pulling_upgrade".equals(id);
-            boolean isFluidPull = "ic2:fluid_pulling_upgrade".equals(id);
+                    "mhera:pulling_upgrade".equals(id) || "mhera:advanced_pulling_upgrade".equals(id);
+            boolean isFluidPull = "mhera:fluid_pulling_upgrade".equals(id);
             if (!isItemEject && !isItemPull && !isFluidPull) {
                 continue;
             }
@@ -1527,7 +1527,7 @@ public final class GiantMachineBlockEntity extends BlockEntity
 
     @Override
     public Component getDisplayName() {
-        return Component.translatable("container.ecc2.giant_" + kind.id());
+        return Component.translatable("container.ecera.giant_" + kind.id());
     }
 
     @Override

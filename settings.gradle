@@ -8,7 +8,7 @@ pluginManagement {
     }
 }
 
-rootProject.name = 'ecocraft2'
+rootProject.name = 'ecolera'
 
 include 'common', 'test'
 project(':common').projectDir = file('src/common')

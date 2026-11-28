@@ -173,7 +173,7 @@ public final class Ecc2Fluids {
                 () ->
                         new FluidType(
                                 FluidType.Properties.create()
-                                        .descriptionId("fluid_type.ecc2." + path)
+                                        .descriptionId("fluid_type.ecera." + path)
                                         .density(density)
                                         .viscosity(viscosity)
                                         .temperature(temp)

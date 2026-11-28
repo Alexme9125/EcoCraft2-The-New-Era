@@ -469,10 +469,10 @@ public final class Ecc2Config {
                     .push("kinetic");
             enableVanillaRotorWear =
                     builder.comment(
-                                    "Apply 1.0x baseline classic rotor wear to IC2NE wind and water kinetic generators")
+                                    "Apply 1.0x baseline classic rotor wear to Machinera wind and water kinetic generators")
                             .define("enableVanillaRotorWear", true);
             vanillaRotorWearMultiplier =
-                    builder.comment("Wear multiplier for vanilla IC2NE wind/water kinetic generators")
+                    builder.comment("Wear multiplier for vanilla Machinera wind/water kinetic generators")
                             .defineInRange("vanillaRotorWearMultiplier", 1.0, 0.0, 100.0);
             durableKineticOutputMultiplier =
                     builder.defineInRange("durableKineticOutputMultiplier", 0.80, 0.05, 100.0);
@@ -533,7 +533,7 @@ public final class Ecc2Config {
         public final ModConfigSpec.BooleanValue enableRotorRenderAnimation;
 
         Client(ModConfigSpec.Builder builder) {
-            builder.comment("EcoCraft 2 client rendering options").push("rendering");
+            builder.comment("Ecolera client rendering options").push("rendering");
             drawMolecularTransformerCore =
                     builder.comment("Render animated 3D plasma core inside Molecular Transformers")
                             .define("drawMolecularTransformerCore", true);

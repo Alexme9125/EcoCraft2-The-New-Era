@@ -9,7 +9,7 @@ pluginManagement {
     }
 }
 
-rootProject.name = 'ecocraft2-forge-1.19.2'
+rootProject.name = 'ecolera-forge-1.19.2'
 include 'common', 'forge:1.19.2'
 project(':common').projectDir = file('../src/common')
 project(':forge').projectDir = file('forge')

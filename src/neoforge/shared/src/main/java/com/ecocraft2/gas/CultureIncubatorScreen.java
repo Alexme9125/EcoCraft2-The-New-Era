@@ -75,8 +75,8 @@ public final class CultureIncubatorScreen extends Ecc2ScreenBase<CultureIncubato
             c.renderTooltip(
                     List.of(
                             Component.translatable(
-                                    "gui.ecc2.gas.tank",
-                                    Component.translatable("gui.ecc2.gas.water"),
+                                    "gui.ecera.gas.tank",
+                                    Component.translatable("gui.ecera.gas.water"),
                                     menu.waterMb(),
                                     CultureIncubatorEngine.WATER_TANK_CAPACITY_MB)),
                     screenX,
@@ -85,8 +85,8 @@ public final class CultureIncubatorScreen extends Ecc2ScreenBase<CultureIncubato
             c.renderTooltip(
                     List.of(
                             Component.translatable(
-                                    "gui.ecc2.gas.tank",
-                                    Component.translatable("gui.ecc2.gas.culture_medium"),
+                                    "gui.ecera.gas.tank",
+                                    Component.translatable("gui.ecera.gas.culture_medium"),
                                     menu.cultureMb(),
                                     CultureIncubatorEngine.CULTURE_TANK_CAPACITY_MB)),
                     screenX,
@@ -95,7 +95,7 @@ public final class CultureIncubatorScreen extends Ecc2ScreenBase<CultureIncubato
             c.renderTooltip(
                     List.of(
                             Component.translatable(
-                                    "gui.ecc2.giant.eu_stored",
+                                    "gui.ecera.giant.eu_stored",
                                     menu.storedEu(),
                                     menu.energyCapacity())),
                     screenX,

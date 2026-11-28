@@ -20,7 +20,7 @@ class Ecc2ConfigAndIdsTest {
 
     @Test
     void canonicalRegistryCountsAndUniqueness() {
-        assertEquals("ecc2", Ecc2Ids.MOD_ID);
+        assertEquals("ecera", Ecc2Ids.MOD_ID);
         assertEquals(23, Ecc2Ids.PLACEABLE_BLOCKS.size());
         assertEquals(3, Ecc2Ids.FLUID_BLOCKS.size());
         assertEquals(25, Ecc2Ids.STANDALONE_ITEMS.size());
@@ -42,27 +42,27 @@ class Ecc2ConfigAndIdsTest {
         }
 
         // Duplicate items removed in favor of IC2NE native items; ecc2:iridium_ingot preserved.
-        assertFalse(allItemPaths.contains("biogas_cell"), "ecc2:biogas_cell must be removed");
-        assertFalse(allItemPaths.contains("uranium_ingot"), "ecc2:uranium_ingot must be removed");
-        assertTrue(allItemPaths.contains(Ecc2Ids.IRIDIUM_INGOT), "ecc2:iridium_ingot must be preserved");
-        assertTrue(allItemPaths.contains(Ecc2Ids.PV_POWER_UPGRADE_PATH), "ecc2:pv_power_upgrade must be registered");
+        assertFalse(allItemPaths.contains("biogas_cell"), "ecera:biogas_cell must be removed");
+        assertFalse(allItemPaths.contains("uranium_ingot"), "ecera:uranium_ingot must be removed");
+        assertTrue(allItemPaths.contains(Ecc2Ids.IRIDIUM_INGOT), "ecera:iridium_ingot must be preserved");
+        assertTrue(allItemPaths.contains(Ecc2Ids.PV_POWER_UPGRADE_PATH), "ecera:pv_power_upgrade must be registered");
     }
 
     @Test
     void namespaceHelpersAndKeyFluidIds() {
-        assertEquals("ecc2:water_gas", Ecc2Ids.WATER_GAS_ID);
-        assertEquals("ecc2:natural_gas", Ecc2Ids.NATURAL_GAS_ID);
-        assertEquals("ecc2:culture_medium", Ecc2Ids.CULTURE_MEDIUM_ID);
-        assertEquals("ic2:biogas", Ecc2Ids.IC2_BIOGAS_ID);
-        assertEquals("ic2:biogas_cell", Ecc2Ids.IC2_BIOGAS_CELL);
-        assertEquals("ic2:uranium_ingot", Ecc2Ids.IC2_URANIUM_INGOT);
-        assertEquals("ecc2:iridium_ingot", Ecc2Ids.ecc2(Ecc2Ids.IRIDIUM_INGOT));
-        assertEquals("ecc2:methane_ice_cluster", Ecc2Ids.ecc2(Ecc2Ids.METHANE_ICE_CLUSTER));
+        assertEquals("ecera:water_gas", Ecc2Ids.WATER_GAS_ID);
+        assertEquals("ecera:natural_gas", Ecc2Ids.NATURAL_GAS_ID);
+        assertEquals("ecera:culture_medium", Ecc2Ids.CULTURE_MEDIUM_ID);
+        assertEquals("mhera:biogas", Ecc2Ids.IC2_BIOGAS_ID);
+        assertEquals("mhera:biogas_cell", Ecc2Ids.IC2_BIOGAS_CELL);
+        assertEquals("mhera:uranium_ingot", Ecc2Ids.IC2_URANIUM_INGOT);
+        assertEquals("ecera:iridium_ingot", Ecc2Ids.ecc2(Ecc2Ids.IRIDIUM_INGOT));
+        assertEquals("ecera:methane_ice_cluster", Ecc2Ids.ecc2(Ecc2Ids.METHANE_ICE_CLUSTER));
         assertEquals("pv_power_upgrade", Ecc2Ids.PV_POWER_UPGRADE_PATH);
-        assertEquals("ecc2:pv_power_upgrade", Ecc2Ids.PV_POWER_UPGRADE_ID);
-        assertEquals("ic2:carbon_rotor", Ecc2Ids.IC2_CARBON_ROTOR);
-        assertEquals("ecc2:gas_fuel", Ecc2Ids.TAG_GAS_FUEL);
-        assertEquals("ecc2:culture_nutrients", Ecc2Ids.TAG_CULTURE_NUTRIENTS);
+        assertEquals("ecera:pv_power_upgrade", Ecc2Ids.PV_POWER_UPGRADE_ID);
+        assertEquals("mhera:carbon_rotor", Ecc2Ids.IC2_CARBON_ROTOR);
+        assertEquals("ecera:gas_fuel", Ecc2Ids.TAG_GAS_FUEL);
+        assertEquals("ecera:culture_nutrients", Ecc2Ids.TAG_CULTURE_NUTRIENTS);
         assertEquals("c:water_gas", Ecc2Ids.commonTag("c", Ecc2Ids.COMMON_TAG_WATER_GAS));
         assertEquals("forge:water_gas", Ecc2Ids.commonTag("forge", Ecc2Ids.COMMON_TAG_WATER_GAS));
         assertEquals("c:tools/wrench", Ecc2Ids.commonTag("c", Ecc2Ids.COMMON_TAG_TOOLS_WRENCH));
@@ -73,10 +73,10 @@ class Ecc2ConfigAndIdsTest {
     void mixinConfigsAndSourcesExcludeDuplicateVanillaRotorMixins() throws IOException {
         Path repoRoot = findRepoRoot();
         List<Path> mixinConfigs = List.of(
-                repoRoot.resolve("src/neoforge/1.21.1/src/main/resources/ecc2.mixins.json"),
-                repoRoot.resolve("src/neoforge/26.1.2/src/main/resources/ecc2.mixins.json"),
-                repoRoot.resolve("src/neoforge/26.2/src/main/resources/ecc2.mixins.json"),
-                repoRoot.resolve("forge-1.19.2/forge/1.19.2/src/main/resources/ecc2.mixins.json")
+                repoRoot.resolve("src/neoforge/1.21.1/src/main/resources/ecera.mixins.json"),
+                repoRoot.resolve("src/neoforge/26.1.2/src/main/resources/ecera.mixins.json"),
+                repoRoot.resolve("src/neoforge/26.2/src/main/resources/ecera.mixins.json"),
+                repoRoot.resolve("forge-1.19.2/forge/1.19.2/src/main/resources/ecera.mixins.json")
         );
         for (Path cfg : mixinConfigs) {
             assertTrue(Files.isRegularFile(cfg), "Missing mixin config: " + cfg);
@@ -105,10 +105,10 @@ class Ecc2ConfigAndIdsTest {
         Path forgeEntry = repoRoot.resolve("forge-1.19.2/forge/1.19.2/src/main/java/com/ecocraft2/EcoCraft2.java");
         for (Path entry : List.of(neoEntry, forgeEntry)) {
             String src = Files.readString(entry);
-            assertFalse(src.contains("ecc2:biogas_cell"), "Must not register ecc2:biogas_cell in " + entry);
-            assertFalse(src.contains("ecc2:uranium_ingot"), "Must not register ecc2:uranium_ingot in " + entry);
-            assertTrue(src.contains("Ecc2Ids.IC2_URANIUM_INGOT"), "Must target ic2:uranium_ingot in " + entry);
-            assertTrue(src.contains("ecc2:iridium_ingot"), "Must preserve ecc2:iridium_ingot in " + entry);
+            assertFalse(src.contains("ecera:biogas_cell"), "Must not register ecera:biogas_cell in " + entry);
+            assertFalse(src.contains("ecera:uranium_ingot"), "Must not register ecera:uranium_ingot in " + entry);
+            assertTrue(src.contains("Ecc2Ids.IC2_URANIUM_INGOT"), "Must target mhera:uranium_ingot in " + entry);
+            assertTrue(src.contains("ecera:iridium_ingot"), "Must preserve ecera:iridium_ingot in " + entry);
             assertFalse(src.contains("appendRotorTooltip"), "Must remove duplicate vanilla rotor tooltip in " + entry);
         }
         String neoSrc = Files.readString(neoEntry);
@@ -143,7 +143,7 @@ class Ecc2ConfigAndIdsTest {
             }
             dir = dir.getParent();
         }
-        throw new IllegalStateException("Could not locate EcoCraft 2 repository root");
+        throw new IllegalStateException("Could not locate Ecolera repository root");
     }
 
     @Test

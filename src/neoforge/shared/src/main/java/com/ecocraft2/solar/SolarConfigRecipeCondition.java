@@ -74,10 +74,10 @@ public record SolarConfigRecipeCondition(String flag, boolean expected) implemen
      * {@link Ecc2Config} recipe flags.
      */
     public static boolean isRecipeDisabledByConfig(String recipeId) {
-        if (recipeId == null || !recipeId.startsWith("ecc2:")) {
+        if (recipeId == null || !recipeId.startsWith("ecera:")) {
             return false;
         }
-        String path = recipeId.substring("ecc2:".length());
+        String path = recipeId.substring("ecera:".length());
         return switch (path) {
             case "advanced_solar_panel" ->
                     Ecc2Config.disableAdvancedSolarRecipe() || Ecc2Config.easyASPRecipe();

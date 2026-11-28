@@ -29,9 +29,9 @@ class GasDomainTest {
         assertEquals(16.0, GasFuelSpec.BIOGAS.euPerMb(), 1e-12);
         assertEquals(2.0, GasFuelSpec.BIOGAS.mbPerTick(), 1e-12);
 
-        assertEquals(GasFuelSpec.WATER_GAS, GasFuelSpec.byFluidId("ecc2:water_gas").orElseThrow());
-        assertEquals(GasFuelSpec.NATURAL_GAS, GasFuelSpec.byFluidId("ecc2:natural_gas").orElseThrow());
-        assertEquals(GasFuelSpec.BIOGAS, GasFuelSpec.byFluidId("ic2:biogas").orElseThrow());
+        assertEquals(GasFuelSpec.WATER_GAS, GasFuelSpec.byFluidId("ecera:water_gas").orElseThrow());
+        assertEquals(GasFuelSpec.NATURAL_GAS, GasFuelSpec.byFluidId("ecera:natural_gas").orElseThrow());
+        assertEquals(GasFuelSpec.BIOGAS, GasFuelSpec.byFluidId("mhera:biogas").orElseThrow());
         assertTrue(GasFuelSpec.byFluidId("minecraft:water").isEmpty());
 
         // Common fluid tag & ecc2:gas_fuel resolution across both c: and forge: namespaces
@@ -46,7 +46,7 @@ class GasDomainTest {
                 GasFuelSpec.resolve("other:bio_gas", "c", "c:biogas"::equals).orElseThrow());
         assertEquals(
                 GasFuelSpec.WATER_GAS,
-                GasFuelSpec.resolve("datapack:syngas", "c", "ecc2:gas_fuel"::equals).orElseThrow());
+                GasFuelSpec.resolve("datapack:syngas", "c", "ecera:gas_fuel"::equals).orElseThrow());
         assertTrue(GasFuelSpec.resolve("minecraft:water", "c", tag -> false).isEmpty());
     }
 

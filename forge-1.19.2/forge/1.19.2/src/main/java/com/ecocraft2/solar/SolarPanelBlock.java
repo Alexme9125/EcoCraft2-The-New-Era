@@ -129,11 +129,11 @@ public final class SolarPanelBlock extends Block
         int storage = SolarPanelBlockEntity.configuredStorage(solarTier);
         int tier = SolarPanelBlockEntity.configuredTier(solarTier);
         tooltip.add(
-                Component.translatable("tooltip.ecc2.solar.generation", day, night)
+                Component.translatable("tooltip.ecera.solar.generation", day, night)
                         .withStyle(ChatFormatting.YELLOW));
         tooltip.add(
                 Component.translatable(
-                                "tooltip.ecc2.solar.storage",
+                                "tooltip.ecera.solar.storage",
                                 storage,
                                 tier,
                                 (long) SolarTier.packetSize(tier))

@@ -77,8 +77,8 @@ public final class GasScreens {
                 renderTooltip(
                         poseStack,
                         Component.translatable(
-                                "gui.ecc2.gas.tank",
-                                Component.translatable("gui.ecc2.gas.water"),
+                                "gui.ecera.gas.tank",
+                                Component.translatable("gui.ecera.gas.water"),
                                 menu.waterMb(),
                                 WaterGasEngine.WATER_TANK_CAPACITY_MB),
                         mouseX,
@@ -87,8 +87,8 @@ public final class GasScreens {
                 renderTooltip(
                         poseStack,
                         Component.translatable(
-                                "gui.ecc2.gas.tank",
-                                Component.translatable("gui.ecc2.gas.water_gas"),
+                                "gui.ecera.gas.tank",
+                                Component.translatable("gui.ecera.gas.water_gas"),
                                 menu.waterGasMb(),
                                 WaterGasEngine.GAS_TANK_CAPACITY_MB),
                         mouseX,
@@ -97,10 +97,10 @@ public final class GasScreens {
                 Component solarTip =
                         menu.isSolarActive()
                                 ? Component.translatable(
-                                        "gui.ecc2.gas.solar_active",
+                                        "gui.ecera.gas.solar_active",
                                         WaterGasEngine.formatSolarRateDeci(
                                                 menu.effectiveSolarDeciEuPerTick()))
-                                : Component.translatable("gui.ecc2.gas.solar_inactive");
+                                : Component.translatable("gui.ecera.gas.solar_inactive");
                 renderTooltip(poseStack, solarTip, mouseX, mouseY);
             }
         }
@@ -185,7 +185,7 @@ public final class GasScreens {
                 renderTooltip(
                         poseStack,
                         Component.translatable(
-                                "gui.ecc2.gas.tank",
+                                "gui.ecera.gas.tank",
                                 Ecc2BridgePlatform.fuelName(menu.currentFuel()),
                                 menu.gasMb(),
                                 GasFurnaceEngine.GAS_TANK_CAPACITY_MB),
@@ -248,7 +248,7 @@ public final class GasScreens {
                 renderTooltip(
                         poseStack,
                         Component.translatable(
-                                "gui.ecc2.gas.tank",
+                                "gui.ecera.gas.tank",
                                 Ecc2BridgePlatform.fuelName(menu.currentFuel()),
                                 menu.gasMb(),
                                 GasGeneratorEngine.GAS_TANK_CAPACITY_MB),
@@ -295,13 +295,13 @@ public final class GasScreens {
             font.draw(
                     poseStack,
                     Component.translatable(
-                            "gui.ecc2.gas.fuel", Ecc2BridgePlatform.fuelName(menu.currentFuel())),
+                            "gui.ecera.gas.fuel", Ecc2BridgePlatform.fuelName(menu.currentFuel())),
                     x,
                     (int) (57 / 0.7f),
                     0x8DF0FF);
             font.draw(
                     poseStack,
-                    Component.translatable("gui.ecc2.gas.output", menu.generatingEu()),
+                    Component.translatable("gui.ecera.gas.output", menu.generatingEu()),
                     x,
                     (int) (66 / 0.7f),
                     0x7FFFB0);
@@ -333,8 +333,8 @@ public final class GasScreens {
                 renderTooltip(
                         poseStack,
                         Component.translatable(
-                                "gui.ecc2.gas.tank",
-                                Component.translatable("gui.ecc2.gas.water"),
+                                "gui.ecera.gas.tank",
+                                Component.translatable("gui.ecera.gas.water"),
                                 menu.waterMb(),
                                 CultureIncubatorEngine.WATER_TANK_CAPACITY_MB),
                         mouseX,
@@ -343,8 +343,8 @@ public final class GasScreens {
                 renderTooltip(
                         poseStack,
                         Component.translatable(
-                                "gui.ecc2.gas.tank",
-                                Component.translatable("gui.ecc2.gas.culture_medium"),
+                                "gui.ecera.gas.tank",
+                                Component.translatable("gui.ecera.gas.culture_medium"),
                                 menu.cultureMb(),
                                 CultureIncubatorEngine.CULTURE_TANK_CAPACITY_MB),
                         mouseX,
@@ -424,8 +424,8 @@ public final class GasScreens {
                 renderTooltip(
                         poseStack,
                         Component.translatable(
-                                "gui.ecc2.gas.tank",
-                                Component.translatable("gui.ecc2.gas.culture_medium"),
+                                "gui.ecera.gas.tank",
+                                Component.translatable("gui.ecera.gas.culture_medium"),
                                 menu.cultureMb(),
                                 OrganicFermenterEngine.CULTURE_TANK_CAPACITY_MB),
                         mouseX,
@@ -434,8 +434,8 @@ public final class GasScreens {
                 renderTooltip(
                         poseStack,
                         Component.translatable(
-                                "gui.ecc2.gas.tank",
-                                Component.translatable("gui.ecc2.gas.biogas"),
+                                "gui.ecera.gas.tank",
+                                Component.translatable("gui.ecera.gas.biogas"),
                                 menu.biogasMb(),
                                 OrganicFermenterEngine.BIOGAS_TANK_CAPACITY_MB),
                         mouseX,

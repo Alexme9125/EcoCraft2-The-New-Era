@@ -35,10 +35,10 @@ public final class SolarPanelScreen extends AbstractContainerScreen<SolarPanelMe
         if (isHovering(24, 32, 14, 14, mouseX, mouseY)) {
             String key =
                     switch (menu.skyCondition()) {
-                        case DAY -> "gui.ecc2.solar.day";
-                        case NIGHT -> "gui.ecc2.solar.night";
-                        case RAIN -> "gui.ecc2.solar.rain";
-                        case NONE -> "gui.ecc2.solar.blocked";
+                        case DAY -> "gui.ecera.solar.day";
+                        case NIGHT -> "gui.ecera.solar.night";
+                        case RAIN -> "gui.ecera.solar.rain";
+                        case NONE -> "gui.ecera.solar.blocked";
                     };
             renderTooltip(poseStack, Component.translatable(key), mouseX, mouseY);
         }
@@ -78,19 +78,19 @@ public final class SolarPanelScreen extends AbstractContainerScreen<SolarPanelMe
         int x = (int) (76 / 0.75f);
         font.draw(
                 poseStack,
-                Component.translatable("gui.ecc2.solar.storage", menu.storedEu(), menu.maxStorageEu()),
+                Component.translatable("gui.ecera.solar.storage", menu.storedEu(), menu.maxStorageEu()),
                 x,
                 (int) (24 / 0.75f),
                 0x8DF0FF);
         font.draw(
                 poseStack,
-                Component.translatable("gui.ecc2.solar.generating", menu.generatingEu()),
+                Component.translatable("gui.ecera.solar.generating", menu.generatingEu()),
                 x,
                 (int) (35 / 0.75f),
                 0x7FFFB0);
         font.draw(
                 poseStack,
-                Component.translatable("gui.ecc2.solar.max_output", menu.maxOutputEu(), menu.tier()),
+                Component.translatable("gui.ecera.solar.max_output", menu.maxOutputEu(), menu.tier()),
                 x,
                 (int) (46 / 0.75f),
                 0xD0E4F0);

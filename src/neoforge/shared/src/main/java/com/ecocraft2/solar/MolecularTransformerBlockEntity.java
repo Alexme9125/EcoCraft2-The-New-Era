@@ -397,7 +397,7 @@ public final class MolecularTransformerBlockEntity extends Ecc2SaveBlockEntity
 
     @Override
     public Component getDisplayName() {
-        return Component.translatable("container.ecc2.molecular_transformer");
+        return Component.translatable("container.ecera.molecular_transformer");
     }
 
     @Override

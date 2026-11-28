@@ -1,6 +1,6 @@
 {
   "solar_panel": {
-    "texture": "ecc2:textures/gui/solar_panel.png",
+    "texture": "ecera:textures/gui/solar_panel.png",
     "panel": [
       0,
       0,
@@ -125,7 +125,7 @@
     }
   },
   "quantum_generator": {
-    "texture": "ecc2:textures/gui/quantum_generator.png",
+    "texture": "ecera:textures/gui/quantum_generator.png",
     "panel": [
       0,
       0,
@@ -270,7 +270,7 @@
     }
   },
   "molecular_transformer": {
-    "texture": "ecc2:textures/gui/molecular_transformer.png",
+    "texture": "ecera:textures/gui/molecular_transformer.png",
     "panel": [
       0,
       0,
@@ -339,7 +339,7 @@
     }
   },
   "kinetic_generator": {
-    "texture": "ecc2:textures/gui/kinetic_generator.png",
+    "texture": "ecera:textures/gui/kinetic_generator.png",
     "panel": [
       0,
       0,
@@ -438,7 +438,7 @@
     }
   },
   "giant_machine": {
-    "texture": "ecc2:textures/gui/giant_machine.png",
+    "texture": "ecera:textures/gui/giant_machine.png",
     "panel": [
       0,
       0,
@@ -1016,7 +1016,7 @@
     }
   },
   "water_gas_machine": {
-    "texture": "ecc2:textures/gui/water_gas_machine.png",
+    "texture": "ecera:textures/gui/water_gas_machine.png",
     "panel": [
       0,
       0,
@@ -1239,7 +1239,7 @@
     }
   },
   "gas_furnace": {
-    "texture": "ecc2:textures/gui/gas_furnace.png",
+    "texture": "ecera:textures/gui/gas_furnace.png",
     "panel": [
       0,
       0,
@@ -1406,7 +1406,7 @@
     }
   },
   "gas_generator": {
-    "texture": "ecc2:textures/gui/gas_generator.png",
+    "texture": "ecera:textures/gui/gas_generator.png",
     "panel": [
       0,
       0,
@@ -1513,7 +1513,7 @@
     }
   },
   "culture_incubator": {
-    "texture": "ecc2:textures/gui/culture_incubator.png",
+    "texture": "ecera:textures/gui/culture_incubator.png",
     "panel": [
       0,
       0,
@@ -1718,7 +1718,7 @@
     }
   },
   "organic_fermenter": {
-    "texture": "ecc2:textures/gui/organic_fermenter.png",
+    "texture": "ecera:textures/gui/organic_fermenter.png",
     "panel": [
       0,
       0,
@@ -1936,14 +1936,14 @@
   },
   "icons": {
     "port_access_gear": {
-      "texture": "ecc2:textures/gui/icons/port_access_gear.png",
+      "texture": "ecera:textures/gui/icons/port_access_gear.png",
       "size": [
         16,
         16
       ]
     },
     "auto_spread": {
-      "texture": "ecc2:textures/gui/icons/auto_spread.png",
+      "texture": "ecera:textures/gui/icons/auto_spread.png",
       "size": [
         16,
         16

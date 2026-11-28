@@ -119,7 +119,7 @@ public final class GiantRecipeAdapter {
         if (isExcludedFromRecycling(input)) {
             return null;
         }
-        Item scrap = Ecc2BridgePlatform.findItem("ic2:scrap");
+        Item scrap = Ecc2BridgePlatform.findItem("mhera:scrap");
         if (scrap == null) {
             return null;
         }
@@ -171,7 +171,7 @@ public final class GiantRecipeAdapter {
                 }
             } catch (Throwable failure) {
                 LOG.debug(
-                        "Falling back to IC2NE workshop-recipes.tsv for ore_washer recipes: {}",
+                        "Falling back to Machinera workshop-recipes.tsv for ore_washer recipes: {}",
                         failure.getMessage());
             }
         }
@@ -328,7 +328,7 @@ public final class GiantRecipeAdapter {
                             "excludedFromRecycling",
                             MethodType.methodType(boolean.class, ItemStack.class));
         } catch (Throwable failure) {
-            LOG.error("Failed to bind IC2NE WorkshopRecipes/WorkshopPlatform handles", failure);
+            LOG.error("Failed to bind Machinera WorkshopRecipes/WorkshopPlatform handles", failure);
         }
     }
 }

@@ -249,7 +249,7 @@ public final class WaterGasMachineBlockEntity extends BlockEntity
             return false;
         }
         String id = Ecc2BridgePlatform.itemId(stack);
-        return "ic2:coal_dust".equals(id) || stack.is(COAL_DUST_TAG);
+        return "mhera:coal_dust".equals(id) || stack.is(COAL_DUST_TAG);
     }
 
     /** Returns {@code true} if {@code stack} is a Water Gas Machine PV Power Upgrade. */
@@ -528,7 +528,7 @@ public final class WaterGasMachineBlockEntity extends BlockEntity
 
     @Override
     public Component getDisplayName() {
-        return Component.translatable("container.ecc2.water_gas_machine");
+        return Component.translatable("container.ecera.water_gas_machine");
     }
 
     @Override

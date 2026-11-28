@@ -108,7 +108,7 @@ public final class ArmorEffectsMixin {
         try {
             return ecc2$suitLookup.invoke(stack);
         } catch (Throwable failure) {
-            ECC2_LOG.error("Failed to resolve IC2NE ArmorEffects.suit", failure);
+            ECC2_LOG.error("Failed to resolve Machinera ArmorEffects.suit", failure);
             return null;
         }
     }

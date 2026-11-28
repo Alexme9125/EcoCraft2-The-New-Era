@@ -3,7 +3,7 @@
   "minVersion": "0.8",
   "package": "com.ecocraft2.mixin",
   "compatibilityLevel": "JAVA_17",
-  "refmap": "ecc2.refmap.json",
+  "refmap": "ecera.refmap.json",
   "mixins": [
     "ArmorEffectsMixin",
     "CableBlockMixin",

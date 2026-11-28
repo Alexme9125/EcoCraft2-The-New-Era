@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Clean-room repository audit and built JAR contract verifier for EcoCraft 2."""
+"""Clean-room repository audit and built JAR contract verifier for Ecolera (ecera)."""
 
 from __future__ import annotations
 
@@ -31,6 +31,8 @@ FORBIDDEN_TRACKED_PATTERNS = (
     "asp-research",
     "Advanced Solar Panels",
     ".ic2-libs",
+    ".mce-libs",
+    ".mhera-libs",
     "raw-extract",
 )
 
@@ -109,7 +111,7 @@ def audit_jar(jar_path: Path, target: str) -> list[str]:
                     errors.append(f"Leaked third-party/host class in {jar_path.name}: {name}")
             if name.endswith(".class"):
                 class_count += 1
-            elif name.startswith("assets/ecc2/") and name.endswith(".png"):
+            elif name.startswith("assets/ecera/") and name.endswith(".png"):
                 png_count += 1
             elif name.endswith(".json") or name.endswith(".mcmeta"):
                 json_count += 1
@@ -122,10 +124,10 @@ def audit_jar(jar_path: Path, target: str) -> list[str]:
             if legal not in names:
                 errors.append(f"Missing legal file {legal} in {jar_path.name}")
 
-        if "ecc2.mixins.json" not in names:
-            errors.append(f"Missing ecc2.mixins.json in {jar_path.name}")
+        if "ecera.mixins.json" not in names:
+            errors.append(f"Missing ecera.mixins.json in {jar_path.name}")
         else:
-            mixin_cfg = json.loads(zf.read("ecc2.mixins.json").decode("utf-8"))
+            mixin_cfg = json.loads(zf.read("ecera.mixins.json").decode("utf-8"))
             pkg = mixin_cfg.get("package", "").replace(".", "/")
             for m in mixin_cfg.get("mixins", []) + mixin_cfg.get("client", []):
                 cls = f"{pkg}/{m.replace('.', '/')}.class"
@@ -139,17 +141,17 @@ def audit_jar(jar_path: Path, target: str) -> list[str]:
             meta_text = zf.read(meta_path).decode("utf-8")
             if "${" in meta_text:
                 errors.append(f"Unexpanded template placeholder in {meta_path} of {jar_path.name}")
-            if 'modId="ecc2"' not in meta_text and 'modId = "ecc2"' not in meta_text:
-                errors.append(f"Missing ecc2 modId in {meta_path}")
+            if 'modId="ecera"' not in meta_text and 'modId = "ecera"' not in meta_text:
+                errors.append(f"Missing ecera modId in {meta_path}")
 
         if is_forge:
-            if "ecc2.refmap.json" not in names:
-                errors.append(f"Missing ecc2.refmap.json in {jar_path.name}")
+            if "ecera.refmap.json" not in names:
+                errors.append(f"Missing ecera.refmap.json in {jar_path.name}")
             manifest = zf.read("META-INF/MANIFEST.MF").decode("utf-8") if "META-INF/MANIFEST.MF" in names else ""
-            if "MixinConfigs: ecc2.mixins.json" not in manifest:
+            if "MixinConfigs: ecera.mixins.json" not in manifest:
                 errors.append(f"Missing MixinConfigs manifest entry in {jar_path.name}")
             for name in sorted(names):
-                if name.startswith(("data/c/", "data/neoforge/", "data/ecc2/recipe/", "data/ecc2/loot_table/")):
+                if name.startswith(("data/c/", "data/neoforge/", "data/ecera/recipe/", "data/ecera/loot_table/")):
                     errors.append(f"1.21+ data path leaked into Forge 1.19.2 JAR {jar_path.name}: {name}")
                 if re.match(r"^data/[^/]+/tags/(item|block|fluid)/", name):
                     errors.append(f"Singular tag directory leaked into Forge 1.19.2 JAR {jar_path.name}: {name}")
@@ -160,13 +162,13 @@ def audit_jar(jar_path: Path, target: str) -> list[str]:
                 "data/forge/tags/items/armors.json",
                 "data/forge/tags/items/buckets.json",
                 "data/forge/tags/blocks/relocation_not_supported.json",
-                "data/ecc2/tags/items/culture_nutrients.json",
+                "data/ecera/tags/items/culture_nutrients.json",
             ):
                 if req not in names:
                     errors.append(f"Missing required Forge 1.19.2 tag {req} in {jar_path.name}")
         else:
             for name in sorted(names):
-                if name.startswith(("data/forge/", "data/ecc2/recipes/", "data/ecc2/loot_tables/")):
+                if name.startswith(("data/forge/", "data/ecera/recipes/", "data/ecera/loot_tables/")):
                     errors.append(f"Forge 1.19.2 data path leaked into NeoForge JAR {jar_path.name}: {name}")
                 if re.match(r"^data/[^/]+/tags/(items|blocks|fluids)/", name):
                     errors.append(f"Plural tag directory leaked into NeoForge JAR {jar_path.name}: {name}")
@@ -177,7 +179,7 @@ def audit_jar(jar_path: Path, target: str) -> list[str]:
                 "data/c/tags/block/relocation_not_supported.json",
                 "data/c/tags/fluid/gaseous.json",
                 "data/minecraft/tags/item/head_armor.json",
-                "data/ecc2/tags/item/culture_nutrients.json",
+                "data/ecera/tags/item/culture_nutrients.json",
             ):
                 if req not in names:
                     errors.append(f"Missing required NeoForge tag {req} in {jar_path.name}")
