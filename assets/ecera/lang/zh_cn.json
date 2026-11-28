@@ -1,6 +1,6 @@
 {
-  "itemGroup.ecera.main": "绿能纪元",
-  "itemGroup.ecera": "绿能纪元",
+  "itemGroup.ecera.main": "环保纪元",
+  "itemGroup.ecera": "环保纪元",
 
   "block.ecera.advanced_solar_panel": "高级太阳能发电机",
   "block.ecera.hybrid_solar_panel": "混合太阳能发电机",
@@ -204,8 +204,8 @@
   "tooltip.ecera.organic_fermenter": "以 50 mB 培养液发酵各类食物制取沼气（每点饱食度产出 30 mB · 低压）",
   "tooltip.ecera.cell.contents": "内含 1,000 mB %s",
 
-  "config.jade.plugin_ecera.machine_info": "绿能纪元 机器信息",
-  "config.waila.plugin_ecera": "绿能纪元",
+  "config.jade.plugin_ecera.machine_info": "环保纪元 机器信息",
+  "config.waila.plugin_ecera": "环保纪元",
   "jade.ecera.eu": "电量：%s / %s EU",
   "jade.ecera.generating": "发电：%s EU/t",
   "jade.ecera.kinetic_ku": "动能输出：%s KU/t",
