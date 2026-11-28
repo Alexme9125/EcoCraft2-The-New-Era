@@ -11,7 +11,7 @@ permissions:
 
 env:
   MHERA_VERSION: "2.0.0"
-  MHERA_RELEASE_URL: "https://github.com/spectrum527/IndustrialCraft2-The-New-Era/releases/download/v2.0.0"
+  MHERA_RELEASE_URL: "https://github.com/spectrum527/Machinera/releases/download/v2.0.0"
 
 jobs:
   assets-and-cleanroom:
