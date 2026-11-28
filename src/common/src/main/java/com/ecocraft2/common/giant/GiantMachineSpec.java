@@ -12,7 +12,7 @@ import java.util.Objects;
  *
  * @param id                     unique lowercase type identifier (e.g. {@code "macerator"})
  * @param unitBlockPath          block registry path of the unit block (e.g. {@code "giant_macerator_unit"})
- * @param sourceMachineId        corresponding single-block IC2 machine ID (e.g. {@code "ic2:macerator"})
+ * @param sourceMachineId        corresponding single-block IC2 machine ID (e.g. {@code "mhera:macerator"})
  * @param baseOperationTicks     base ticks for one operation before overclockers ({@code > 0})
  * @param baseEuPerTick          base EU/t per active operation before overclockers ({@code > 0})
  * @param baseTier               base IC2 input voltage tier (default 3 = HV = 512 EU/t, {@code >= 1})

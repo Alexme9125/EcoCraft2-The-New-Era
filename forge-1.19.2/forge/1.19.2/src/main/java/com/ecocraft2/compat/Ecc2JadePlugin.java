@@ -118,7 +118,7 @@ public final class Ecc2JadePlugin implements IWailaPlugin {
                     tag.putInt("GiantDraw", (int) Math.round(core.engine().lastTickEuConsumed()));
                     tag.putInt("PortPacked", core.engine().portPermissions().packed());
                     if (core.kind().spec().usesWater()) {
-                        tag.putString("F1Key", "gui.ecc2.gas.water");
+                        tag.putString("F1Key", "gui.ecera.gas.water");
                         tag.putInt("F1Amt", core.engine().waterMb());
                         tag.putInt("F1Cap", core.configuredWaterCapacity());
                     }
@@ -128,10 +128,10 @@ public final class Ecc2JadePlugin implements IWailaPlugin {
                 tag.putLong("EuMax", (long) Math.floor(wg.engine().energyCapacity()));
                 tag.putBoolean("Solar", wg.engine().isSolarActive());
                 tag.putInt("SolarDeci", (int) Math.round(wg.engine().effectiveSolarEuPerTick() * 10.0));
-                tag.putString("F1Key", "gui.ecc2.gas.water");
+                tag.putString("F1Key", "gui.ecera.gas.water");
                 tag.putInt("F1Amt", wg.engine().waterMb());
                 tag.putInt("F1Cap", WaterGasEngine.WATER_TANK_CAPACITY_MB);
-                tag.putString("F2Key", "gui.ecc2.gas.water_gas");
+                tag.putString("F2Key", "gui.ecera.gas.water_gas");
                 tag.putInt("F2Amt", wg.engine().waterGasMb());
                 tag.putInt("F2Cap", WaterGasEngine.GAS_TANK_CAPACITY_MB);
             } else if (be instanceof GasFurnaceBlockEntity gf) {
@@ -148,19 +148,19 @@ public final class Ecc2JadePlugin implements IWailaPlugin {
             } else if (be instanceof CultureIncubatorBlockEntity ci) {
                 tag.putLong("Eu", (long) Math.floor(ci.engine().storedEu()));
                 tag.putLong("EuMax", (long) Math.floor(ci.engine().energyCapacity()));
-                tag.putString("F1Key", "gui.ecc2.gas.water");
+                tag.putString("F1Key", "gui.ecera.gas.water");
                 tag.putInt("F1Amt", ci.engine().waterMb());
                 tag.putInt("F1Cap", CultureIncubatorEngine.WATER_TANK_CAPACITY_MB);
-                tag.putString("F2Key", "gui.ecc2.gas.culture_medium");
+                tag.putString("F2Key", "gui.ecera.gas.culture_medium");
                 tag.putInt("F2Amt", ci.engine().cultureMb());
                 tag.putInt("F2Cap", CultureIncubatorEngine.CULTURE_TANK_CAPACITY_MB);
             } else if (be instanceof OrganicFermenterBlockEntity of) {
                 tag.putLong("Eu", (long) Math.floor(of.engine().storedEu()));
                 tag.putLong("EuMax", (long) Math.floor(of.engine().energyCapacity()));
-                tag.putString("F1Key", "gui.ecc2.gas.culture_medium");
+                tag.putString("F1Key", "gui.ecera.gas.culture_medium");
                 tag.putInt("F1Amt", of.engine().cultureMb());
                 tag.putInt("F1Cap", OrganicFermenterEngine.CULTURE_TANK_CAPACITY_MB);
-                tag.putString("F2Key", "gui.ecc2.gas.biogas");
+                tag.putString("F2Key", "gui.ecera.gas.biogas");
                 tag.putInt("F2Amt", of.engine().biogasMb());
                 tag.putInt("F2Cap", OrganicFermenterEngine.BIOGAS_TANK_CAPACITY_MB);
             }
@@ -168,12 +168,12 @@ public final class Ecc2JadePlugin implements IWailaPlugin {
 
         private static String fuelKey(GasFuelSpec fuel) {
             if (fuel == null) {
-                return "gui.ecc2.gas.empty";
+                return "gui.ecera.gas.empty";
             }
             return switch (fuel) {
-                case WATER_GAS -> "gui.ecc2.gas.water_gas";
-                case NATURAL_GAS -> "gui.ecc2.gas.natural_gas";
-                case BIOGAS -> "gui.ecc2.gas.biogas";
+                case WATER_GAS -> "gui.ecera.gas.water_gas";
+                case NATURAL_GAS -> "gui.ecera.gas.natural_gas";
+                case BIOGAS -> "gui.ecera.gas.biogas";
             };
         }
     }
@@ -189,7 +189,7 @@ public final class Ecc2JadePlugin implements IWailaPlugin {
             CompoundTag tag = accessor.getServerData();
             if (tag.contains("EuMax")) {
                 tooltip.add(
-                        Component.translatable("jade.ecc2.eu", tag.getLong("Eu"), tag.getLong("EuMax")));
+                        Component.translatable("jade.ecera.eu", tag.getLong("Eu"), tag.getLong("EuMax")));
             }
             if (tag.contains("Solar")) {
                 boolean solarActive = tag.getBoolean("Solar");
@@ -200,29 +200,29 @@ public final class Ecc2JadePlugin implements IWailaPlugin {
                 tooltip.add(
                         (solarActive
                                         ? Component.translatable(
-                                                "gui.ecc2.gas.solar_active",
+                                                "gui.ecera.gas.solar_active",
                                                 WaterGasEngine.formatSolarRateDeci(solarDeci))
-                                        : Component.translatable("gui.ecc2.gas.solar_inactive"))
+                                        : Component.translatable("gui.ecera.gas.solar_inactive"))
                                 .withStyle(
                                         solarActive ? ChatFormatting.YELLOW : ChatFormatting.GRAY));
             }
             if (tag.contains("Gen")) {
-                tooltip.add(Component.translatable("jade.ecc2.generating", tag.getInt("Gen")));
+                tooltip.add(Component.translatable("jade.ecera.generating", tag.getInt("Gen")));
             }
             if (tag.contains("Ku")) {
-                tooltip.add(Component.translatable("jade.ecc2.kinetic_ku", tag.getInt("Ku")));
+                tooltip.add(Component.translatable("jade.ecera.kinetic_ku", tag.getInt("Ku")));
             }
             if (tag.contains("RotorPct")) {
                 tooltip.add(
                         Component.translatable(
-                                "jade.ecc2.rotor_life",
+                                "jade.ecera.rotor_life",
                                 String.format(Locale.ROOT, "%.1f", tag.getDouble("RotorPct")),
                                 String.format(Locale.ROOT, "%.1f", tag.getDouble("RotorHrs"))));
             }
             if (tag.contains("GiantOps")) {
                 tooltip.add(
                         Component.translatable(
-                                "jade.ecc2.giant_lanes",
+                                "jade.ecera.giant_lanes",
                                 tag.getInt("GiantOps"),
                                 tag.getInt("GiantDraw")));
                 if (accessor.getBlockEntity() instanceof GiantMachineBlockEntity unit) {
@@ -235,19 +235,19 @@ public final class Ecc2JadePlugin implements IWailaPlugin {
                                                         .get(port);
                                         tooltip.add(
                                                 Component.translatable(
-                                                        "jade.ecc2.giant_port",
+                                                        "jade.ecera.giant_port",
                                                         Ecc2BridgePlatform.portName(port),
                                                         Ecc2BridgePlatform.modeName(pm)));
                                     });
                 }
             }
             if (tag.contains("Prog")) {
-                tooltip.add(Component.translatable("jade.ecc2.progress", tag.getInt("Prog")));
+                tooltip.add(Component.translatable("jade.ecera.progress", tag.getInt("Prog")));
             }
             if (tag.contains("F1Key")) {
                 tooltip.add(
                         Component.translatable(
-                                "jade.ecc2.fluid",
+                                "jade.ecera.fluid",
                                 Component.translatable(tag.getString("F1Key")),
                                 tag.getInt("F1Amt"),
                                 tag.getInt("F1Cap")));
@@ -255,7 +255,7 @@ public final class Ecc2JadePlugin implements IWailaPlugin {
             if (tag.contains("F2Key")) {
                 tooltip.add(
                         Component.translatable(
-                                "jade.ecc2.fluid",
+                                "jade.ecera.fluid",
                                 Component.translatable(tag.getString("F2Key")),
                                 tag.getInt("F2Amt"),
                                 tag.getInt("F2Cap")));

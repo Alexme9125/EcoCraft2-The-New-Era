@@ -488,7 +488,7 @@ public final class CultureIncubatorBlockEntity extends BlockEntity
 
     @Override
     public Component getDisplayName() {
-        return Component.translatable("container.ecc2.culture_incubator");
+        return Component.translatable("container.ecera.culture_incubator");
     }
 
     @Override

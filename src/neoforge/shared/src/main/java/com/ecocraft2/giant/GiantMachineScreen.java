@@ -61,49 +61,49 @@ public final class GiantMachineScreen extends Ecc2ScreenBase<GiantMachineMenu> {
                     new PortTile(
                             GiantCornerPort.FRONT_LEFT,
                             "FL",
-                            "gui.ecc2.port.front_left",
+                            "gui.ecera.port.front_left",
                             MODAL_X + 54,
                             MODAL_Y + 34),
                     new PortTile(
                             GiantCornerPort.FRONT_RIGHT,
                             "FR",
-                            "gui.ecc2.port.front_right",
+                            "gui.ecera.port.front_right",
                             MODAL_X + 108,
                             MODAL_Y + 34),
                     new PortTile(
                             GiantCornerPort.LEFT_FRONT,
                             "LF",
-                            "gui.ecc2.port.left_front",
+                            "gui.ecera.port.left_front",
                             MODAL_X + 18,
                             MODAL_Y + 62),
                     new PortTile(
                             GiantCornerPort.LEFT_BACK,
                             "LB",
-                            "gui.ecc2.port.left_back",
+                            "gui.ecera.port.left_back",
                             MODAL_X + 18,
                             MODAL_Y + 90),
                     new PortTile(
                             GiantCornerPort.RIGHT_FRONT,
                             "RF",
-                            "gui.ecc2.port.right_front",
+                            "gui.ecera.port.right_front",
                             MODAL_X + 144,
                             MODAL_Y + 62),
                     new PortTile(
                             GiantCornerPort.RIGHT_BACK,
                             "RB",
-                            "gui.ecc2.port.right_back",
+                            "gui.ecera.port.right_back",
                             MODAL_X + 144,
                             MODAL_Y + 90),
                     new PortTile(
                             GiantCornerPort.BACK_LEFT,
                             "BL",
-                            "gui.ecc2.port.back_left",
+                            "gui.ecera.port.back_left",
                             MODAL_X + 54,
                             MODAL_Y + 118),
                     new PortTile(
                             GiantCornerPort.BACK_RIGHT,
                             "BR",
-                            "gui.ecc2.port.back_right",
+                            "gui.ecera.port.back_right",
                             MODAL_X + 108,
                             MODAL_Y + 118));
 
@@ -327,7 +327,7 @@ public final class GiantMachineScreen extends Ecc2ScreenBase<GiantMachineMenu> {
         c.fill(MODAL_X, MODAL_Y, MODAL_X + MODAL_W, MODAL_Y + 18, 0xFF233446);
         c.fill(MODAL_X, MODAL_Y + 18, MODAL_X + MODAL_W, MODAL_Y + 19, 0xFF39C5E8);
         c.drawText(
-                Component.translatable("gui.ecc2.giant.port_access_title"),
+                Component.translatable("gui.ecera.giant.port_access_title"),
                 MODAL_X + 6,
                 MODAL_Y + 5,
                 0xFFEAF6FF,
@@ -405,7 +405,7 @@ public final class GiantMachineScreen extends Ecc2ScreenBase<GiantMachineMenu> {
                             List.of(
                                     Component.translatable(tile.langKey()),
                                     Component.translatable(modeLangKey(mode)),
-                                    Component.translatable("gui.ecc2.giant.port_access_hint")),
+                                    Component.translatable("gui.ecera.giant.port_access_hint")),
                             screenX,
                             screenY);
                     return;
@@ -418,8 +418,8 @@ public final class GiantMachineScreen extends Ecc2ScreenBase<GiantMachineMenu> {
         if (inside(relMouseX, relMouseY, GEAR_X, GEAR_Y, GEAR_W, GEAR_H)) {
             c.renderTooltip(
                     List.of(
-                            Component.translatable("gui.ecc2.giant.port_access_button"),
-                            Component.translatable("gui.ecc2.giant.port_access_hint")),
+                            Component.translatable("gui.ecera.giant.port_access_button"),
+                            Component.translatable("gui.ecera.giant.port_access_hint")),
                     screenX,
                     screenY);
             return;
@@ -429,12 +429,12 @@ public final class GiantMachineScreen extends Ecc2ScreenBase<GiantMachineMenu> {
         if (inside(relMouseX, relMouseY, SPREAD_X, SPREAD_Y, SPREAD_W, SPREAD_H)) {
             c.renderTooltip(
                     List.of(
-                            Component.translatable("gui.ecc2.giant.auto_spread"),
+                            Component.translatable("gui.ecera.giant.auto_spread"),
                             Component.translatable(
                                     menu.isAutoSpreadEnabled()
-                                            ? "gui.ecc2.giant.auto_spread.on"
-                                            : "gui.ecc2.giant.auto_spread.off"),
-                            Component.translatable("gui.ecc2.giant.auto_spread.hint")),
+                                            ? "gui.ecera.giant.auto_spread.on"
+                                            : "gui.ecera.giant.auto_spread.off"),
+                            Component.translatable("gui.ecera.giant.auto_spread.hint")),
                     screenX,
                     screenY);
             return;
@@ -445,15 +445,15 @@ public final class GiantMachineScreen extends Ecc2ScreenBase<GiantMachineMenu> {
             c.renderTooltip(
                     List.of(
                             Component.translatable(
-                                    "gui.ecc2.giant.eu_stored",
+                                    "gui.ecera.giant.eu_stored",
                                     formatNumber(menu.storedEu()),
                                     formatNumber(menu.energyCapacity())),
                             Component.translatable(
-                                    "gui.ecc2.giant.tier",
+                                    "gui.ecera.giant.tier",
                                     menu.inputTier(),
                                     formatNumber(menu.maxInputVoltage())),
                             Component.translatable(
-                                    "gui.ecc2.giant.eu_draw",
+                                    "gui.ecera.giant.eu_draw",
                                     String.format(
                                             java.util.Locale.ROOT, "%.1f", menu.euDrawPerTick()))),
                     screenX,
@@ -466,7 +466,7 @@ public final class GiantMachineScreen extends Ecc2ScreenBase<GiantMachineMenu> {
             c.renderTooltip(
                     List.of(
                             Component.translatable(
-                                    "gui.ecc2.giant.water",
+                                    "gui.ecera.giant.water",
                                     formatNumber(menu.waterMb()),
                                     formatNumber(menu.waterCapacityMb()))),
                     screenX,
@@ -479,7 +479,7 @@ public final class GiantMachineScreen extends Ecc2ScreenBase<GiantMachineMenu> {
             c.renderTooltip(
                     List.of(
                             Component.translatable(
-                                    "gui.ecc2.giant.active_ops", menu.activeTotalBatch())),
+                                    "gui.ecera.giant.active_ops", menu.activeTotalBatch())),
                     screenX,
                     screenY);
         }
@@ -541,10 +541,10 @@ public final class GiantMachineScreen extends Ecc2ScreenBase<GiantMachineMenu> {
 
     private static String modeLangKey(PortAccessMode mode) {
         return switch (mode) {
-            case FULL -> "gui.ecc2.port.mode.full";
-            case INPUT -> "gui.ecc2.port.mode.input";
-            case OUTPUT -> "gui.ecc2.port.mode.output";
-            case BLOCKED -> "gui.ecc2.port.mode.blocked";
+            case FULL -> "gui.ecera.port.mode.full";
+            case INPUT -> "gui.ecera.port.mode.input";
+            case OUTPUT -> "gui.ecera.port.mode.output";
+            case BLOCKED -> "gui.ecera.port.mode.blocked";
         };
     }
 

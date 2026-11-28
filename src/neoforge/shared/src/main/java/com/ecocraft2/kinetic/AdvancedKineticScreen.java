@@ -85,7 +85,7 @@ public final class AdvancedKineticScreen extends Ecc2ScreenBase<AdvancedKineticM
                     canvas.text(
                             Component.literal(
                                     canvas.trimWidth(
-                                            Component.translatable("gui.ecc2.kinetic.no_rotor")
+                                            Component.translatable("gui.ecera.kinetic.no_rotor")
                                                     .getString(),
                                             maxW)),
                             textX,
@@ -96,7 +96,7 @@ public final class AdvancedKineticScreen extends Ecc2ScreenBase<AdvancedKineticM
                     canvas.text(
                             Component.literal(
                                     canvas.trimWidth(
-                                            Component.translatable("gui.ecc2.kinetic.obstructed")
+                                            Component.translatable("gui.ecera.kinetic.obstructed")
                                                     .getString(),
                                             maxW)),
                             textX,
@@ -107,7 +107,7 @@ public final class AdvancedKineticScreen extends Ecc2ScreenBase<AdvancedKineticM
                     canvas.text(
                             Component.literal(
                                     canvas.trimWidth(
-                                            Component.translatable("gui.ecc2.kinetic.no_water")
+                                            Component.translatable("gui.ecera.kinetic.no_water")
                                                     .getString(),
                                             maxW)),
                             textX,
@@ -119,7 +119,7 @@ public final class AdvancedKineticScreen extends Ecc2ScreenBase<AdvancedKineticM
                         Component.literal(
                                 canvas.trimWidth(
                                         Component.translatable(
-                                                        "gui.ecc2.kinetic.output",
+                                                        "gui.ecera.kinetic.output",
                                                         Ecc2DataSync.formatInt(menu.currentKu()))
                                                 .getString(),
                                         maxW)),
@@ -130,7 +130,7 @@ public final class AdvancedKineticScreen extends Ecc2ScreenBase<AdvancedKineticM
                 canvas.text(
                         Component.literal(
                                 canvas.trimWidth(
-                                        Component.translatable("gui.ecc2.kinetic.overwind")
+                                        Component.translatable("gui.ecera.kinetic.overwind")
                                                 .getString(),
                                         maxW)),
                         textX,
@@ -143,7 +143,7 @@ public final class AdvancedKineticScreen extends Ecc2ScreenBase<AdvancedKineticM
                         Component.literal(
                                 canvas.trimWidth(
                                         Component.translatable(
-                                                        "gui.ecc2.kinetic.output",
+                                                        "gui.ecera.kinetic.output",
                                                         Ecc2DataSync.formatInt(menu.currentKu()))
                                                 .getString(),
                                         maxW)),
@@ -152,7 +152,7 @@ public final class AdvancedKineticScreen extends Ecc2ScreenBase<AdvancedKineticM
                         0xFF72F2A8,
                         false);
                 String envKey =
-                        menu.isWaterType() ? "gui.ecc2.kinetic.water" : "gui.ecc2.kinetic.wind";
+                        menu.isWaterType() ? "gui.ecera.kinetic.water" : "gui.ecera.kinetic.wind";
                 canvas.text(
                         Component.literal(
                                 canvas.trimWidth(
@@ -188,7 +188,7 @@ public final class AdvancedKineticScreen extends Ecc2ScreenBase<AdvancedKineticM
             double hours = wearMult > 0.0 ? (menu.rotorRemaining() / wearMult) / 3600.0 : 0.0;
             return List.of(
                     Component.translatable(
-                            "gui.ecc2.kinetic.rotor_life",
+                            "gui.ecera.kinetic.rotor_life",
                             String.format(Locale.ROOT, "%.1f", pct),
                             String.format(Locale.ROOT, "%.1f", hours)),
                     Component.literal(
@@ -202,10 +202,10 @@ public final class AdvancedKineticScreen extends Ecc2ScreenBase<AdvancedKineticM
                 && relMouseY < BADGE_Y + BADGE_H) {
             String key =
                     switch (menu.kineticTier()) {
-                        case DURABLE -> "tooltip.ecc2.kinetic.durable";
-                        case OVERCLOCKED -> "tooltip.ecc2.kinetic.overclocked";
-                        case PRECISION -> "tooltip.ecc2.kinetic.precision";
-                        default -> "tooltip.ecc2.kinetic.durable";
+                        case DURABLE -> "tooltip.ecera.kinetic.durable";
+                        case OVERCLOCKED -> "tooltip.ecera.kinetic.overclocked";
+                        case PRECISION -> "tooltip.ecera.kinetic.precision";
+                        default -> "tooltip.ecera.kinetic.durable";
                     };
             return List.of(Component.translatable(key));
         }

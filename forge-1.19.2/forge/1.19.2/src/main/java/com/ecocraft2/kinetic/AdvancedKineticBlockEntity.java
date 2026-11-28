@@ -518,7 +518,7 @@ public final class AdvancedKineticBlockEntity extends BlockEntity
                     default -> "durable";
                 };
         return Component.translatable(
-                "container.ecc2." + prefix + "_" + (water ? "water" : "wind") + "_kinetic_generator");
+                "container.ecera." + prefix + "_" + (water ? "water" : "wind") + "_kinetic_generator");
     }
 
     @Override

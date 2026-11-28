@@ -191,7 +191,7 @@ public final class GiantMachineBlock extends Block
                     && state.getValue(FORMED)
                     && unit.tryRecoverOrphan(serverLevel, state)) {
                 player.displayClientMessage(
-                        Component.translatable("gui.ecc2.giant.unformed")
+                        Component.translatable("gui.ecera.giant.unformed")
                                 .withStyle(ChatFormatting.YELLOW),
                         true);
                 return InteractionResult.CONSUME;
@@ -206,7 +206,7 @@ public final class GiantMachineBlock extends Block
                 return InteractionResult.CONSUME;
             }
             player.displayClientMessage(
-                    Component.translatable("gui.ecc2.giant.unformed")
+                    Component.translatable("gui.ecera.giant.unformed")
                             .withStyle(ChatFormatting.YELLOW),
                     true);
         }
@@ -220,9 +220,9 @@ public final class GiantMachineBlock extends Block
             List<Component> tooltip,
             TooltipFlag flag) {
         tooltip.add(
-                Component.translatable("tooltip.ecc2.giant_unit").withStyle(ChatFormatting.AQUA));
+                Component.translatable("tooltip.ecera.giant_unit").withStyle(ChatFormatting.AQUA));
         tooltip.add(
-                Component.translatable("tooltip.ecc2.giant_unit.ports")
+                Component.translatable("tooltip.ecera.giant_unit.ports")
                         .withStyle(ChatFormatting.GRAY));
     }
 }

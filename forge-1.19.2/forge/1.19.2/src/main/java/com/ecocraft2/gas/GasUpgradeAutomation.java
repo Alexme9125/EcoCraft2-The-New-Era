@@ -63,9 +63,9 @@ public final class GasUpgradeAutomation {
             }
             String id = Ecc2BridgePlatform.itemId(upgrade);
             boolean isEject =
-                    "ic2:ejector_upgrade".equals(id) || "ic2:advanced_ejector_upgrade".equals(id);
+                    "mhera:ejector_upgrade".equals(id) || "mhera:advanced_ejector_upgrade".equals(id);
             boolean isPull =
-                    "ic2:pulling_upgrade".equals(id) || "ic2:advanced_pulling_upgrade".equals(id);
+                    "mhera:pulling_upgrade".equals(id) || "mhera:advanced_pulling_upgrade".equals(id);
             if (!isEject && !isPull) {
                 continue;
             }
@@ -123,8 +123,8 @@ public final class GasUpgradeAutomation {
                 continue;
             }
             String id = Ecc2BridgePlatform.itemId(upgrade);
-            boolean isFluidEject = "ic2:fluid_ejector_upgrade".equals(id);
-            boolean isFluidPull = "ic2:fluid_pulling_upgrade".equals(id);
+            boolean isFluidEject = "mhera:fluid_ejector_upgrade".equals(id);
+            boolean isFluidPull = "mhera:fluid_pulling_upgrade".equals(id);
             if (!isFluidEject && !isFluidPull) {
                 continue;
             }

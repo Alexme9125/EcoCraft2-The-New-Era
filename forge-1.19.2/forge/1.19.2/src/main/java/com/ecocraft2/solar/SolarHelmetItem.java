@@ -45,7 +45,7 @@ import org.jetbrains.annotations.Nullable;
  */
 public class SolarHelmetItem extends ArmorItem implements Ecc2ElectricItem, Ecc2ArmorSuitBridge {
 
-    public static final String ENERGY_TAG = "Ecc2Energy";
+    public static final String ENERGY_TAG = "EceraEnergy";
 
     private static final Map<UUID, Map<SolarHelmetSpec, SolarHelmetEngine>> PLAYER_ENGINES =
             new ConcurrentHashMap<>();
@@ -291,12 +291,12 @@ public class SolarHelmetItem extends ArmorItem implements Ecc2ElectricItem, Ecc2
 
     private static int findFilledFoodCanSlot(Player player) {
         ItemStack offhand = player.getOffhandItem();
-        if (!offhand.isEmpty() && "ic2:filled_tin_can".equals(Ecc2BridgePlatform.itemId(offhand))) {
+        if (!offhand.isEmpty() && "mhera:filled_tin_can".equals(Ecc2BridgePlatform.itemId(offhand))) {
             return -1;
         }
         for (int i = 0; i < player.getInventory().items.size(); i++) {
             ItemStack item = player.getInventory().items.get(i);
-            if (!item.isEmpty() && "ic2:filled_tin_can".equals(Ecc2BridgePlatform.itemId(item))) {
+            if (!item.isEmpty() && "mhera:filled_tin_can".equals(Ecc2BridgePlatform.itemId(item))) {
                 return i;
             }
         }
@@ -310,7 +310,7 @@ public class SolarHelmetItem extends ArmorItem implements Ecc2ElectricItem, Ecc2
         }
         player.getFoodData().eat(1, 0.6f);
         stack.shrink(1);
-        var emptyCan = Ecc2BridgePlatform.findItem("ic2:tin_can");
+        var emptyCan = Ecc2BridgePlatform.findItem("mhera:tin_can");
         if (emptyCan != null) {
             ItemStack remainder = new ItemStack(emptyCan);
             if (!player.getInventory().add(remainder)) {
@@ -425,13 +425,13 @@ public class SolarHelmetItem extends ArmorItem implements Ecc2ElectricItem, Ecc2
             TooltipFlag flag) {
         tooltip.add(
                 Component.translatable(
-                                "tooltip.ecc2.helmet.generation",
+                                "tooltip.ecera.helmet.generation",
                                 configuredDayPower(),
                                 configuredNightPower())
                         .withStyle(ChatFormatting.YELLOW));
         tooltip.add(
                 Component.translatable(
-                                "tooltip.ecc2.helmet.energy",
+                                "tooltip.ecera.helmet.energy",
                                 (long) Math.floor(ecc2Stored(stack)),
                                 (long) ecc2Capacity(stack),
                                 spec.tier())
@@ -439,12 +439,12 @@ public class SolarHelmetItem extends ArmorItem implements Ecc2ElectricItem, Ecc2
         tooltip.add(
                 Component.translatable(
                                 spec.hasQuantumAbilities()
-                                        ? "tooltip.ecc2.helmet.quantum_suit"
-                                        : "tooltip.ecc2.helmet.nano_suit")
+                                        ? "tooltip.ecera.helmet.quantum_suit"
+                                        : "tooltip.ecera.helmet.nano_suit")
                         .withStyle(ChatFormatting.GRAY));
         if (spec.isDyeable()) {
             tooltip.add(
-                    Component.translatable("tooltip.ecc2.helmet.dyeable")
+                    Component.translatable("tooltip.ecera.helmet.dyeable")
                             .withStyle(ChatFormatting.DARK_AQUA));
         }
     }

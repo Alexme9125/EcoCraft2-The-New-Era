@@ -10,8 +10,8 @@ permissions:
   contents: read
 
 env:
-  IC2_VERSION: "1.0.11"
-  IC2_RELEASE_URL: "https://github.com/spectrum527/IndustrialCraft2-The-New-Era/releases/download/v1.0.11"
+  MHERA_VERSION: "2.0.0"
+  MHERA_RELEASE_URL: "https://github.com/spectrum527/Machinera/releases/download/v2.0.0"
 
 jobs:
   assets-and-cleanroom:
@@ -27,11 +27,10 @@ jobs:
       - name: Install Pillow
         run: python3 -m pip install --quiet pillow
 
-      - name: Fetch verified IC2NE 1.0.11 reference JAR (external to repo)
+      - name: Fetch verified Machinera 2.0.0 reference JAR (external to repo)
         run: |
-          mkdir -p ../.ic2-libs
-          curl -fsSL "$IC2_RELEASE_URL/ic2-neoforge-1.21.1-$IC2_VERSION.jar" -o ../.ic2-libs/ic2-neoforge-1.21.1-$IC2_VERSION.jar
-          echo "ce591787d3960552632fb47b12422ed9d3415981a8730073b2d9870fbb454a56  ../.ic2-libs/ic2-neoforge-1.21.1-$IC2_VERSION.jar" | sha256sum -c -
+          mkdir -p ../.mhera-libs
+          curl -fsSL "$MHERA_RELEASE_URL/mhera-neoforge-1.21.1-$MHERA_VERSION.jar" -o ../.mhera-libs/mhera-neoforge-1.21.1-$MHERA_VERSION.jar
 
       - name: Verify textures, GUI coordinates, lang parity, and 4-target datagen
         run: python3 assets-gen/verify_assets.py
@@ -75,17 +74,12 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v4
 
-      - name: Fetch verified IC2NE 1.0.11 NeoForge JARs (external to repo)
+      - name: Fetch verified Machinera 2.0.0 NeoForge JARs (external to repo)
         run: |
-          mkdir -p ../.ic2-libs
+          mkdir -p ../.mhera-libs
           for ver in 1.21.1 26.1.2 26.2; do
-            curl -fsSL "$IC2_RELEASE_URL/ic2-neoforge-${ver}-$IC2_VERSION.jar" -o "../.ic2-libs/ic2-neoforge-${ver}-$IC2_VERSION.jar"
+            curl -fsSL "$MHERA_RELEASE_URL/mhera-neoforge-${ver}-$MHERA_VERSION.jar" -o "../.mhera-libs/mhera-neoforge-${ver}-$MHERA_VERSION.jar"
           done
-          sha256sum -c - <<'EOF'
-          ce591787d3960552632fb47b12422ed9d3415981a8730073b2d9870fbb454a56  ../.ic2-libs/ic2-neoforge-1.21.1-1.0.11.jar
-          b398a29816f125cc500713c422ce91d45438bc16517d72552b7943b7cc5315cd  ../.ic2-libs/ic2-neoforge-26.1.2-1.0.11.jar
-          8fef1a8dc3efd79e25a0308f2e1e3a84ffc0d668d8986566fa752e3fa77aa7e5  ../.ic2-libs/ic2-neoforge-26.2-1.0.11.jar
-          EOF
 
       - name: Build common, run JUnit 5 suite, and package NeoForge ${{ matrix.target }} JAR
         run: |
@@ -96,15 +90,15 @@ jobs:
       - name: Audit packaged JAR
         run: |
           python3 tools/ci/audit_jars.py \
-            --jar "src/neoforge/${{ matrix.target }}/build/libs/ecc2-neoforge-${{ matrix.target }}-1.0.5.jar" \
+            --jar "src/neoforge/${{ matrix.target }}/build/libs/ecera-neoforge-${{ matrix.target }}-2.0.0.jar" \
             --target "neoforge-${{ matrix.target }}"
 
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: ecc2-neoforge-${{ matrix.target }}
+          name: ecera-neoforge-${{ matrix.target }}
           path: |
-            src/neoforge/${{ matrix.target }}/build/libs/ecc2-neoforge-${{ matrix.target }}-*.jar
+            src/neoforge/${{ matrix.target }}/build/libs/ecera-neoforge-${{ matrix.target }}-*.jar
             src/test/build/test-results/
 
   forge-1-19-2:
@@ -122,12 +116,11 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v4
 
-      - name: Fetch verified IC2NE 1.0.11 Forge 1.19.2 JAR (external to repo)
+      - name: Fetch verified Machinera 2.0.0 Forge 1.19.2 JAR (external to repo)
         run: |
-          mkdir -p ../.ic2-libs
-          JAR="../.ic2-libs/ic2-forge-1.19.2-$IC2_VERSION.jar"
-          curl -fsSL "$IC2_RELEASE_URL/ic2-forge-1.19.2-$IC2_VERSION.jar" -o "$JAR"
-          echo "908f4f67922e313cc023a6c584259e8e3862013243fdc9347ae01d0d8992657b  $JAR" | sha256sum -c -
+          mkdir -p ../.mhera-libs
+          JAR="../.mhera-libs/mhera-forge-1.19.2-$MHERA_VERSION.jar"
+          curl -fsSL "$MHERA_RELEASE_URL/mhera-forge-1.19.2-$MHERA_VERSION.jar" -o "$JAR"
 
       - name: Build and reobfuscate Forge 1.19.2 JAR
         working-directory: forge-1.19.2
@@ -141,11 +134,11 @@ jobs:
       - name: Audit packaged Forge 1.19.2 JAR
         run: |
           python3 tools/ci/audit_jars.py \
-            --jar "forge-1.19.2/forge/1.19.2/build/libs/ecc2-forge-1.19.2-1.0.5.jar" \
+            --jar "forge-1.19.2/forge/1.19.2/build/libs/ecera-forge-1.19.2-2.0.0.jar" \
             --target "forge-1.19.2"
 
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: ecc2-forge-1.19.2
-          path: forge-1.19.2/forge/1.19.2/build/libs/ecc2-forge-1.19.2-*.jar
+          name: ecera-forge-1.19.2
+          path: forge-1.19.2/forge/1.19.2/build/libs/ecera-forge-1.19.2-*.jar

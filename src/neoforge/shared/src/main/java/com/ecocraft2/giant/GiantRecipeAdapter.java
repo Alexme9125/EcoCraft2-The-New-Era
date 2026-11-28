@@ -92,7 +92,7 @@ public interface GiantRecipeAdapter {
                         || stack.is(Items.SNOWBALL)
                         || stack.is(Items.STICK)
                         || stack.is(Items.GLASS_PANE)
-                        || GiantGasPlatform.hasItemTag(stack, "ic2:recycler_blacklist");
+                        || GiantGasPlatform.hasItemTag(stack, "mhera:recycler_blacklist");
             }
 
             @Override
@@ -105,7 +105,7 @@ public interface GiantRecipeAdapter {
                 if (excluded(input)) {
                     return null;
                 }
-                ItemStack scrap = GiantGasPlatform.itemStack("ic2:scrap", 1);
+                ItemStack scrap = GiantGasPlatform.itemStack("mhera:scrap", 1);
                 if (scrap.isEmpty()) {
                     return null;
                 }
@@ -244,7 +244,7 @@ public interface GiantRecipeAdapter {
                 }
             } catch (Throwable failure) {
                 LOG.debug(
-                        "Falling back to IC2NE workshop-recipes.tsv for ore_washer recipes: {}",
+                        "Falling back to Machinera workshop-recipes.tsv for ore_washer recipes: {}",
                         failure.getMessage());
             }
             return list;

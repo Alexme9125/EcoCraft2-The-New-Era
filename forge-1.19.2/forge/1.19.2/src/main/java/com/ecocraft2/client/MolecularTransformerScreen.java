@@ -63,14 +63,14 @@ public final class MolecularTransformerScreen extends DeviceScreen<MolecularTran
         if (menu.isOutputBlocked()) {
             font.draw(
                     poseStack,
-                    Component.translatable("gui.ecc2.mt.output_full"),
+                    Component.translatable("gui.ecera.mt.output_full"),
                     x,
                     (int) (28 / 0.8f),
                     0xFFAA44);
         } else if (!menu.isWorking()) {
             font.draw(
                     poseStack,
-                    Component.translatable("gui.ecc2.mt.idle"),
+                    Component.translatable("gui.ecera.mt.idle"),
                     x,
                     (int) (28 / 0.8f),
                     0xA8C0D0);
@@ -79,25 +79,25 @@ public final class MolecularTransformerScreen extends DeviceScreen<MolecularTran
                     inStack.isEmpty() ? Component.literal("-") : inStack.getHoverName();
             font.draw(
                     poseStack,
-                    Component.translatable("gui.ecc2.mt.input", inName),
+                    Component.translatable("gui.ecera.mt.input", inName),
                     x,
                     (int) (26 / 0.8f),
                     0xD0E4F0);
             font.draw(
                     poseStack,
-                    Component.translatable("gui.ecc2.mt.energy", menu.totalEu()),
+                    Component.translatable("gui.ecera.mt.energy", menu.totalEu()),
                     x,
                     (int) (40 / 0.8f),
                     0x8DF0FF);
             font.draw(
                     poseStack,
-                    Component.translatable("gui.ecc2.mt.input_eu", menu.lastTickPower()),
+                    Component.translatable("gui.ecera.mt.input_eu", menu.lastTickPower()),
                     x,
                     (int) (54 / 0.8f),
                     0x7FFFB0);
             font.draw(
                     poseStack,
-                    Component.translatable("gui.ecc2.mt.progress", menu.progressPercent()),
+                    Component.translatable("gui.ecera.mt.progress", menu.progressPercent()),
                     x,
                     (int) (68 / 0.8f),
                     0xFFFFFF);

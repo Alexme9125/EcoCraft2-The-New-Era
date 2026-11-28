@@ -73,20 +73,20 @@ public final class Ecc2TopCompat {
                 var e = panel.engine();
                 info.mcText(
                         Component.translatable(
-                                "top.ecc2.eu", (long) Math.floor(e.storage()), e.maxStorage()));
-                info.mcText(Component.translatable("top.ecc2.generating", e.currentGenerating()));
+                                "top.ecera.eu", (long) Math.floor(e.storage()), e.maxStorage()));
+                info.mcText(Component.translatable("top.ecera.generating", e.currentGenerating()));
             } else if (be instanceof QuantumGeneratorBlockEntity qg) {
                 var e = qg.engine();
                 info.mcText(
                         Component.translatable(
-                                "top.ecc2.generating", e.isActive() ? e.production() : 0));
+                                "top.ecera.generating", e.isActive() ? e.production() : 0));
             } else if (be instanceof MolecularTransformerBlockEntity mt) {
                 var e = mt.engine();
                 if (e.isWorking()) {
-                    info.mcText(Component.translatable("top.ecc2.progress", e.progressPercent()));
+                    info.mcText(Component.translatable("top.ecera.progress", e.progressPercent()));
                 }
             } else if (be instanceof AdvancedKineticBlockEntity kin) {
-                info.mcText(Component.translatable("top.ecc2.kinetic_ku", kin.currentKu()));
+                info.mcText(Component.translatable("top.ecera.kinetic_ku", kin.currentKu()));
                 ItemStack rotor = kin.rotorSlot().getStackInSlot(0);
                 int max = com.ecocraft2.bridge.Ecc2RotorHooks.maxDurability(rotor);
                 if (max > 0) {
@@ -95,7 +95,7 @@ public final class Ecc2TopCompat {
                     double hrs = rem / 3600.0;
                     info.mcText(
                             Component.translatable(
-                                    "top.ecc2.rotor_life",
+                                    "top.ecera.rotor_life",
                                     String.format(Locale.ROOT, "%.1f", pct),
                                     String.format(Locale.ROOT, "%.1f", hrs)));
                 }
@@ -105,17 +105,17 @@ public final class Ecc2TopCompat {
                     var e = core.engine();
                     info.mcText(
                             Component.translatable(
-                                    "top.ecc2.eu",
+                                    "top.ecera.eu",
                                     (long) Math.floor(e.storedEu()),
                                     (long) Math.floor(e.energyCapacity())));
                     info.mcText(
                             Component.translatable(
-                                    "top.ecc2.giant_lanes", e.lastActiveTotalBatch()));
+                                    "top.ecera.giant_lanes", e.lastActiveTotalBatch()));
                     if (core.kind().spec().usesWater()) {
                         info.mcText(
                                 Component.translatable(
-                                        "top.ecc2.fluid",
-                                        Component.translatable("gui.ecc2.gas.water"),
+                                        "top.ecera.fluid",
+                                        Component.translatable("gui.ecera.gas.water"),
                                         e.waterMb(),
                                         core.configuredWaterCapacity()));
                     }
@@ -125,7 +125,7 @@ public final class Ecc2TopCompat {
                                         PortAccessMode pm = e.portPermissions().get(port);
                                         info.mcText(
                                                 Component.translatable(
-                                                        "top.ecc2.giant_port",
+                                                        "top.ecera.giant_port",
                                                         Ecc2BridgePlatform.portName(port),
                                                         Ecc2BridgePlatform.modeName(pm)));
                                     });
@@ -134,36 +134,36 @@ public final class Ecc2TopCompat {
                 var e = wg.engine();
                 info.mcText(
                         Component.translatable(
-                                "top.ecc2.eu",
+                                "top.ecera.eu",
                                 (long) Math.floor(e.storedEu()),
                                 (long) Math.floor(e.energyCapacity())));
                 boolean solarActive = e.isSolarActive();
                 info.mcText(
                         (solarActive
                                         ? Component.translatable(
-                                                "gui.ecc2.gas.solar_active",
+                                                "gui.ecera.gas.solar_active",
                                                 WaterGasEngine.formatSolarRate(
                                                         e.effectiveSolarEuPerTick()))
-                                        : Component.translatable("gui.ecc2.gas.solar_inactive"))
+                                        : Component.translatable("gui.ecera.gas.solar_inactive"))
                                 .withStyle(
                                         solarActive ? ChatFormatting.YELLOW : ChatFormatting.GRAY));
                 info.mcText(
                         Component.translatable(
-                                "top.ecc2.fluid",
-                                Component.translatable("gui.ecc2.gas.water"),
+                                "top.ecera.fluid",
+                                Component.translatable("gui.ecera.gas.water"),
                                 e.waterMb(),
                                 WaterGasEngine.WATER_TANK_CAPACITY_MB));
                 info.mcText(
                         Component.translatable(
-                                "top.ecc2.fluid",
-                                Component.translatable("gui.ecc2.gas.water_gas"),
+                                "top.ecera.fluid",
+                                Component.translatable("gui.ecera.gas.water_gas"),
                                 e.waterGasMb(),
                                 WaterGasEngine.GAS_TANK_CAPACITY_MB));
             } else if (be instanceof GasFurnaceBlockEntity gf) {
                 var e = gf.engine();
                 info.mcText(
                         Component.translatable(
-                                "top.ecc2.fluid",
+                                "top.ecera.fluid",
                                 Ecc2BridgePlatform.fuelName(e.currentFuel()),
                                 e.gasMb(),
                                 GasFurnaceEngine.GAS_TANK_CAPACITY_MB));
@@ -171,15 +171,15 @@ public final class Ecc2TopCompat {
                 var e = gg.engine();
                 info.mcText(
                         Component.translatable(
-                                "top.ecc2.eu",
+                                "top.ecera.eu",
                                 (long) Math.floor(e.storedEu()),
                                 (long) GasGeneratorEngine.EU_CAPACITY));
                 info.mcText(
                         Component.translatable(
-                                "top.ecc2.generating", (int) Math.round(e.lastTickGeneratedEu())));
+                                "top.ecera.generating", (int) Math.round(e.lastTickGeneratedEu())));
                 info.mcText(
                         Component.translatable(
-                                "top.ecc2.fluid",
+                                "top.ecera.fluid",
                                 Ecc2BridgePlatform.fuelName(e.currentFuel()),
                                 e.gasMb(),
                                 GasGeneratorEngine.GAS_TANK_CAPACITY_MB));
@@ -187,38 +187,38 @@ public final class Ecc2TopCompat {
                 var e = ci.engine();
                 info.mcText(
                         Component.translatable(
-                                "top.ecc2.eu",
+                                "top.ecera.eu",
                                 (long) Math.floor(e.storedEu()),
                                 (long) Math.floor(e.energyCapacity())));
                 info.mcText(
                         Component.translatable(
-                                "top.ecc2.fluid",
-                                Component.translatable("gui.ecc2.gas.water"),
+                                "top.ecera.fluid",
+                                Component.translatable("gui.ecera.gas.water"),
                                 e.waterMb(),
                                 CultureIncubatorEngine.WATER_TANK_CAPACITY_MB));
                 info.mcText(
                         Component.translatable(
-                                "top.ecc2.fluid",
-                                Component.translatable("gui.ecc2.gas.culture_medium"),
+                                "top.ecera.fluid",
+                                Component.translatable("gui.ecera.gas.culture_medium"),
                                 e.cultureMb(),
                                 CultureIncubatorEngine.CULTURE_TANK_CAPACITY_MB));
             } else if (be instanceof OrganicFermenterBlockEntity of) {
                 var e = of.engine();
                 info.mcText(
                         Component.translatable(
-                                "top.ecc2.eu",
+                                "top.ecera.eu",
                                 (long) Math.floor(e.storedEu()),
                                 (long) Math.floor(e.energyCapacity())));
                 info.mcText(
                         Component.translatable(
-                                "top.ecc2.fluid",
-                                Component.translatable("gui.ecc2.gas.culture_medium"),
+                                "top.ecera.fluid",
+                                Component.translatable("gui.ecera.gas.culture_medium"),
                                 e.cultureMb(),
                                 OrganicFermenterEngine.CULTURE_TANK_CAPACITY_MB));
                 info.mcText(
                         Component.translatable(
-                                "top.ecc2.fluid",
-                                Component.translatable("gui.ecc2.gas.biogas"),
+                                "top.ecera.fluid",
+                                Component.translatable("gui.ecera.gas.biogas"),
                                 e.biogasMb(),
                                 OrganicFermenterEngine.BIOGAS_TANK_CAPACITY_MB));
             }

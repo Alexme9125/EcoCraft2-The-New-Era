@@ -65,7 +65,7 @@ public final class QuantumGeneratorScreen extends Ecc2ScreenBase<QuantumGenerato
         // LCD telemetry lines
         canvas.text(
                 Component.translatable(
-                        "gui.ecc2.quantum_generator.production",
+                        "gui.ecera.quantum_generator.production",
                         Ecc2DataSync.formatInt(menu.production())),
                 15,
                 22,
@@ -73,11 +73,11 @@ public final class QuantumGeneratorScreen extends Ecc2ScreenBase<QuantumGenerato
                 false);
         String tierLabel =
                 menu.tier() == QuantumGeneratorEngine.MAX_TIER
-                        ? Component.translatable("gui.ecc2.quantum_generator.tier_max").getString()
+                        ? Component.translatable("gui.ecera.quantum_generator.tier_max").getString()
                         : Integer.toString(menu.tier());
         canvas.text(
                 Component.translatable(
-                        "gui.ecc2.quantum_generator.tier",
+                        "gui.ecera.quantum_generator.tier",
                         tierLabel,
                         Ecc2DataSync.formatInt(Math.round(menu.tierPacketSize()))),
                 15,
@@ -90,7 +90,7 @@ public final class QuantumGeneratorScreen extends Ecc2ScreenBase<QuantumGenerato
                         : "0";
         canvas.text(
                 Component.translatable(
-                        "gui.ecc2.quantum_generator.packets", menu.packetCount(), perPacket),
+                        "gui.ecera.quantum_generator.packets", menu.packetCount(), perPacket),
                 15,
                 46,
                 menu.isActive() ? 0xFF72F2A8 : 0xFFE87878,
@@ -147,13 +147,13 @@ public final class QuantumGeneratorScreen extends Ecc2ScreenBase<QuantumGenerato
             return List.of(
                     Component.translatable(
                             menu.isActive()
-                                    ? "gui.ecc2.quantum_generator.active"
-                                    : "gui.ecc2.quantum_generator.redstone_stopped"));
+                                    ? "gui.ecera.quantum_generator.active"
+                                    : "gui.ecera.quantum_generator.redstone_stopped"));
         }
         for (int i = 0; i < 6; i++) {
             if (hit(relMouseX, relMouseY, BTN_X[i], PROD_Y, BTN_W, BTN_H)) {
                 return List.of(
-                        Component.translatable("gui.ecc2.quantum_generator.shift_hint"));
+                        Component.translatable("gui.ecera.quantum_generator.shift_hint"));
             }
         }
         return List.of();

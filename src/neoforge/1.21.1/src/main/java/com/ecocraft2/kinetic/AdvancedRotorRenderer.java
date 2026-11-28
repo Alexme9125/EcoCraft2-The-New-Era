@@ -25,7 +25,7 @@ public final class AdvancedRotorRenderer
         for (RotorSpec spec : RotorSpec.values()) {
             var tex =
                     ResourceLocation.fromNamespaceAndPath(
-                            "ic2", AdvancedRotorModel.ic2TexturePath(spec));
+                            "mhera", AdvancedRotorModel.ic2TexturePath(spec));
             layers.put(spec, RenderType.entityCutout(tex));
         }
     }

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Shared deterministic IC2NE blue-slate pixel-art drawing primitives."""
+"""Shared deterministic Machinera blue-slate pixel-art drawing primitives."""
 
 from __future__ import annotations
 
@@ -12,7 +12,7 @@ from PIL import Image, ImageDraw
 
 RGBA = Tuple[int, int, int, int]
 
-# Canonical IC2NE industrial blue-slate palette
+# Canonical Machinera industrial blue-slate palette
 PAL = {
     "outline": (24, 30, 38, 255),
     "border_dark": (36, 44, 54, 255),
@@ -21,7 +21,7 @@ PAL = {
     "slate_dark": (91, 102, 116, 255),    # #5b6674
     "slate_mid": (114, 125, 139, 255),    # #727d8b
     "slate_light": (148, 159, 173, 255),  # #949fad
-    "panel_face": (176, 185, 196, 255),   # #b0b9c4 (IC2NE brushed steel face)
+    "panel_face": (176, 185, 196, 255),   # #b0b9c4 (Machinera brushed steel face)
     "panel_hi": (194, 202, 212, 255),     # #c2cad4
     "bevel_hi": (214, 222, 230, 255),     # #d6dee6
     "bevel_white": (236, 241, 246, 255),  # #ecf1f6
@@ -129,7 +129,7 @@ def make_casing_tile(
     dark_outer: bool = True,
     accent: RGBA | None = None,
 ) -> Image.Image:
-    """Create a 16x16 IC2NE-style beveled industrial metal block face."""
+    """Create a 16x16 Machinera-style beveled industrial metal block face."""
     img = Image.new("RGBA", (16, 16), base)
     # Brushed subtle metallic texture
     for y in range(16):
@@ -219,7 +219,7 @@ def draw_gui_panel(
     seed: int = 10,
     accent: RGBA | None = PAL["cyan_mid"],
 ) -> Image.Image:
-    """Create a 256x256 RGBA canvas with an authentic IC2NE blue-slate panel at (0,0,w,h)."""
+    """Create a 256x256 RGBA canvas with an authentic Machinera blue-slate panel at (0,0,w,h)."""
     canvas = Image.new("RGBA", (256, 256), PAL["transparent"])
     # Outer dark border (rounded-corner industrial feel)
     fill_rect(canvas, 1, 0, w - 2, h, PAL["outline"])
@@ -228,7 +228,7 @@ def draw_gui_panel(
     draw_rect_border(canvas, 1, 1, w - 2, h - 2, PAL["border_dark"])
     # Main brushed steel interior
     for yy in range(2, h - 2):
-        # Horizontal IC2NE brushed metallic sheen (subtle vertical gradient + 2px micro-band)
+        # Horizontal Machinera brushed metallic sheen (subtle vertical gradient + 2px micro-band)
         grad = 1.04 - 0.08 * (yy / max(1, h))
         band = 3 if (yy % 2 == 0) else -2
         for xx in range(2, w - 2):
@@ -250,7 +250,7 @@ def draw_gui_panel(
         px(canvas, w - 3, yy, PAL["slot_dark"])
         px(canvas, w - 4, yy, PAL["slate_dark"])
 
-    # Corner rivets (IC2NE signature triangular corner screws!)
+    # Corner rivets (Machinera signature triangular corner screws!)
     for cx, cy in [(4, 4), (w - 6, 4), (4, h - 6), (w - 6, h - 6)]:
         px(canvas, cx, cy, PAL["bevel_white"])
         px(canvas, cx + 1, cy, PAL["slate_dark"])
@@ -274,7 +274,7 @@ def draw_slot(
     rim_accent: RGBA | None = None,
     size: int = 18,
 ) -> None:
-    """Draw an IC2NE 18x18 recessed item slot (item sits at x+1, y+1)."""
+    """Draw an Machinera 18x18 recessed item slot (item sits at x+1, y+1)."""
     if rim_accent is not None:
         draw_rect_border(img, x - 1, y - 1, size + 2, size + 2, rim_accent)
     make_bevel_box(
@@ -308,7 +308,7 @@ def draw_lcd(
     accent: RGBA | None = PAL["cyan_dark"],
     scanlines: bool = True,
 ) -> None:
-    """Draw a recessed IC2NE deep blue-slate LCD readout screen."""
+    """Draw a recessed Machinera deep blue-slate LCD readout screen."""
     make_bevel_box(
         img, x, y, w, h,
         fill=PAL["lcd_bg"],
@@ -331,7 +331,7 @@ def draw_lcd(
 
 
 def draw_tank_frame(img: Image.Image, x: int, y: int, w: int = 20, h: int = 54) -> None:
-    """Draw an IC2NE fluid tank window (inner fluid region is x+2, y+2, w-4, h-4)."""
+    """Draw an Machinera fluid tank window (inner fluid region is x+2, y+2, w-4, h-4)."""
     make_bevel_box(img, x, y, w, h, fill=PAL["lcd_bg"], raised=False, hi=PAL["bevel_hi"], lo=PAL["border_dark"])
     draw_rect_border(img, x + 1, y + 1, w - 2, h - 2, PAL["lcd_border"])
     # Subtle inner glass reflection & green/cyan scale ticks

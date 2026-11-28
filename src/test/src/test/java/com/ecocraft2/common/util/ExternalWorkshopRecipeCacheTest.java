@@ -24,10 +24,10 @@ final class ExternalWorkshopRecipeCacheTest {
     @Test
     void hasNullElementNeverThrowsOnImmutableLists() {
         assertFalse(ExternalWorkshopRecipeCache.hasNullElement(List.of()));
-        assertFalse(ExternalWorkshopRecipeCache.hasNullElement(List.of("ic2:fluid_cell@1")));
+        assertFalse(ExternalWorkshopRecipeCache.hasNullElement(List.of("mhera:fluid_cell@1")));
         assertFalse(
                 ExternalWorkshopRecipeCache.hasNullElement(
-                        List.of("ic2:fluid_cell@1", "ecc2:methane_ice_cluster@3")));
+                        List.of("mhera:fluid_cell@1", "ecera:methane_ice_cluster@3")));
         assertFalse(
                 ExternalWorkshopRecipeCache.hasNullElement(
                         List.of("a", "b", "c", "d")));
@@ -46,14 +46,14 @@ final class ExternalWorkshopRecipeCacheTest {
     void nonNullListOfRejectsNullElementsWithoutThrowing() {
         assertNull(ExternalWorkshopRecipeCache.nonNullListOf((Object[]) null));
         assertNull(ExternalWorkshopRecipeCache.nonNullListOf((Object) null));
-        assertNull(ExternalWorkshopRecipeCache.nonNullListOf("ic2:fluid_cell@1", null));
-        assertNull(ExternalWorkshopRecipeCache.nonNullListOf(null, "ecc2:methane_ice_cluster@3"));
+        assertNull(ExternalWorkshopRecipeCache.nonNullListOf("mhera:fluid_cell@1", null));
+        assertNull(ExternalWorkshopRecipeCache.nonNullListOf(null, "ecera:methane_ice_cluster@3"));
 
         List<Object> built =
                 ExternalWorkshopRecipeCache.nonNullListOf(
-                        "ic2:fluid_cell@1", "ecc2:methane_ice_cluster@3");
+                        "mhera:fluid_cell@1", "ecera:methane_ice_cluster@3");
         assertNotNull(built);
-        assertEquals(List.of("ic2:fluid_cell@1", "ecc2:methane_ice_cluster@3"), built);
+        assertEquals(List.of("mhera:fluid_cell@1", "ecera:methane_ice_cluster@3"), built);
         assertFalse(ExternalWorkshopRecipeCache.hasNullElement(built));
         assertThrows(UnsupportedOperationException.class, () -> built.add("extra"));
     }
@@ -63,16 +63,16 @@ final class ExternalWorkshopRecipeCacheTest {
         ExternalWorkshopRecipeCache cache = new ExternalWorkshopRecipeCache();
         AtomicInteger builds = new AtomicInteger();
 
-        List<Object> base1 = List.of("ic2:canner_bottle/apple");
+        List<Object> base1 = List.of("mhera:canner_bottle/apple");
         List<Object> first =
                 cache.getOrMerge(
                         1L,
                         base1,
                         () -> {
                             builds.incrementAndGet();
-                            return List.of("ecc2:canner_bottle/0");
+                            return List.of("ecera:canner_bottle/0");
                         });
-        assertEquals(List.of("ic2:canner_bottle/apple", "ecc2:canner_bottle/0"), first);
+        assertEquals(List.of("mhera:canner_bottle/apple", "ecera:canner_bottle/0"), first);
         assertEquals(1, builds.get());
 
         // Exact same revision and base reference hits cache without rebuilding
@@ -89,17 +89,17 @@ final class ExternalWorkshopRecipeCacheTest {
 
         // Another mod (e.g. a companion mixin filtering recipes on reload) supplies a new base list
         // while EcoCraft 2's revision is unchanged — cache MUST rebuild on top of the new base.
-        List<Object> filteredBase = List.of("ic2:canner_bottle/apple", "compat:custom");
+        List<Object> filteredBase = List.of("mhera:canner_bottle/apple", "compat:custom");
         List<Object> afterModChange =
                 cache.getOrMerge(
                         1L,
                         filteredBase,
                         () -> {
                             builds.incrementAndGet();
-                            return List.of("ecc2:canner_bottle/0");
+                            return List.of("ecera:canner_bottle/0");
                         });
         assertEquals(
-                List.of("ic2:canner_bottle/apple", "compat:custom", "ecc2:canner_bottle/0"),
+                List.of("mhera:canner_bottle/apple", "compat:custom", "ecera:canner_bottle/0"),
                 afterModChange);
         assertEquals(2, builds.get());
 
@@ -110,14 +110,14 @@ final class ExternalWorkshopRecipeCacheTest {
                         filteredBase,
                         () -> {
                             builds.incrementAndGet();
-                            return List.of("ecc2:canner_bottle/0", "ecc2:canner_bottle/1");
+                            return List.of("ecera:canner_bottle/0", "ecera:canner_bottle/1");
                         });
         assertEquals(
                 List.of(
-                        "ic2:canner_bottle/apple",
+                        "mhera:canner_bottle/apple",
                         "compat:custom",
-                        "ecc2:canner_bottle/0",
-                        "ecc2:canner_bottle/1"),
+                        "ecera:canner_bottle/0",
+                        "ecera:canner_bottle/1"),
                 afterRevisionBump);
         assertEquals(3, builds.get());
     }
@@ -132,8 +132,8 @@ final class ExternalWorkshopRecipeCacheTest {
         // Null base + additions containing nulls are safely skipped
         List<Object> merged =
                 cache.getOrMerge(
-                        1L, null, () -> Arrays.asList("ecc2:recipe/0", null, "ecc2:recipe/1"));
-        assertEquals(List.of("ecc2:recipe/0", "ecc2:recipe/1"), merged);
+                        1L, null, () -> Arrays.asList("ecera:recipe/0", null, "ecera:recipe/1"));
+        assertEquals(List.of("ecera:recipe/0", "ecera:recipe/1"), merged);
 
         cache.clear();
         AtomicInteger calls = new AtomicInteger();
@@ -143,9 +143,9 @@ final class ExternalWorkshopRecipeCacheTest {
                         null,
                         () -> {
                             calls.incrementAndGet();
-                            return List.of("ecc2:recipe/0");
+                            return List.of("ecera:recipe/0");
                         });
         assertEquals(1, calls.get());
-        assertEquals(List.of("ecc2:recipe/0"), rebuilt);
+        assertEquals(List.of("ecera:recipe/0"), rebuilt);
     }
 }

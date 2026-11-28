@@ -25,16 +25,16 @@ import net.minecraft.world.level.block.entity.BlockEntity;
  */
 public final class Ecc2UpgradeHelper {
 
-    public static final String OVERCLOCKER = "ic2:overclocker_upgrade";
-    public static final String TRANSFORMER = "ic2:transformer_upgrade";
-    public static final String ENERGY_STORAGE = "ic2:energy_storage_upgrade";
-    public static final String EJECTOR = "ic2:ejector_upgrade";
-    public static final String ADVANCED_EJECTOR = "ic2:advanced_ejector_upgrade";
-    public static final String PULLING = "ic2:pulling_upgrade";
-    public static final String ADVANCED_PULLING = "ic2:advanced_pulling_upgrade";
-    public static final String FLUID_EJECTOR = "ic2:fluid_ejector_upgrade";
-    public static final String FLUID_PULLING = "ic2:fluid_pulling_upgrade";
-    public static final String REDSTONE_INVERTER = "ic2:redstone_inverter_upgrade";
+    public static final String OVERCLOCKER = "mhera:overclocker_upgrade";
+    public static final String TRANSFORMER = "mhera:transformer_upgrade";
+    public static final String ENERGY_STORAGE = "mhera:energy_storage_upgrade";
+    public static final String EJECTOR = "mhera:ejector_upgrade";
+    public static final String ADVANCED_EJECTOR = "mhera:advanced_ejector_upgrade";
+    public static final String PULLING = "mhera:pulling_upgrade";
+    public static final String ADVANCED_PULLING = "mhera:advanced_pulling_upgrade";
+    public static final String FLUID_EJECTOR = "mhera:fluid_ejector_upgrade";
+    public static final String FLUID_PULLING = "mhera:fluid_pulling_upgrade";
+    public static final String REDSTONE_INVERTER = "mhera:redstone_inverter_upgrade";
     public static final String PV_POWER = Ecc2Ids.PV_POWER_UPGRADE_ID;
 
     /** Represents one physical world port face through which upgrades may push/pull. */

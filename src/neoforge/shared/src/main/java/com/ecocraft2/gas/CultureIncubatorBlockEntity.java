@@ -337,7 +337,7 @@ public final class CultureIncubatorBlockEntity extends GasMachineBlockEntityBase
 
     @Override
     public Component getDisplayName() {
-        return Component.translatable("container.ecc2.culture_incubator");
+        return Component.translatable("container.ecera.culture_incubator");
     }
 
     @Override
@@ -347,23 +347,23 @@ public final class CultureIncubatorBlockEntity extends GasMachineBlockEntityBase
 
     @Override
     protected void saveState(Ecc2DataWriter out) {
-        out.putItems("ecc2_items", items);
-        out.putDouble("ecc2_eu", engine.storedEu());
-        out.putInt("ecc2_water", engine.waterMb());
-        out.putInt("ecc2_culture", engine.cultureMb());
-        out.putInt("ecc2_progress", engine.progress());
+        out.putItems("ecera_items", items);
+        out.putDouble("ecera_eu", engine.storedEu());
+        out.putInt("ecera_water", engine.waterMb());
+        out.putInt("ecera_culture", engine.cultureMb());
+        out.putInt("ecera_progress", engine.progress());
     }
 
     @Override
     protected void loadState(Ecc2DataReader in) {
-        in.loadItems("ecc2_items", items);
+        in.loadItems("ecera_items", items);
         engine.setUpgrades(
                 Ecc2UpgradeHelper.readProfile(
                         items.subList(UPGRADE_START, UPGRADE_START + UPGRADE_COUNT)));
-        engine.setStoredEu(in.getDouble("ecc2_eu", 0.0));
-        engine.setWaterMb(in.getInt("ecc2_water", 0));
-        engine.setCultureMb(in.getInt("ecc2_culture", 0));
-        engine.setProgress(in.getInt("ecc2_progress", 0));
+        engine.setStoredEu(in.getDouble("ecera_eu", 0.0));
+        engine.setWaterMb(in.getInt("ecera_water", 0));
+        engine.setCultureMb(in.getInt("ecera_culture", 0));
+        engine.setProgress(in.getInt("ecera_progress", 0));
     }
 
     // ---- Public Getters ----

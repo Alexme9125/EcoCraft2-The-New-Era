@@ -130,10 +130,10 @@ public final class QuantumGeneratorBlock extends Block
             List<Component> tooltip,
             TooltipFlag flag) {
         tooltip.add(
-                Component.translatable("tooltip.ecc2.quantum_generator.creative")
+                Component.translatable("tooltip.ecera.quantum_generator.creative")
                         .withStyle(ChatFormatting.LIGHT_PURPLE));
         tooltip.add(
-                Component.translatable("tooltip.ecc2.quantum_generator.redstone")
+                Component.translatable("tooltip.ecera.quantum_generator.redstone")
                         .withStyle(ChatFormatting.GRAY));
     }
 }

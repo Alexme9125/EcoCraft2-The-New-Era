@@ -176,7 +176,7 @@ public final class Ecc2EmiPlugin implements EmiPlugin {
         public void addWidgets(WidgetHolder widgets) {
             widgets.addSlot(inputs.get(0), 8, 10);
             widgets.addText(
-                    Component.translatable("jei.ecc2.energy_cost", energy), 34, 15, 0xFF334455, false);
+                    Component.translatable("jei.ecera.energy_cost", energy), 34, 15, 0xFF334455, false);
             widgets.addSlot(outputs.get(0), 120, 10).recipeContext(this);
         }
     }
@@ -190,7 +190,7 @@ public final class Ecc2EmiPlugin implements EmiPlugin {
 
     private static List<ItemStack> collectCoalDustInputs() {
         Map<Item, ItemStack> unique = new LinkedHashMap<>();
-        Item coalDust = Ecc2BridgePlatform.findItem("ic2:coal_dust");
+        Item coalDust = Ecc2BridgePlatform.findItem("mhera:coal_dust");
         if (coalDust != null && coalDust != Items.AIR) {
             unique.put(coalDust, new ItemStack(coalDust));
         }
@@ -242,7 +242,7 @@ public final class Ecc2EmiPlugin implements EmiPlugin {
             widgets.addSlot(inputs.get(0), 8, 10);
             widgets.addSlot(inputs.get(1), 30, 10);
             widgets.addText(
-                    Component.translatable("jei.ecc2.energy_cost", euCost), 54, 15, 0xFF334455, false);
+                    Component.translatable("jei.ecera.energy_cost", euCost), 54, 15, 0xFF334455, false);
             widgets.addSlot(outputs.get(0), 120, 10).recipeContext(this);
         }
     }
@@ -267,7 +267,7 @@ public final class Ecc2EmiPlugin implements EmiPlugin {
         public void addWidgets(WidgetHolder widgets) {
             widgets.addSlot(inputs.get(0), 8, 8);
             widgets.addText(
-                    Component.translatable("jei.ecc2.fuel_output", euPerBucket, euPerTick),
+                    Component.translatable("jei.ecera.fuel_output", euPerBucket, euPerTick),
                     32,
                     13,
                     0xFF334455,

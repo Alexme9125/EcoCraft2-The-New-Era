@@ -514,7 +514,7 @@ public final class Ecc2Config {
         public final ForgeConfigSpec.BooleanValue enableRotorRenderAnimation;
 
         Client(ForgeConfigSpec.Builder builder) {
-            builder.comment("EcoCraft 2 client rendering options").push("rendering");
+            builder.comment("Ecolera client rendering options").push("rendering");
             drawMolecularTransformerCore =
                     builder.comment("Render animated 3D plasma core inside Molecular Transformers")
                             .define("drawMolecularTransformerCore", true);

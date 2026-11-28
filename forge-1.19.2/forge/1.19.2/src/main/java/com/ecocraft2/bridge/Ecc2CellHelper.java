@@ -36,7 +36,7 @@ public final class Ecc2CellHelper {
             try {
                 return (FluidStack) contentsHandle.invoke(stack);
             } catch (Throwable failure) {
-                LOG.error("Failed to invoke IC2NE CellItem.contents", failure);
+                LOG.error("Failed to invoke Machinera CellItem.contents", failure);
             }
         }
         String fluidId = Ecc2ExternalRecipes.fluidForNamedCell(Ecc2BridgePlatform.itemId(stack));
@@ -54,7 +54,7 @@ public final class Ecc2CellHelper {
             try {
                 return (ItemStack) withContentsHandle.invoke(stack, fluid);
             } catch (Throwable failure) {
-                LOG.error("Failed to invoke IC2NE CellItem.withContents", failure);
+                LOG.error("Failed to invoke Machinera CellItem.withContents", failure);
             }
         }
         return stack.copy();
@@ -72,7 +72,7 @@ public final class Ecc2CellHelper {
                 CellFamily family = (CellFamily) familyOfHandle.invoke(itemId);
                 return (boolean) familyAdmitsHandle.invoke(family, fluidId);
             } catch (Throwable failure) {
-                LOG.error("Failed to invoke IC2NE CellFamily admission check", failure);
+                LOG.error("Failed to invoke Machinera CellFamily admission check", failure);
             }
         }
         Boolean basic = Ecc2ExternalRecipes.isBasicNamedCell(itemId);
@@ -118,7 +118,7 @@ public final class Ecc2CellHelper {
             return true;
         } catch (Throwable failure) {
             failed = true;
-            LOG.error("Failed to bind IC2NE CellItem/CellFamily handles", failure);
+            LOG.error("Failed to bind Machinera CellItem/CellFamily handles", failure);
             return false;
         }
     }

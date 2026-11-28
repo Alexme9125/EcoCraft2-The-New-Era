@@ -81,18 +81,18 @@ public final class AdvancedKineticScreen extends AbstractContainerScreen<Advance
         Component line1 =
                 switch (menu.statusCode()) {
                     case AdvancedKineticBlockEntity.STATUS_NO_ROTOR ->
-                            Component.translatable("gui.ecc2.kinetic.no_rotor");
+                            Component.translatable("gui.ecera.kinetic.no_rotor");
                     case AdvancedKineticBlockEntity.STATUS_OBSTRUCTED ->
-                            Component.translatable("gui.ecc2.kinetic.obstructed");
+                            Component.translatable("gui.ecera.kinetic.obstructed");
                     case AdvancedKineticBlockEntity.STATUS_NO_WATER ->
-                            Component.translatable("gui.ecc2.kinetic.no_water");
+                            Component.translatable("gui.ecera.kinetic.no_water");
                     case AdvancedKineticBlockEntity.STATUS_OVERWIND ->
-                            Component.translatable("gui.ecc2.kinetic.overwind");
+                            Component.translatable("gui.ecera.kinetic.overwind");
                     default ->
                             Component.translatable(
                                     menu.isWater()
-                                            ? "gui.ecc2.kinetic.water"
-                                            : "gui.ecc2.kinetic.wind",
+                                            ? "gui.ecera.kinetic.water"
+                                            : "gui.ecera.kinetic.wind",
                                     menu.windOrFlow());
                 };
         int c1 =
@@ -102,11 +102,11 @@ public final class AdvancedKineticScreen extends AbstractContainerScreen<Advance
         font.draw(poseStack, line1, x, (int) (61 / 0.75f), c1);
 
         Component line2 =
-                Component.translatable("gui.ecc2.kinetic.output", menu.currentKu())
+                Component.translatable("gui.ecera.kinetic.output", menu.currentKu())
                         .append("  ")
                         .append(
                                 Component.translatable(
-                                        "gui.ecc2.kinetic.rotor_life",
+                                        "gui.ecera.kinetic.rotor_life",
                                         String.format(Locale.ROOT, "%.1f", menu.rotorLifePercent()),
                                         String.format(
                                                 Locale.ROOT, "%.1f", menu.rotorRemainingHours())));

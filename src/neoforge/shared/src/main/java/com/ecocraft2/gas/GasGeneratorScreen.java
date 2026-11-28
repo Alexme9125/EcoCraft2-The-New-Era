@@ -55,7 +55,7 @@ public final class GasGeneratorScreen extends Ecc2ScreenBase<GasGeneratorMenu> {
         GasFuelSpec fuel = menu.currentFuel();
         String fuelLabel =
                 fuel == null
-                        ? Component.translatable("gui.ecc2.gas.empty").getString()
+                        ? Component.translatable("gui.ecera.gas.empty").getString()
                         : GasFurnaceScreen.fuelName(fuel).getString();
         c.drawScaledText(fuelLabel, 75, 57, 0.72F, 0xFF7CEEFF);
         c.drawScaledText(menu.generatingEuPerTick() + " EU/t  (MV)", 75, 66, 0.72F, 0xFFA4F9C8);
@@ -68,12 +68,12 @@ public final class GasGeneratorScreen extends Ecc2ScreenBase<GasGeneratorMenu> {
             GasFuelSpec fuel = menu.currentFuel();
             Component name =
                     fuel == null
-                            ? Component.translatable("gui.ecc2.gas.empty")
+                            ? Component.translatable("gui.ecera.gas.empty")
                             : GasFurnaceScreen.fuelName(fuel);
             c.renderTooltip(
                     List.of(
                             Component.translatable(
-                                    "gui.ecc2.gas.tank",
+                                    "gui.ecera.gas.tank",
                                     name,
                                     menu.gasMb(),
                                     GasGeneratorEngine.GAS_TANK_CAPACITY_MB)),
@@ -83,11 +83,11 @@ public final class GasGeneratorScreen extends Ecc2ScreenBase<GasGeneratorMenu> {
             c.renderTooltip(
                     List.of(
                             Component.translatable(
-                                    "gui.ecc2.giant.eu_stored",
+                                    "gui.ecera.giant.eu_stored",
                                     menu.storedEu(),
                                     (int) GasGeneratorEngine.EU_CAPACITY),
                             Component.translatable(
-                                    "gui.ecc2.gas.output", menu.generatingEuPerTick())),
+                                    "gui.ecera.gas.output", menu.generatingEuPerTick())),
                     screenX,
                     screenY);
         }

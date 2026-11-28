@@ -408,7 +408,7 @@ public final class GasFurnaceBlockEntity extends BlockEntity
 
     @Override
     public Component getDisplayName() {
-        return Component.translatable("container.ecc2.gas_furnace");
+        return Component.translatable("container.ecera.gas_furnace");
     }
 
     @Override

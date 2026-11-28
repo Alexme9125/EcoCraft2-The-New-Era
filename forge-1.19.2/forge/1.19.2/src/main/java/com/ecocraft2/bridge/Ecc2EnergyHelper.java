@@ -105,9 +105,9 @@ public final class Ecc2EnergyHelper {
             return true;
         }
         String id = Ecc2BridgePlatform.itemId(stack);
-        return "ic2:fluid_ejector_upgrade".equals(id)
-                || "ic2:fluid_pulling_upgrade".equals(id)
-                || "ic2:redstone_inverter_upgrade".equals(id);
+        return "mhera:fluid_ejector_upgrade".equals(id)
+                || "mhera:fluid_pulling_upgrade".equals(id)
+                || "mhera:redstone_inverter_upgrade".equals(id);
     }
 
     /** Summarizes installed IC2NE processing upgrades into a {@link GiantUpgradeProfile}. */
@@ -120,7 +120,7 @@ public final class Ecc2EnergyHelper {
     /** Returns {@code true} if any stack in {@code upgradeStacks} is a redstone inverter upgrade. */
     public static boolean hasRedstoneInverter(List<ItemStack> upgradeStacks) {
         for (var stack : upgradeStacks) {
-            if ("ic2:redstone_inverter_upgrade".equals(Ecc2BridgePlatform.itemId(stack))) {
+            if ("mhera:redstone_inverter_upgrade".equals(Ecc2BridgePlatform.itemId(stack))) {
                 return true;
             }
         }

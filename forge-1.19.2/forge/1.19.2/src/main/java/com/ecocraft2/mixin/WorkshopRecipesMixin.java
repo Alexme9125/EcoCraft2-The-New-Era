@@ -83,7 +83,7 @@ public final class WorkshopRecipesMixin {
             var outputs =
                     ExternalWorkshopRecipeCache.nonNullListOf(
                             ecc2$buildStack(entry.outputId(), entry.outputCount()));
-            Object recipe = ecc2$buildRecipe("ecc2:metal_former_extruding/" + (idx++), inputs, outputs);
+            Object recipe = ecc2$buildRecipe("ecera:metal_former_extruding/" + (idx++), inputs, outputs);
             if (recipe != null) {
                 additions.add(recipe);
             }
@@ -107,7 +107,7 @@ public final class WorkshopRecipesMixin {
             var outputs =
                     ExternalWorkshopRecipeCache.nonNullListOf(
                             ecc2$buildStack(entry.outputId(), entry.outputCount()));
-            Object recipe = ecc2$buildRecipe("ecc2:canner_bottle/" + (idx++), inputs, outputs);
+            Object recipe = ecc2$buildRecipe("ecera:canner_bottle/" + (idx++), inputs, outputs);
             if (recipe != null) {
                 additions.add(recipe);
             }

@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Deterministic IC2NE-style procedural pixel art & GUI generator for EcoCraft 2 (ecc2).
+"""Deterministic Machinera-style procedural pixel art & GUI generator for Ecolera (ecera).
 
-Clean-room original procedural textures aligned to IC2NE's blue-slate industrial aesthetic.
-Outputs all PNGs + .png.mcmeta files into assets/ecc2/textures/ and writes
+Clean-room original procedural textures aligned to Machinera's blue-slate industrial aesthetic.
+Outputs all PNGs + .png.mcmeta files into assets/ecera/textures/ and writes
 assets-gen/gui_coordinates.json for pixel-perfect screen/menu alignment.
 """
 
@@ -47,7 +47,7 @@ from art_lib import (
 )
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-TEX_ROOT = REPO_ROOT / "assets" / "ecc2" / "textures"
+TEX_ROOT = REPO_ROOT / "assets" / "ecera" / "textures"
 GUI_COORDS_PATH = Path(__file__).resolve().parent / "gui_coordinates.json"
 
 
@@ -111,7 +111,7 @@ def gen_solar_panel_set(
     else:
         save_png(draw_top_frame(), TEX_ROOT / "block" / f"{name}_top.png")
 
-    # Side texture (IC2NE solar_generator_sides style: colored PV lip + metallic vents + bolts)
+    # Side texture (Machinera solar_generator_sides style: colored PV lip + metallic vents + bolts)
     side = make_casing_tile(frame_base, frame_hi, shade(frame_base, 0.52), seed=seed + 11, rivets=False)
     # Top PV trim bar (y=2..3)
     fill_rect(side, 2, 2, 12, 2, side_stripe)
@@ -246,7 +246,7 @@ def gen_asp_blocks() -> None:
 # =============================================================================
 
 def gen_entity_textures() -> None:
-    # 2a. entity/molecular_transformer.png (128x64 sleek IC2NE dark-steel & glowing cyan frame UV)
+    # 2a. entity/molecular_transformer.png (128x64 sleek Machinera dark-steel & glowing cyan frame UV)
     mt = Image.new("RGBA", (128, 64), (56, 65, 78, 255))
     # Brushed steel base across entire 128x64 sheet
     for y in range(64):
@@ -368,7 +368,7 @@ def gen_entity_textures() -> None:
 # =============================================================================
 
 def draw_ingot_sprite(base: RGBA, hi: RGBA, lo: RGBA, glow: RGBA | None = None, seed: int = 1) -> Image.Image:
-    """16x16 isometric IC2NE-style beveled ingot."""
+    """16x16 isometric Machinera-style beveled ingot."""
     img = Image.new("RGBA", (16, 16), PAL["transparent"])
     # Classic clean diagonal ingot silhouette
     top_poly = [
@@ -457,7 +457,7 @@ def draw_helmet_item(
     dyeable_base_only: bool = False,
     overlay_only: bool = False,
 ) -> Image.Image:
-    """16x16 sleek sci-fi IC2NE solar helmet sprite (supports dyeable layer0 + overlay layer1)."""
+    """16x16 sleek sci-fi Machinera solar helmet sprite (supports dyeable layer0 + overlay layer1)."""
     img = Image.new("RGBA", (16, 16), PAL["transparent"])
     # Helmet dome silhouette
     dome = [
@@ -731,7 +731,7 @@ def gen_kinetic_generators() -> None:
             save_png(draw_front(False), TEX_ROOT / "block" / f"{prefix}_front.png")
             save_png(draw_front(True), TEX_ROOT / "block" / f"{prefix}_front_active.png")
 
-            # Back face: IC2NE kinetic output shaft (KU coupler port)
+            # Back face: Machinera kinetic output shaft (KU coupler port)
             back = make_casing_tile(cfg["base"], PAL["bevel_hi"], PAL["slot_dark"], seed=seed + 1, rivets=False)
             draw_rect_border(back, 2, 2, 12, 12, PAL["border_dark"])
             fill_rect(back, 3, 3, 10, 10, PAL["lcd_bg"])
@@ -1619,7 +1619,7 @@ def gen_fluid_textures() -> None:
         save_mcmeta(flow_p, frametime=2, interpolate=True)
 
 
-# Exact IC2NE 16x16 cell frame palette & template (matching ic2 fluid_cell.png & empty_cell.png)
+# Exact Machinera 16x16 cell frame palette & template (matching mhera fluid_cell.png & empty_cell.png)
 IC2_CELL_PALETTE: Dict[str, RGBA] = {
     ".": (0, 0, 0, 0),
     "O": (0x28, 0x30, 0x3B, 255),  # dark slate outline & right-side notch
@@ -1658,14 +1658,14 @@ def draw_cell_sprite(
     basic: bool = False,
     basic_glint: RGBA | None = None,
 ) -> Image.Image:
-    """16x16 cell drawn pixel-accurately on IC2NE's exact fluid_cell / empty_cell frame.
+    """16x16 cell drawn pixel-accurately on Machinera's exact fluid_cell / empty_cell frame.
 
     Window interior is x=6..9, y=3..12 (4x10).
     For universal cells (basic=False), all 10 rows of the window are filled using ``pattern``
     with codes '0' (brightest highlight), '1' (light), '2' (mid), '3' (deep shade).
     For basic tin cells (basic=True), rows y=3..6 retain IC2's empty_cell tin backing (with an
     optional tinted glint at (6, 5)) and rows y=7..12 show the filled liquid window, matching
-    IC2NE's basic_water_cell / basic_lava_cell convention.
+    Machinera's basic_water_cell / basic_lava_cell convention.
     """
     img = Image.new("RGBA", (16, 16), PAL["transparent"])
     c0, c1, c2, c3 = window_palette
@@ -1713,8 +1713,8 @@ def draw_bucket_sprite(fluid_lo: RGBA, fluid_hi: RGBA) -> Image.Image:
 
 
 def gen_gas_and_bio_items() -> None:
-    # 4 Named Cells (reusing IC2NE's exact fluid_cell / empty_cell frame silhouette;
-    # biogas cell is provided directly by ic2:biogas_cell)
+    # 4 Named Cells (reusing Machinera's exact fluid_cell / empty_cell frame silhouette;
+    # biogas cell is provided directly by mhera:biogas_cell)
     # 1) Water Gas Cell (pale misty aqua-turquoise syngas wisps)
     water_gas_pal = (
         (232, 252, 255, 255),  # 0: luminous vapor highlight
@@ -1787,7 +1787,7 @@ def gen_gas_and_bio_items() -> None:
         TEX_ROOT / "item" / "culture_medium_cell.png",
     )
 
-    # 4) Basic Culture Medium Cell (IC2NE empty_cell tin frame + lower emerald liquid fill)
+    # 4) Basic Culture Medium Cell (Machinera empty_cell tin frame + lower emerald liquid fill)
     basic_culture_pat = [
         "1213",
         "0123",
@@ -1811,13 +1811,13 @@ def gen_gas_and_bio_items() -> None:
     save_png(draw_bucket_sprite((74, 174, 244, 255), (206, 242, 255, 255)), TEX_ROOT / "item" / "natural_gas_bucket.png")
     save_png(draw_bucket_sprite((46, 176, 98, 255), (146, 252, 182, 255)), TEX_ROOT / "item" / "culture_medium_bucket.png")
 
-    # PV Panel Power Upgrade (IC2NE-aligned 16x16 upgrade cartridge: metallic bevel casing,
+    # PV Panel Power Upgrade (Machinera-aligned 16x16 upgrade cartridge: metallic bevel casing,
     # 2 solar-gold top corner LEDs, 3 bottom gold pins, blue PV cell grid + gold sun/boost motif)
     save_png(draw_pv_power_upgrade(), TEX_ROOT / "item" / "pv_power_upgrade.png")
 
 
 def draw_pv_power_upgrade() -> Image.Image:
-    """Procedurally generate a 16x16 IC2NE-aligned upgrade cartridge for PV Panel Power Upgrade."""
+    """Procedurally generate a 16x16 Machinera-aligned upgrade cartridge for PV Panel Power Upgrade."""
     img = Image.new("RGBA", (16, 16), PAL["transparent"])
 
     outline = (0x18, 0x1E, 0x26, 255)
@@ -1850,7 +1850,7 @@ def draw_pv_power_upgrade() -> Image.Image:
     fill_rect(img, 2, 12, 11, 1, bot_bevel)
     px(img, 13, 12, outline)
 
-    # Bottom connector recess & 3 gold contact pins (identical pitch to IC2NE upgrades)
+    # Bottom connector recess & 3 gold contact pins (identical pitch to Machinera upgrades)
     fill_rect(img, 2, 13, 12, 1, recess_bar)
     fill_rect(img, 2, 14, 12, 1, outline)
     for pin_x in (3, 7, 11):
@@ -1946,7 +1946,7 @@ def gen_guis() -> Dict[str, dict]:
     draw_blocked_sky_14x14(g, 196, 64)
     save_png(g, TEX_ROOT / "gui" / "solar_panel.png")
     coords["solar_panel"] = {
-        "texture": "ecc2:textures/gui/solar_panel.png",
+        "texture": "ecera:textures/gui/solar_panel.png",
         "panel": [0, 0, 194, 168],
         "lcd": [18, 20, 158, 38],
         "sky_icon_pos": [24, 32, 14, 14],
@@ -1986,7 +1986,7 @@ def gen_guis() -> Dict[str, dict]:
     make_bevel_box(g, 180, 62, 24, 16, fill=PAL["lcd_bg2"], raised=True, hi=PAL["cyan_glow"], lo=PAL["cyan_dark"])
     save_png(g, TEX_ROOT / "gui" / "quantum_generator.png")
     coords["quantum_generator"] = {
-        "texture": "ecc2:textures/gui/quantum_generator.png",
+        "texture": "ecera:textures/gui/quantum_generator.png",
         "panel": [0, 0, 176, 193],
         "lcd": [10, 18, 156, 42],
         "led_pos": [152, 24, 10, 10],
@@ -2025,7 +2025,7 @@ def gen_guis() -> Dict[str, dict]:
     fill_rect(g, 224, 18, 10, 15, PAL["lcd_bg2"])
     save_png(g, TEX_ROOT / "gui" / "molecular_transformer.png")
     coords["molecular_transformer"] = {
-        "texture": "ecc2:textures/gui/molecular_transformer.png",
+        "texture": "ecera:textures/gui/molecular_transformer.png",
         "panel": [0, 0, 220, 193],
         "input_slot": {"frame": [19, 25, 18, 18], "item": [20, 26]},
         "output_slot": {"frame": [19, 67, 18, 18], "item": [20, 68]},
@@ -2085,7 +2085,7 @@ def gen_guis() -> Dict[str, dict]:
     px(g, 200, 84, PAL["outline"])
     save_png(g, TEX_ROOT / "gui" / "kinetic_generator.png")
     coords["kinetic_generator"] = {
-        "texture": "ecc2:textures/gui/kinetic_generator.png",
+        "texture": "ecera:textures/gui/kinetic_generator.png",
         "panel": [0, 0, 176, 166],
         "rotor_slot": {"frame": [79, 23, 18, 18], "item": [80, 24]},
         "tier_badge_pos": [134, 18, 34, 12],
@@ -2104,7 +2104,7 @@ def gen_guis() -> Dict[str, dict]:
         },
     }
 
-    # --- 7.5 giant_machine.png (256x236 FLAGSHIP SCI-FI IC2NE PANEL!) ---
+    # --- 7.5 giant_machine.png (256x236 FLAGSHIP SCI-FI Machinera PANEL!) ---
     g = draw_gui_panel(256, 236, seed=705, accent=PAL["cyan_glow"])
     # Header telemetry status pill (top-right)
     draw_lcd(g, 152, 4, 96, 11, accent=None, scanlines=False)
@@ -2214,7 +2214,7 @@ def gen_guis() -> Dict[str, dict]:
 
     save_png(g, TEX_ROOT / "gui" / "giant_machine.png")
     coords["giant_machine"] = {
-        "texture": "ecc2:textures/gui/giant_machine.png",
+        "texture": "ecera:textures/gui/giant_machine.png",
         "panel": [0, 0, 256, 236],
         "header_status_lcd": [152, 4, 96, 11],
         "input_slots": input_slots,
@@ -2277,7 +2277,7 @@ def gen_guis() -> Dict[str, dict]:
     draw_tank_overlay_sprite(g, 180, 68, 16, 50)
     save_png(g, TEX_ROOT / "gui" / "water_gas_machine.png")
     coords["water_gas_machine"] = {
-        "texture": "ecc2:textures/gui/water_gas_machine.png",
+        "texture": "ecera:textures/gui/water_gas_machine.png",
         "panel": [0, 0, 176, 180],
         "water_tank": {"frame": [12, 20, 20, 54], "fluid": [14, 22, 16, 50]},
         "water_cell_in": {"frame": [36, 20, 18, 18], "item": [37, 21]},
@@ -2320,7 +2320,7 @@ def gen_guis() -> Dict[str, dict]:
     draw_tank_overlay_sprite(g, 180, 36, 16, 50)
     save_png(g, TEX_ROOT / "gui" / "gas_furnace.png")
     coords["gas_furnace"] = {
-        "texture": "ecc2:textures/gui/gas_furnace.png",
+        "texture": "ecera:textures/gui/gas_furnace.png",
         "panel": [0, 0, 176, 166],
         "gas_tank": {"frame": [14, 20, 20, 54], "fluid": [16, 22, 16, 50]},
         "gas_cell_in": {"frame": [38, 20, 18, 18], "item": [39, 21]},
@@ -2353,7 +2353,7 @@ def gen_guis() -> Dict[str, dict]:
     draw_tank_overlay_sprite(g, 180, 36, 16, 50)
     save_png(g, TEX_ROOT / "gui" / "gas_generator.png")
     coords["gas_generator"] = {
-        "texture": "ecc2:textures/gui/gas_generator.png",
+        "texture": "ecera:textures/gui/gas_generator.png",
         "panel": [0, 0, 176, 166],
         "gas_tank": {"frame": [18, 20, 20, 54], "fluid": [20, 22, 16, 50]},
         "gas_cell_in": {"frame": [44, 20, 18, 18], "item": [45, 21]},
@@ -2392,7 +2392,7 @@ def gen_guis() -> Dict[str, dict]:
     draw_tank_overlay_sprite(g, 180, 36, 16, 50)
     save_png(g, TEX_ROOT / "gui" / "culture_incubator.png")
     coords["culture_incubator"] = {
-        "texture": "ecc2:textures/gui/culture_incubator.png",
+        "texture": "ecera:textures/gui/culture_incubator.png",
         "panel": [0, 0, 176, 180],
         "water_tank": {"frame": [12, 20, 20, 54], "fluid": [14, 22, 16, 50]},
         "water_cell_in": {"frame": [36, 20, 18, 18], "item": [37, 21]},
@@ -2436,7 +2436,7 @@ def gen_guis() -> Dict[str, dict]:
     draw_tank_overlay_sprite(g, 180, 36, 16, 50)
     save_png(g, TEX_ROOT / "gui" / "organic_fermenter.png")
     coords["organic_fermenter"] = {
-        "texture": "ecc2:textures/gui/organic_fermenter.png",
+        "texture": "ecera:textures/gui/organic_fermenter.png",
         "panel": [0, 0, 176, 180],
         "culture_tank": {"frame": [12, 20, 20, 54], "fluid": [14, 22, 16, 50]},
         "culture_cell_in": {"frame": [36, 20, 18, 18], "item": [37, 21]},
@@ -2493,8 +2493,8 @@ def gen_guis() -> Dict[str, dict]:
     save_png(add_item_outline(spread), TEX_ROOT / "gui" / "icons" / "auto_spread.png")
 
     coords["icons"] = {
-        "port_access_gear": {"texture": "ecc2:textures/gui/icons/port_access_gear.png", "size": [16, 16]},
-        "auto_spread": {"texture": "ecc2:textures/gui/icons/auto_spread.png", "size": [16, 16]},
+        "port_access_gear": {"texture": "ecera:textures/gui/icons/port_access_gear.png", "size": [16, 16]},
+        "auto_spread": {"texture": "ecera:textures/gui/icons/auto_spread.png", "size": [16, 16]},
     }
 
     GUI_COORDS_PATH.write_text(json.dumps(coords, indent=2) + "\n", encoding="utf-8")

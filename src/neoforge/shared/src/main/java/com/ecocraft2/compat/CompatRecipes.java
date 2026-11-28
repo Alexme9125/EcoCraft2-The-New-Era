@@ -133,7 +133,7 @@ public final class CompatRecipes {
         Fluid waterGas = Ecc2Fluids.WATER_GAS_SOURCE.get();
         return List.of(
                 new FluidProcessEntry(
-                        "ecc2:water_gas/coal_dust",
+                        "ecera:water_gas/coal_dust",
                         coalInputs,
                         Fluids.WATER,
                         WaterGasEngine.WATER_PER_OP_MB,
@@ -142,7 +142,7 @@ public final class CompatRecipes {
                         WaterGasEngine.BASE_EU_PER_OP,
                         WaterGasEngine.BASE_TICKS_PER_OP,
                         Component.translatable(
-                                "jei.ecc2.water_gas.note",
+                                "jei.ecera.water_gas.note",
                                 Ecc2DataSync.formatInt(Ecc2Config.waterGasSolarEuPerTick()))));
     }
 
@@ -156,7 +156,7 @@ public final class CompatRecipes {
             if (fluid != Fluids.EMPTY) {
                 list.add(
                         new GasFurnaceFuelEntry(
-                                "ecc2:gas_furnace/" + spec.name().toLowerCase(Locale.ROOT),
+                                "ecera:gas_furnace/" + spec.name().toLowerCase(Locale.ROOT),
                                 spec,
                                 fluid,
                                 mbPerItem,
@@ -186,7 +186,7 @@ public final class CompatRecipes {
                         };
                 list.add(
                         new GasGenFuelEntry(
-                                "ecc2:gas_generator/" + spec.name().toLowerCase(Locale.ROOT),
+                                "ecera:gas_generator/" + spec.name().toLowerCase(Locale.ROOT),
                                 spec,
                                 fluid,
                                 1000,
@@ -200,10 +200,10 @@ public final class CompatRecipes {
     /** Builds the canonical Culture Incubator recipe entry from {@code #ecc2:culture_nutrients}. */
     public static List<FluidProcessEntry> cultureIncubatorRecipes() {
         Fluid culture = Ecc2Fluids.CULTURE_MEDIUM_SOURCE.get();
-        Component note = Component.translatable("jei.ecc2.culture_incubator.note");
+        Component note = Component.translatable("jei.ecera.culture_incubator.note");
         return List.of(
                 new FluidProcessEntry(
-                        "ecc2:culture_incubator/nutrients",
+                        "ecera:culture_incubator/nutrients",
                         collectCultureNutrientInputs(),
                         Fluids.WATER,
                         CultureIncubatorEngine.WATER_PER_OP_MB,
@@ -248,7 +248,7 @@ public final class CompatRecipes {
             String itemKey = GiantGasPlatform.itemId(stack).replace(':', '_');
             list.add(
                     new FermenterEntry(
-                            "ecc2:organic_fermenter/" + itemKey,
+                            "ecera:organic_fermenter/" + itemKey,
                             stack,
                             nutrition,
                             remainder,
@@ -274,7 +274,7 @@ public final class CompatRecipes {
         var list = new ArrayList<Ic2BridgeEntry>();
 
         List<ItemStack> canners =
-                resolveItemStacks("ic2:canner", "ic2:solid_canner", "ic2:classic_canner");
+                resolveItemStacks("mhera:canner", "mhera:solid_canner", "mhera:classic_canner");
         int canIdx = 0;
         for (var entry : Ecc2ExternalRecipes.canningBottleRecipes()) {
             List<ItemStack> ingredient =
@@ -285,15 +285,15 @@ public final class CompatRecipes {
             if (!ingredient.isEmpty() && !container.isEmpty() && !output.isEmpty()) {
                 list.add(
                         new Ic2BridgeEntry(
-                                "ecc2:ic2_recipes/canning_" + (canIdx++),
-                                Component.translatable("jei.ecc2.ic2_bridge.canning"),
+                                "ecera:mhera_recipes/canning_" + (canIdx++),
+                                Component.translatable("jei.ecera.mhera_bridge.canning"),
                                 List.of(ingredient, container),
                                 output,
                                 canners));
             }
         }
 
-        List<ItemStack> compressors = new ArrayList<>(resolveItemStacks("ic2:compressor"));
+        List<ItemStack> compressors = new ArrayList<>(resolveItemStacks("mhera:compressor"));
         compressors.add(new ItemStack(GiantGasModule.GIANT_COMPRESSOR_UNIT.get()));
         int compIdx = 0;
         for (var entry : Ecc2ExternalRecipes.compressorRecipes()) {
@@ -302,15 +302,15 @@ public final class CompatRecipes {
             if (!input.isEmpty() && !output.isEmpty()) {
                 list.add(
                         new Ic2BridgeEntry(
-                                "ecc2:ic2_recipes/compressor_" + (compIdx++),
-                                Component.translatable("jei.ecc2.ic2_bridge.compressor"),
+                                "ecera:mhera_recipes/compressor_" + (compIdx++),
+                                Component.translatable("jei.ecera.mhera_bridge.compressor"),
                                 List.of(input),
                                 output,
                                 compressors));
             }
         }
 
-        List<ItemStack> formers = resolveItemStacks("ic2:metal_former");
+        List<ItemStack> formers = resolveItemStacks("mhera:metal_former");
         int extIdx = 0;
         for (var entry : Ecc2ExternalRecipes.extruderRecipes()) {
             List<ItemStack> input = resolveSpecStacks(entry.inputId(), entry.inputCount());
@@ -318,8 +318,8 @@ public final class CompatRecipes {
             if (!input.isEmpty() && !output.isEmpty()) {
                 list.add(
                         new Ic2BridgeEntry(
-                                "ecc2:ic2_recipes/extruder_" + (extIdx++),
-                                Component.translatable("jei.ecc2.ic2_bridge.extruder"),
+                                "ecera:mhera_recipes/extruder_" + (extIdx++),
+                                Component.translatable("jei.ecera.mhera_bridge.extruder"),
                                 List.of(input),
                                 output,
                                 formers));
@@ -333,11 +333,11 @@ public final class CompatRecipes {
         var list =
                 new ArrayList<ItemStack>(
                         resolveItemStacks(
-                                "ic2:canner",
-                                "ic2:solid_canner",
-                                "ic2:classic_canner",
-                                "ic2:compressor",
-                                "ic2:metal_former"));
+                                "mhera:canner",
+                                "mhera:solid_canner",
+                                "mhera:classic_canner",
+                                "mhera:compressor",
+                                "mhera:metal_former"));
         list.add(new ItemStack(GiantGasModule.GIANT_COMPRESSOR_UNIT.get()));
         return list;
     }
@@ -358,7 +358,7 @@ public final class CompatRecipes {
             }
             list.add(
                     new GiantMachineEntry(
-                            "ecc2:giant_machine/" + spec.id(),
+                            "ecera:giant_machine/" + spec.id(),
                             type,
                             unitCube,
                             sourceIcon,
@@ -392,15 +392,15 @@ public final class CompatRecipes {
         var pages = new ArrayList<InfoPage>();
         pages.add(
                 new InfoPage(
-                        "ecc2:info/methane_ice",
+                        "ecera:info/methane_ice",
                         List.of(
                                 new ItemStack(GiantGasModule.METHANE_ICE_CLUSTER_ITEM.get()),
                                 new ItemStack(Ecc2Fluids.NATURAL_GAS_CELL.get())),
                         List.of(
-                                Component.translatable("tooltip.ecc2.methane_ice_cluster"),
-                                Component.translatable("jei.ecc2.info.methane_ice.canning"),
+                                Component.translatable("tooltip.ecera.methane_ice_cluster"),
+                                Component.translatable("jei.ecera.info.methane_ice.canning"),
                                 Component.translatable(
-                                        "jei.ecc2.info.methane_ice.fuel",
+                                        "jei.ecera.info.methane_ice.fuel",
                                         Ecc2DataSync.formatInt(Ecc2Config.gasFurnaceGasPerItem()),
                                         Ecc2DataSync.formatInt(
                                                 Ecc2Config.naturalGasEnergyPerBucket()),
@@ -408,12 +408,12 @@ public final class CompatRecipes {
                                                 Ecc2Config.naturalGasOutputEuPerTick())))));
         pages.add(
                 new InfoPage(
-                        "ecc2:info/giant_machines",
+                        "ecera:info/giant_machines",
                         giantMachineCatalysts(),
                         List.of(
-                                Component.translatable("tooltip.ecc2.giant_unit"),
-                                Component.translatable("tooltip.ecc2.giant_unit.ports"),
-                                Component.translatable("jei.ecc2.info.giant_machines.usage"))));
+                                Component.translatable("tooltip.ecera.giant_unit"),
+                                Component.translatable("tooltip.ecera.giant_unit.ports"),
+                                Component.translatable("jei.ecera.info.giant_machines.usage"))));
         var cultureCells = new ArrayList<ItemStack>();
         cultureCells.add(new ItemStack(Ecc2Fluids.CULTURE_MEDIUM_CELL.get()));
         cultureCells.add(new ItemStack(Ecc2Fluids.BASIC_CULTURE_MEDIUM_CELL.get()));
@@ -424,21 +424,21 @@ public final class CompatRecipes {
         }
         pages.add(
                 new InfoPage(
-                        "ecc2:info/culture_cells",
+                        "ecera:info/culture_cells",
                         cultureCells,
                         List.of(
-                                Component.translatable("tooltip.ecc2.water_gas_machine"),
-                                Component.translatable("tooltip.ecc2.culture_incubator"),
-                                Component.translatable("tooltip.ecc2.organic_fermenter"))));
+                                Component.translatable("tooltip.ecera.water_gas_machine"),
+                                Component.translatable("tooltip.ecera.culture_incubator"),
+                                Component.translatable("tooltip.ecera.organic_fermenter"))));
         pages.add(
                 new InfoPage(
-                        "ecc2:info/pv_power_upgrade",
+                        "ecera:info/pv_power_upgrade",
                         List.of(
                                 new ItemStack(GiantGasModule.PV_POWER_UPGRADE.get()),
                                 new ItemStack(GiantGasModule.WATER_GAS_MACHINE_ITEM.get())),
                         List.of(
-                                Component.translatable("tooltip.ecc2.pv_power_upgrade"),
-                                Component.translatable("tooltip.ecc2.water_gas_machine"))));
+                                Component.translatable("tooltip.ecera.pv_power_upgrade"),
+                                Component.translatable("tooltip.ecera.water_gas_machine"))));
         return pages;
     }
 
@@ -446,7 +446,7 @@ public final class CompatRecipes {
     public static Component giantSpecLine(GiantMachineEntry entry) {
         if (entry.waterPerOpMb() > 0) {
             return Component.translatable(
-                    "jei.ecc2.giant.spec_water",
+                    "jei.ecera.giant.spec_water",
                     entry.lanes(),
                     entry.batchPerLane(),
                     entry.baseEuPerTick(),
@@ -455,7 +455,7 @@ public final class CompatRecipes {
         }
         if (entry.scrapChanceDenom() > 0) {
             return Component.translatable(
-                    "jei.ecc2.giant.spec_scrap",
+                    "jei.ecera.giant.spec_scrap",
                     entry.lanes(),
                     entry.batchPerLane(),
                     entry.baseEuPerTick(),
@@ -463,7 +463,7 @@ public final class CompatRecipes {
                     entry.scrapChanceDenom());
         }
         return Component.translatable(
-                "jei.ecc2.giant.spec",
+                "jei.ecera.giant.spec",
                 entry.lanes(),
                 entry.batchPerLane(),
                 entry.baseEuPerTick(),
@@ -473,14 +473,14 @@ public final class CompatRecipes {
     /** Formats a Giant Machine's power tier and port summary line. */
     public static Component giantPowerLine(GiantMachineEntry entry) {
         return Component.translatable(
-                "jei.ecc2.giant.power",
+                "jei.ecera.giant.power",
                 entry.baseTier(),
                 Ecc2DataSync.formatInt(entry.maxPacketEu()));
     }
 
     private static List<ItemStack> collectCoalDustInputs() {
         Map<Item, ItemStack> unique = new LinkedHashMap<>();
-        Item ic2CoalDust = GiantGasPlatform.findItem("ic2:coal_dust");
+        Item ic2CoalDust = GiantGasPlatform.findItem("mhera:coal_dust");
         if (ic2CoalDust != null && ic2CoalDust != Items.AIR) {
             unique.put(ic2CoalDust, new ItemStack(ic2CoalDust));
         }

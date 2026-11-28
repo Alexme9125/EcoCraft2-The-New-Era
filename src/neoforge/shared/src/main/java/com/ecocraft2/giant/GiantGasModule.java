@@ -383,51 +383,51 @@ public final class GiantGasModule {
         if (item == MEGASTRUCTURE_COMPONENT.get()) {
             event.getToolTip()
                     .add(
-                            Component.translatable("tooltip.ecc2.megastructure_component")
+                            Component.translatable("tooltip.ecera.megastructure_component")
                                     .withStyle(ChatFormatting.GRAY));
         } else if (item instanceof BlockItem bi && bi.getBlock() instanceof GiantUnitBlock) {
             event.getToolTip()
                     .add(
-                            Component.translatable("tooltip.ecc2.giant_unit")
+                            Component.translatable("tooltip.ecera.giant_unit")
                                     .withStyle(ChatFormatting.GRAY));
             event.getToolTip()
                     .add(
-                            Component.translatable("tooltip.ecc2.giant_unit.ports")
+                            Component.translatable("tooltip.ecera.giant_unit.ports")
                                     .withStyle(ChatFormatting.AQUA));
         } else if (item == WATER_GAS_MACHINE_ITEM.get()) {
             event.getToolTip()
                     .add(
-                            Component.translatable("tooltip.ecc2.water_gas_machine")
+                            Component.translatable("tooltip.ecera.water_gas_machine")
                                     .withStyle(ChatFormatting.GRAY));
         } else if (item == PV_POWER_UPGRADE.get()) {
             event.getToolTip()
                     .add(
-                            Component.translatable("tooltip.ecc2.pv_power_upgrade")
+                            Component.translatable("tooltip.ecera.pv_power_upgrade")
                                     .withStyle(ChatFormatting.GRAY));
         } else if (item == GAS_FURNACE_ITEM.get()) {
             event.getToolTip()
                     .add(
-                            Component.translatable("tooltip.ecc2.gas_furnace")
+                            Component.translatable("tooltip.ecera.gas_furnace")
                                     .withStyle(ChatFormatting.GRAY));
         } else if (item == GAS_GENERATOR_ITEM.get()) {
             event.getToolTip()
                     .add(
-                            Component.translatable("tooltip.ecc2.gas_generator")
+                            Component.translatable("tooltip.ecera.gas_generator")
                                     .withStyle(ChatFormatting.GRAY));
         } else if (item == METHANE_ICE_CLUSTER_ITEM.get()) {
             event.getToolTip()
                     .add(
-                            Component.translatable("tooltip.ecc2.methane_ice_cluster")
+                            Component.translatable("tooltip.ecera.methane_ice_cluster")
                                     .withStyle(ChatFormatting.AQUA));
         } else if (item == CULTURE_INCUBATOR_ITEM.get()) {
             event.getToolTip()
                     .add(
-                            Component.translatable("tooltip.ecc2.culture_incubator")
+                            Component.translatable("tooltip.ecera.culture_incubator")
                                     .withStyle(ChatFormatting.GRAY));
         } else if (item == ORGANIC_FERMENTER_ITEM.get()) {
             event.getToolTip()
                     .add(
-                            Component.translatable("tooltip.ecc2.organic_fermenter")
+                            Component.translatable("tooltip.ecera.organic_fermenter")
                                     .withStyle(ChatFormatting.GRAY));
         }
     }

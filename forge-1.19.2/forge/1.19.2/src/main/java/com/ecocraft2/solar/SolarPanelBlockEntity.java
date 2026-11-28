@@ -319,7 +319,7 @@ public final class SolarPanelBlockEntity extends BlockEntity
 
     @Override
     public Component getDisplayName() {
-        return Component.translatable("container.ecc2." + solarTier.blockPath());
+        return Component.translatable("container.ecera." + solarTier.blockPath());
     }
 
     @Override

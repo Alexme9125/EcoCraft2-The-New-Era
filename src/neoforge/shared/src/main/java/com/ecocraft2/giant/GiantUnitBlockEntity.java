@@ -1352,30 +1352,30 @@ public final class GiantUnitBlockEntity extends Ecc2BlockEntityBase
 
     @Override
     protected void saveState(Ecc2DataWriter out) {
-        out.putBoolean("ecc2_formed", formed);
-        out.putString("ecc2_role", role.getSerializedName());
-        out.putString("ecc2_facing", structureFacing.getSerializedName());
-        out.putBoolean("ecc2_has_core", corePos != null);
+        out.putBoolean("ecera_formed", formed);
+        out.putString("ecera_role", role.getSerializedName());
+        out.putString("ecera_facing", structureFacing.getSerializedName());
+        out.putBoolean("ecera_has_core", corePos != null);
         if (corePos != null) {
-            out.putInt("ecc2_core_x", corePos.getX());
-            out.putInt("ecc2_core_y", corePos.getY());
-            out.putInt("ecc2_core_z", corePos.getZ());
+            out.putInt("ecera_core_x", corePos.getX());
+            out.putInt("ecera_core_y", corePos.getY());
+            out.putInt("ecera_core_z", corePos.getZ());
         }
         if (role == GiantBlockRole.CORE) {
-            out.putItems("ecc2_items", items);
-            out.putDouble("ecc2_eu", engine.storedEu());
-            out.putInt("ecc2_water", engine.waterMb());
-            out.putInt("ecc2_ports", engine.portPermissions().packed());
-            out.putBoolean("ecc2_auto_spread", engine.isAutoSpreadInputs());
-            out.putIntArray("ecc2_lane_prog", engine.copyLaneProgress());
-            out.putIntArray("ecc2_lane_batch", engine.copyLaneBatchSizes());
+            out.putItems("ecera_items", items);
+            out.putDouble("ecera_eu", engine.storedEu());
+            out.putInt("ecera_water", engine.waterMb());
+            out.putInt("ecera_ports", engine.portPermissions().packed());
+            out.putBoolean("ecera_auto_spread", engine.isAutoSpreadInputs());
+            out.putIntArray("ecera_lane_prog", engine.copyLaneProgress());
+            out.putIntArray("ecera_lane_batch", engine.copyLaneBatchSizes());
         }
     }
 
     @Override
     protected void loadState(Ecc2DataReader in) {
-        formed = in.getBoolean("ecc2_formed", false);
-        String roleStr = in.getString("ecc2_role", "unformed");
+        formed = in.getBoolean("ecera_formed", false);
+        String roleStr = in.getString("ecera_role", "unformed");
         role = GiantBlockRole.UNFORMED;
         for (GiantBlockRole candidate : GiantBlockRole.values()) {
             if (candidate.getSerializedName().equals(roleStr)) {
@@ -1383,31 +1383,31 @@ public final class GiantUnitBlockEntity extends Ecc2BlockEntityBase
                 break;
             }
         }
-        String faceStr = in.getString("ecc2_facing", "north");
+        String faceStr = in.getString("ecera_facing", "north");
         Direction parsed = Direction.byName(faceStr);
         structureFacing =
                 parsed != null && parsed.getAxis().isHorizontal() ? parsed : Direction.NORTH;
-        if (in.getBoolean("ecc2_has_core", false)) {
+        if (in.getBoolean("ecera_has_core", false)) {
             corePos =
                     new BlockPos(
-                            in.getInt("ecc2_core_x", worldPosition.getX()),
-                            in.getInt("ecc2_core_y", worldPosition.getY()),
-                            in.getInt("ecc2_core_z", worldPosition.getZ()));
+                            in.getInt("ecera_core_x", worldPosition.getX()),
+                            in.getInt("ecera_core_y", worldPosition.getY()),
+                            in.getInt("ecera_core_z", worldPosition.getZ()));
         } else {
             corePos = null;
         }
         if (role == GiantBlockRole.CORE) {
-            in.loadItems("ecc2_items", items);
+            in.loadItems("ecera_items", items);
             engine = new GiantMachineEngine(machineType.effectiveSpec());
             engine.setMaxBatchPerLane(Ecc2Config.giantMaxBatchPerLane());
             engine.setUpgrades(Ecc2UpgradeHelper.readProfile(upgradeStacks()));
-            engine.setStoredEu(in.getDouble("ecc2_eu", 0.0));
-            engine.setWaterMb(in.getInt("ecc2_water", 0));
-            engine.portPermissions().setPacked(in.getInt("ecc2_ports", 0));
-            engine.setAutoSpreadInputs(in.getBoolean("ecc2_auto_spread", false));
+            engine.setStoredEu(in.getDouble("ecera_eu", 0.0));
+            engine.setWaterMb(in.getInt("ecera_water", 0));
+            engine.portPermissions().setPacked(in.getInt("ecera_ports", 0));
+            engine.setAutoSpreadInputs(in.getBoolean("ecera_auto_spread", false));
             pendingInputSpread = false;
-            int[] savedProg = in.getIntArray("ecc2_lane_prog", GiantMachineEngine.LANE_COUNT);
-            int[] savedBatch = in.getIntArray("ecc2_lane_batch", GiantMachineEngine.LANE_COUNT);
+            int[] savedProg = in.getIntArray("ecera_lane_prog", GiantMachineEngine.LANE_COUNT);
+            int[] savedBatch = in.getIntArray("ecera_lane_batch", GiantMachineEngine.LANE_COUNT);
             engine.restoreLanes(savedProg, savedBatch);
             pendingPortVisualSync = true;
         }

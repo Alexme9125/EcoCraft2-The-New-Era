@@ -53,7 +53,7 @@ public final class CompatTelemetry {
     private static final int KIND_CULTURE_INCUBATOR = 9;
     private static final int KIND_ORGANIC_FERMENTER = 10;
 
-    private static final String KEY_KIND = "Ecc2Kind";
+    private static final String KEY_KIND = "EceraKind";
 
     private CompatTelemetry() {}
 
@@ -272,7 +272,7 @@ public final class CompatTelemetry {
                     emitGasFurnace(
                             out,
                             true,
-                            tag.getString("FuelKey", "gui.ecc2.gas.empty"),
+                            tag.getString("FuelKey", "gui.ecera.gas.empty"),
                             tag.getInt("F1Amt", 0),
                             tag.getInt("F1Cap", GasFurnaceEngine.GAS_TANK_CAPACITY_MB),
                             tag.getInt("Prog", 0));
@@ -283,7 +283,7 @@ public final class CompatTelemetry {
                             tag.getLong("Eu", 0L),
                             tag.getLong("EuMax", Math.round(GasGeneratorEngine.EU_CAPACITY)),
                             tag.getLong("Gen", 0L),
-                            tag.getString("FuelKey", "gui.ecc2.gas.empty"),
+                            tag.getString("FuelKey", "gui.ecera.gas.empty"),
                             tag.getInt("F1Amt", 0),
                             tag.getInt("F1Cap", GasGeneratorEngine.GAS_TANK_CAPACITY_MB));
             case KIND_CULTURE_INCUBATOR ->
@@ -454,17 +454,17 @@ public final class CompatTelemetry {
             int tier) {
         out.accept(
                 Component.translatable(
-                        jade ? "jade.ecc2.eu" : "top.ecc2.eu",
+                        jade ? "jade.ecera.eu" : "top.ecera.eu",
                         Ecc2DataSync.formatInt(eu),
                         Ecc2DataSync.formatInt(euMax)));
         out.accept(skyComponent(sky));
         out.accept(
                 Component.translatable(
-                        jade ? "jade.ecc2.generating" : "top.ecc2.generating",
+                        jade ? "jade.ecera.generating" : "top.ecera.generating",
                         Ecc2DataSync.formatInt(generating)));
         out.accept(
                 Component.translatable(
-                                "gui.ecc2.solar.max_output", Ecc2DataSync.formatInt(maxOut), tier)
+                                "gui.ecera.solar.max_output", Ecc2DataSync.formatInt(maxOut), tier)
                         .withStyle(ChatFormatting.GRAY));
     }
 
@@ -479,21 +479,21 @@ public final class CompatTelemetry {
         out.accept(
                 Component.translatable(
                                 active
-                                        ? "gui.ecc2.quantum_generator.active"
-                                        : "gui.ecc2.quantum_generator.stopped")
+                                        ? "gui.ecera.quantum_generator.active"
+                                        : "gui.ecera.quantum_generator.stopped")
                         .withStyle(active ? ChatFormatting.GREEN : ChatFormatting.RED));
         out.accept(
                 Component.translatable(
-                        jade ? "jade.ecc2.generating" : "top.ecc2.generating",
+                        jade ? "jade.ecera.generating" : "top.ecera.generating",
                         Ecc2DataSync.formatInt(active ? production : 0)));
         Component tierText =
                 tier >= 6
-                        ? Component.translatable("gui.ecc2.quantum_generator.tier_max")
+                        ? Component.translatable("gui.ecera.quantum_generator.tier_max")
                         : Component.literal(String.valueOf(tier));
         long packetCap = Math.round(SolarTier.packetSize(tier));
         out.accept(
                 Component.translatable(
-                                "gui.ecc2.quantum_generator.tier",
+                                "gui.ecera.quantum_generator.tier",
                                 tierText,
                                 Ecc2DataSync.formatInt(packetCap))
                         .withStyle(ChatFormatting.AQUA));
@@ -503,7 +503,7 @@ public final class CompatTelemetry {
                         : String.format(Locale.ROOT, "%.1f", perPacket);
         out.accept(
                 Component.translatable(
-                                "gui.ecc2.quantum_generator.packets", packets, perPacketStr)
+                                "gui.ecera.quantum_generator.packets", packets, perPacketStr)
                         .withStyle(ChatFormatting.GRAY));
     }
 
@@ -519,25 +519,25 @@ public final class CompatTelemetry {
         if (working || blocked || euTotal > 0L) {
             out.accept(
                     Component.translatable(
-                            jade ? "jade.ecc2.progress" : "top.ecc2.progress", progressPct));
+                            jade ? "jade.ecera.progress" : "top.ecera.progress", progressPct));
             if (euTotal > 0L) {
                 out.accept(
                         Component.translatable(
-                                jade ? "jade.ecc2.eu" : "top.ecc2.eu",
+                                jade ? "jade.ecera.eu" : "top.ecera.eu",
                                 Ecc2DataSync.formatInt(euUsed),
                                 Ecc2DataSync.formatInt(euTotal)));
             }
             out.accept(
                     Component.translatable(
-                                    "gui.ecc2.mt.input_eu", Ecc2DataSync.formatInt(euIn))
+                                    "gui.ecera.mt.input_eu", Ecc2DataSync.formatInt(euIn))
                             .withStyle(ChatFormatting.GREEN));
             if (blocked) {
                 out.accept(
-                        Component.translatable("gui.ecc2.mt.output_full")
+                        Component.translatable("gui.ecera.mt.output_full")
                                 .withStyle(ChatFormatting.GOLD));
             }
         } else {
-            out.accept(Component.translatable("gui.ecc2.mt.idle").withStyle(ChatFormatting.GRAY));
+            out.accept(Component.translatable("gui.ecera.mt.idle").withStyle(ChatFormatting.GRAY));
         }
     }
 
@@ -555,7 +555,7 @@ public final class CompatTelemetry {
         out.accept(kineticTierComponent(tier).withStyle(ChatFormatting.AQUA));
         out.accept(
                 Component.translatable(
-                        jade ? "jade.ecc2.kinetic_ku" : "top.ecc2.kinetic_ku",
+                        jade ? "jade.ecera.kinetic_ku" : "top.ecera.kinetic_ku",
                         Ecc2DataSync.formatInt(ku)));
         if (hasRotor) {
             if (rotorDescId != null && !rotorDescId.isEmpty()) {
@@ -565,33 +565,33 @@ public final class CompatTelemetry {
                                 .append(
                                         Component.translatable(
                                                 jade
-                                                        ? "jade.ecc2.rotor_life"
-                                                        : "top.ecc2.rotor_life",
+                                                        ? "jade.ecera.rotor_life"
+                                                        : "top.ecera.rotor_life",
                                                 String.format(Locale.ROOT, "%.1f", rotorPct),
                                                 String.format(Locale.ROOT, "%.1f", rotorHours))));
             } else {
                 out.accept(
                         Component.translatable(
-                                jade ? "jade.ecc2.rotor_life" : "top.ecc2.rotor_life",
+                                jade ? "jade.ecera.rotor_life" : "top.ecera.rotor_life",
                                 String.format(Locale.ROOT, "%.1f", rotorPct),
                                 String.format(Locale.ROOT, "%.1f", rotorHours)));
             }
         } else {
             out.accept(
-                    Component.translatable("gui.ecc2.kinetic.no_rotor")
+                    Component.translatable("gui.ecera.kinetic.no_rotor")
                             .withStyle(ChatFormatting.GRAY));
         }
         if (overWind || status == AdvancedKineticPhysics.Status.OVERWIND) {
             out.accept(
-                    Component.translatable("gui.ecc2.kinetic.overwind")
+                    Component.translatable("gui.ecera.kinetic.overwind")
                             .withStyle(ChatFormatting.RED));
         } else if (status == AdvancedKineticPhysics.Status.OBSTRUCTED) {
             out.accept(
-                    Component.translatable("gui.ecc2.kinetic.obstructed")
+                    Component.translatable("gui.ecera.kinetic.obstructed")
                             .withStyle(ChatFormatting.GOLD));
         } else if (status == AdvancedKineticPhysics.Status.NO_WATER) {
             out.accept(
-                    Component.translatable("gui.ecc2.kinetic.no_water")
+                    Component.translatable("gui.ecera.kinetic.no_water")
                             .withStyle(ChatFormatting.GOLD));
         }
     }
@@ -611,39 +611,39 @@ public final class CompatTelemetry {
             PortAccessMode cornerMode) {
         if (!formed) {
             out.accept(
-                    Component.translatable("gui.ecc2.giant.unformed")
+                    Component.translatable("gui.ecera.giant.unformed")
                             .withStyle(ChatFormatting.GOLD));
             return;
         }
-        out.accept(Component.translatable("gui.ecc2.giant.formed").withStyle(ChatFormatting.GREEN));
+        out.accept(Component.translatable("gui.ecera.giant.formed").withStyle(ChatFormatting.GREEN));
         out.accept(
                 Component.translatable(
-                        jade ? "jade.ecc2.eu" : "top.ecc2.eu",
+                        jade ? "jade.ecera.eu" : "top.ecera.eu",
                         Ecc2DataSync.formatInt(eu),
                         Ecc2DataSync.formatInt(euMax)));
         if (jade) {
             out.accept(
                     Component.translatable(
-                            "jade.ecc2.giant_lanes", activeOps, Ecc2DataSync.formatInt(euDraw)));
+                            "jade.ecera.giant_lanes", activeOps, Ecc2DataSync.formatInt(euDraw)));
         } else {
-            out.accept(Component.translatable("top.ecc2.giant_lanes", activeOps));
+            out.accept(Component.translatable("top.ecera.giant_lanes", activeOps));
             out.accept(
                     Component.translatable(
-                                    "gui.ecc2.giant.eu_draw", Ecc2DataSync.formatInt(euDraw))
+                                    "gui.ecera.giant.eu_draw", Ecc2DataSync.formatInt(euDraw))
                             .withStyle(ChatFormatting.GRAY));
         }
         if (usesWater) {
             out.accept(
                     Component.translatable(
-                            jade ? "jade.ecc2.fluid" : "top.ecc2.fluid",
-                            Component.translatable("gui.ecc2.gas.water"),
+                            jade ? "jade.ecera.fluid" : "top.ecera.fluid",
+                            Component.translatable("gui.ecera.gas.water"),
                             Ecc2DataSync.formatInt(waterMb),
                             Ecc2DataSync.formatInt(waterCap)));
         }
         if (cornerPort != null && cornerMode != null) {
             out.accept(
                     Component.translatable(
-                                    jade ? "jade.ecc2.giant_port" : "top.ecc2.giant_port",
+                                    jade ? "jade.ecera.giant_port" : "top.ecera.giant_port",
                                     portName(cornerPort),
                                     portModeName(cornerMode))
                             .withStyle(portModeColor(cornerMode)));
@@ -664,32 +664,32 @@ public final class CompatTelemetry {
             int progressPct) {
         out.accept(
                 Component.translatable(
-                        jade ? "jade.ecc2.eu" : "top.ecc2.eu",
+                        jade ? "jade.ecera.eu" : "top.ecera.eu",
                         Ecc2DataSync.formatInt(eu),
                         Ecc2DataSync.formatInt(euMax)));
         out.accept(
                 (solarActive
                                 ? Component.translatable(
-                                        "gui.ecc2.gas.solar_active",
+                                        "gui.ecera.gas.solar_active",
                                         WaterGasEngine.formatSolarRateDeci(solarDeciEuPerTick))
-                                : Component.translatable("gui.ecc2.gas.solar_inactive"))
+                                : Component.translatable("gui.ecera.gas.solar_inactive"))
                         .withStyle(solarActive ? ChatFormatting.YELLOW : ChatFormatting.GRAY));
         out.accept(
                 Component.translatable(
-                        jade ? "jade.ecc2.fluid" : "top.ecc2.fluid",
-                        Component.translatable("gui.ecc2.gas.water"),
+                        jade ? "jade.ecera.fluid" : "top.ecera.fluid",
+                        Component.translatable("gui.ecera.gas.water"),
                         Ecc2DataSync.formatInt(waterMb),
                         Ecc2DataSync.formatInt(waterCap)));
         out.accept(
                 Component.translatable(
-                        jade ? "jade.ecc2.fluid" : "top.ecc2.fluid",
-                        Component.translatable("gui.ecc2.gas.water_gas"),
+                        jade ? "jade.ecera.fluid" : "top.ecera.fluid",
+                        Component.translatable("gui.ecera.gas.water_gas"),
                         Ecc2DataSync.formatInt(gasMb),
                         Ecc2DataSync.formatInt(gasCap)));
         if (progressPct > 0) {
             out.accept(
                     Component.translatable(
-                            jade ? "jade.ecc2.progress" : "top.ecc2.progress", progressPct));
+                            jade ? "jade.ecera.progress" : "top.ecera.progress", progressPct));
         }
     }
 
@@ -702,14 +702,14 @@ public final class CompatTelemetry {
             int progressPct) {
         out.accept(
                 Component.translatable(
-                        jade ? "jade.ecc2.fluid" : "top.ecc2.fluid",
+                        jade ? "jade.ecera.fluid" : "top.ecera.fluid",
                         Component.translatable(fuelKey),
                         Ecc2DataSync.formatInt(gasMb),
                         Ecc2DataSync.formatInt(gasCap)));
         if (progressPct > 0) {
             out.accept(
                     Component.translatable(
-                            jade ? "jade.ecc2.progress" : "top.ecc2.progress", progressPct));
+                            jade ? "jade.ecera.progress" : "top.ecera.progress", progressPct));
         }
     }
 
@@ -724,16 +724,16 @@ public final class CompatTelemetry {
             int gasCap) {
         out.accept(
                 Component.translatable(
-                        jade ? "jade.ecc2.eu" : "top.ecc2.eu",
+                        jade ? "jade.ecera.eu" : "top.ecera.eu",
                         Ecc2DataSync.formatInt(eu),
                         Ecc2DataSync.formatInt(euMax)));
         out.accept(
                 Component.translatable(
-                        jade ? "jade.ecc2.generating" : "top.ecc2.generating",
+                        jade ? "jade.ecera.generating" : "top.ecera.generating",
                         Ecc2DataSync.formatInt(genEuTick)));
         out.accept(
                 Component.translatable(
-                        jade ? "jade.ecc2.fluid" : "top.ecc2.fluid",
+                        jade ? "jade.ecera.fluid" : "top.ecera.fluid",
                         Component.translatable(fuelKey),
                         Ecc2DataSync.formatInt(gasMb),
                         Ecc2DataSync.formatInt(gasCap)));
@@ -751,25 +751,25 @@ public final class CompatTelemetry {
             int progressPct) {
         out.accept(
                 Component.translatable(
-                        jade ? "jade.ecc2.eu" : "top.ecc2.eu",
+                        jade ? "jade.ecera.eu" : "top.ecera.eu",
                         Ecc2DataSync.formatInt(eu),
                         Ecc2DataSync.formatInt(euMax)));
         out.accept(
                 Component.translatable(
-                        jade ? "jade.ecc2.fluid" : "top.ecc2.fluid",
-                        Component.translatable("gui.ecc2.gas.water"),
+                        jade ? "jade.ecera.fluid" : "top.ecera.fluid",
+                        Component.translatable("gui.ecera.gas.water"),
                         Ecc2DataSync.formatInt(waterMb),
                         Ecc2DataSync.formatInt(waterCap)));
         out.accept(
                 Component.translatable(
-                        jade ? "jade.ecc2.fluid" : "top.ecc2.fluid",
-                        Component.translatable("gui.ecc2.gas.culture_medium"),
+                        jade ? "jade.ecera.fluid" : "top.ecera.fluid",
+                        Component.translatable("gui.ecera.gas.culture_medium"),
                         Ecc2DataSync.formatInt(cultureMb),
                         Ecc2DataSync.formatInt(cultureCap)));
         if (progressPct > 0) {
             out.accept(
                     Component.translatable(
-                            jade ? "jade.ecc2.progress" : "top.ecc2.progress", progressPct));
+                            jade ? "jade.ecera.progress" : "top.ecera.progress", progressPct));
         }
     }
 
@@ -785,25 +785,25 @@ public final class CompatTelemetry {
             int progressPct) {
         out.accept(
                 Component.translatable(
-                        jade ? "jade.ecc2.eu" : "top.ecc2.eu",
+                        jade ? "jade.ecera.eu" : "top.ecera.eu",
                         Ecc2DataSync.formatInt(eu),
                         Ecc2DataSync.formatInt(euMax)));
         out.accept(
                 Component.translatable(
-                        jade ? "jade.ecc2.fluid" : "top.ecc2.fluid",
-                        Component.translatable("gui.ecc2.gas.culture_medium"),
+                        jade ? "jade.ecera.fluid" : "top.ecera.fluid",
+                        Component.translatable("gui.ecera.gas.culture_medium"),
                         Ecc2DataSync.formatInt(cultureMb),
                         Ecc2DataSync.formatInt(cultureCap)));
         out.accept(
                 Component.translatable(
-                        jade ? "jade.ecc2.fluid" : "top.ecc2.fluid",
-                        Component.translatable("gui.ecc2.gas.biogas"),
+                        jade ? "jade.ecera.fluid" : "top.ecera.fluid",
+                        Component.translatable("gui.ecera.gas.biogas"),
                         Ecc2DataSync.formatInt(biogasMb),
                         Ecc2DataSync.formatInt(biogasCap)));
         if (progressPct > 0) {
             out.accept(
                     Component.translatable(
-                            jade ? "jade.ecc2.progress" : "top.ecc2.progress", progressPct));
+                            jade ? "jade.ecera.progress" : "top.ecera.progress", progressPct));
         }
     }
 
@@ -811,42 +811,42 @@ public final class CompatTelemetry {
 
     public static Component skyComponent(SkyCondition sky) {
         return switch (sky) {
-            case DAY -> Component.translatable("gui.ecc2.solar.day").withStyle(ChatFormatting.YELLOW);
+            case DAY -> Component.translatable("gui.ecera.solar.day").withStyle(ChatFormatting.YELLOW);
             case NIGHT ->
-                    Component.translatable("gui.ecc2.solar.night").withStyle(ChatFormatting.BLUE);
+                    Component.translatable("gui.ecera.solar.night").withStyle(ChatFormatting.BLUE);
             case RAIN ->
-                    Component.translatable("gui.ecc2.solar.rain").withStyle(ChatFormatting.AQUA);
+                    Component.translatable("gui.ecera.solar.rain").withStyle(ChatFormatting.AQUA);
             case NONE ->
-                    Component.translatable("gui.ecc2.solar.blocked").withStyle(ChatFormatting.RED);
+                    Component.translatable("gui.ecera.solar.blocked").withStyle(ChatFormatting.RED);
         };
     }
 
     public static net.minecraft.network.chat.MutableComponent kineticTierComponent(
             KineticMachineTier tier) {
         return switch (tier) {
-            case DURABLE -> Component.translatable("gui.ecc2.kinetic.tier.durable");
-            case OVERCLOCKED -> Component.translatable("gui.ecc2.kinetic.tier.overclocked");
-            case PRECISION -> Component.translatable("gui.ecc2.kinetic.tier.precision");
+            case DURABLE -> Component.translatable("gui.ecera.kinetic.tier.durable");
+            case OVERCLOCKED -> Component.translatable("gui.ecera.kinetic.tier.overclocked");
+            case PRECISION -> Component.translatable("gui.ecera.kinetic.tier.precision");
             case STANDARD -> Component.literal("STANDARD");
         };
     }
 
     public static Component portName(GiantCornerPort port) {
-        return Component.translatable("gui.ecc2.port." + port.name().toLowerCase(Locale.ROOT));
+        return Component.translatable("gui.ecera.port." + port.name().toLowerCase(Locale.ROOT));
     }
 
     public static Component portModeName(PortAccessMode mode) {
-        return Component.translatable("gui.ecc2.port.mode." + mode.name().toLowerCase(Locale.ROOT));
+        return Component.translatable("gui.ecera.port.mode." + mode.name().toLowerCase(Locale.ROOT));
     }
 
     public static String fuelLangKey(GasFuelSpec fuel) {
         if (fuel == null) {
-            return "gui.ecc2.gas.empty";
+            return "gui.ecera.gas.empty";
         }
         return switch (fuel) {
-            case WATER_GAS -> "gui.ecc2.gas.water_gas";
-            case NATURAL_GAS -> "gui.ecc2.gas.natural_gas";
-            case BIOGAS -> "gui.ecc2.gas.biogas";
+            case WATER_GAS -> "gui.ecera.gas.water_gas";
+            case NATURAL_GAS -> "gui.ecera.gas.natural_gas";
+            case BIOGAS -> "gui.ecera.gas.biogas";
         };
     }
 

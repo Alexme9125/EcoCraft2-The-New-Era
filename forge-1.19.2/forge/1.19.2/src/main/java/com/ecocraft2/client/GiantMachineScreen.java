@@ -98,33 +98,33 @@ public final class GiantMachineScreen extends AbstractContainerScreen<GiantMachi
             if (isHovering(GEAR_X, GEAR_Y, GEAR_SIZE, GEAR_SIZE, mouseX, mouseY)) {
                 renderTooltip(
                         poseStack,
-                        Component.translatable("gui.ecc2.giant.port_access_button"),
+                        Component.translatable("gui.ecera.giant.port_access_button"),
                         mouseX,
                         mouseY);
             } else if (isHovering(SPREAD_X, SPREAD_Y, SPREAD_SIZE, SPREAD_SIZE, mouseX, mouseY)) {
                 renderComponentTooltip(
                         poseStack,
                         List.of(
-                                Component.translatable("gui.ecc2.giant.auto_spread"),
+                                Component.translatable("gui.ecera.giant.auto_spread"),
                                 Component.translatable(
                                         menu.isAutoSpreadEnabled()
-                                                ? "gui.ecc2.giant.auto_spread.on"
-                                                : "gui.ecc2.giant.auto_spread.off"),
-                                Component.translatable("gui.ecc2.giant.auto_spread.hint")),
+                                                ? "gui.ecera.giant.auto_spread.on"
+                                                : "gui.ecera.giant.auto_spread.off"),
+                                Component.translatable("gui.ecera.giant.auto_spread.hint")),
                         mouseX,
                         mouseY);
             } else if (menu.usesWater() && isHovering(130, 25, 16, 72, mouseX, mouseY)) {
                 renderTooltip(
                         poseStack,
                         Component.translatable(
-                                "gui.ecc2.giant.water", menu.waterMb(), menu.waterCapacityMb()),
+                                "gui.ecera.giant.water", menu.waterMb(), menu.waterCapacityMb()),
                         mouseX,
                         mouseY);
             } else if (isHovering(80, 25, 14, 52, mouseX, mouseY)) {
                 renderTooltip(
                         poseStack,
                         Component.translatable(
-                                "gui.ecc2.giant.eu_stored", menu.storedEu(), menu.capacityEu()),
+                                "gui.ecera.giant.eu_stored", menu.storedEu(), menu.capacityEu()),
                         mouseX,
                         mouseY);
             }
@@ -233,7 +233,7 @@ public final class GiantMachineScreen extends AbstractContainerScreen<GiantMachi
         // Header status LCD (152, 4)
         font.draw(
                 poseStack,
-                Component.translatable("gui.ecc2.giant.formed"),
+                Component.translatable("gui.ecera.giant.formed"),
                 (int) (155 / 0.7f),
                 (int) (6 / 0.7f),
                 0x7FFFB0);
@@ -258,20 +258,20 @@ public final class GiantMachineScreen extends AbstractContainerScreen<GiantMachi
         font.draw(
                 poseStack,
                 Component.translatable(
-                        "gui.ecc2.giant.eu_stored", menu.storedEu(), menu.capacityEu()),
+                        "gui.ecera.giant.eu_stored", menu.storedEu(), menu.capacityEu()),
                 tx,
                 (int) (109 / 0.7f),
                 0x8DF0FF);
         font.draw(
                 poseStack,
                 Component.translatable(
-                        "gui.ecc2.giant.tier", menu.tier(), menu.tierMaxPacket()),
+                        "gui.ecera.giant.tier", menu.tier(), menu.tierMaxPacket()),
                 tx,
                 (int) (120 / 0.7f),
                 0xD0E4F0);
         font.draw(
                 poseStack,
-                Component.translatable("gui.ecc2.giant.eu_draw", menu.euDrawPerTick()),
+                Component.translatable("gui.ecera.giant.eu_draw", menu.euDrawPerTick()),
                 tx,
                 (int) (131 / 0.7f),
                 0x7FFFB0);
@@ -280,7 +280,7 @@ public final class GiantMachineScreen extends AbstractContainerScreen<GiantMachi
         int px = (int) (156 / 0.7f);
         font.draw(
                 poseStack,
-                Component.translatable("gui.ecc2.giant.port_access_button"),
+                Component.translatable("gui.ecera.giant.port_access_button"),
                 px,
                 (int) (109 / 0.7f),
                 0x8DF0FF);
@@ -316,7 +316,7 @@ public final class GiantMachineScreen extends AbstractContainerScreen<GiantMachi
 
         font.draw(
                 poseStack,
-                Component.translatable("gui.ecc2.giant.port_access_title"),
+                Component.translatable("gui.ecera.giant.port_access_title"),
                 px + 6,
                 py + 6,
                 0x8DF0FF);
@@ -374,7 +374,7 @@ public final class GiantMachineScreen extends AbstractContainerScreen<GiantMachi
             renderTooltip(
                     poseStack,
                     Component.translatable(
-                            "jade.ecc2.giant_port",
+                            "jade.ecera.giant_port",
                             Ecc2BridgePlatform.portName(hoveredPort),
                             Ecc2BridgePlatform.modeName(mode)),
                     mouseX,

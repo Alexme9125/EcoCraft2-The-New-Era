@@ -75,8 +75,8 @@ public final class OrganicFermenterScreen extends Ecc2ScreenBase<OrganicFermente
             c.renderTooltip(
                     List.of(
                             Component.translatable(
-                                    "gui.ecc2.gas.tank",
-                                    Component.translatable("gui.ecc2.gas.culture_medium"),
+                                    "gui.ecera.gas.tank",
+                                    Component.translatable("gui.ecera.gas.culture_medium"),
                                     menu.cultureMb(),
                                     OrganicFermenterEngine.CULTURE_TANK_CAPACITY_MB)),
                     screenX,
@@ -85,8 +85,8 @@ public final class OrganicFermenterScreen extends Ecc2ScreenBase<OrganicFermente
             c.renderTooltip(
                     List.of(
                             Component.translatable(
-                                    "gui.ecc2.gas.tank",
-                                    Component.translatable("gui.ecc2.gas.biogas"),
+                                    "gui.ecera.gas.tank",
+                                    Component.translatable("gui.ecera.gas.biogas"),
                                     menu.biogasMb(),
                                     OrganicFermenterEngine.BIOGAS_TANK_CAPACITY_MB)),
                     screenX,
@@ -95,7 +95,7 @@ public final class OrganicFermenterScreen extends Ecc2ScreenBase<OrganicFermente
             c.renderTooltip(
                     List.of(
                             Component.translatable(
-                                    "gui.ecc2.giant.eu_stored",
+                                    "gui.ecera.giant.eu_stored",
                                     menu.storedEu(),
                                     menu.energyCapacity())),
                     screenX,

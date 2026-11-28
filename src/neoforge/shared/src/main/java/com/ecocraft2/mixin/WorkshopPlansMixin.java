@@ -21,7 +21,7 @@ public final class WorkshopPlansMixin {
     private static void ecc2$requireEmptyUniversalCellForCanning(
             ItemStack item, @Coerce Object expected, CallbackInfoReturnable<Boolean> cir) {
         if (cir.getReturnValueZ()
-                && "ic2:fluid_cell".equals(Ecc2BridgePlatform.itemId(item))
+                && "mhera:fluid_cell".equals(Ecc2BridgePlatform.itemId(item))
                 && TransportPlatform.cellContainsFluid(item)) {
             cir.setReturnValue(false);
         }

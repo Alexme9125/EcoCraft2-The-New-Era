@@ -95,15 +95,15 @@ public final class SolarPanelScreen extends Ecc2ScreenBase<SolarPanelMenu> {
                 && relMouseY < SKY_Y + SKY_SIZE) {
             String key =
                     switch (menu.skyCondition()) {
-                        case DAY -> "gui.ecc2.solar.day";
-                        case NIGHT -> "gui.ecc2.solar.night";
-                        case RAIN -> "gui.ecc2.solar.rain";
-                        case NONE -> "gui.ecc2.solar.blocked";
+                        case DAY -> "gui.ecera.solar.day";
+                        case NIGHT -> "gui.ecera.solar.night";
+                        case RAIN -> "gui.ecera.solar.rain";
+                        case NONE -> "gui.ecera.solar.blocked";
                     };
             return List.of(
                     Component.translatable(key),
                     Component.translatable(
-                            "gui.ecc2.solar.generating",
+                            "gui.ecera.solar.generating",
                             Ecc2DataSync.formatInt(menu.generatingEu())));
         }
         if (relMouseX >= BAR_X
@@ -112,15 +112,15 @@ public final class SolarPanelScreen extends Ecc2ScreenBase<SolarPanelMenu> {
                 && relMouseY < BAR_Y + BAR_H) {
             return List.of(
                     Component.translatable(
-                            "gui.ecc2.solar.storage",
+                            "gui.ecera.solar.storage",
                             Ecc2DataSync.formatInt(menu.storedEu()),
                             Ecc2DataSync.formatInt(menu.maxStorage())),
                     Component.translatable(
-                            "gui.ecc2.solar.max_output",
+                            "gui.ecera.solar.max_output",
                             Ecc2DataSync.formatInt(Math.round(menu.maxOutputEu())),
                             menu.outputTier()),
                     Component.translatable(
-                            "gui.ecc2.solar.generating",
+                            "gui.ecera.solar.generating",
                             Ecc2DataSync.formatInt(menu.generatingEu())));
         }
         return List.of();

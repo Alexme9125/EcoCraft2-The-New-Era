@@ -60,12 +60,12 @@ public final class Ecc2EmiPlugin implements EmiPlugin {
                         EmiStack.of(GiantGasModule.ORGANIC_FERMENTER.get()));
         EmiRecipeCategory ic2RecipesCategory =
                 new EmiRecipeCategory(
-                        rl("ic2_recipes"),
+                        rl("mhera_recipes"),
                         EmiStack.of(GiantGasModule.METHANE_ICE_CLUSTER_ITEM.get())) {
                     @Override
                     public Component getName() {
                         return Component.translatableWithFallback(
-                                "emi.category.ecc2.ic2_recipes",
+                                "emi.category.ecera.mhera_recipes",
                                 "Industrial Canning & Metal Processing");
                     }
                 };
@@ -217,20 +217,20 @@ public final class Ecc2EmiPlugin implements EmiPlugin {
 
             widgets.addText(
                     Component.translatable(
-                            "gui.ecc2.mt.energy", Ecc2DataSync.formatInt(entry.energyEu())),
+                            "gui.ecera.mt.energy", Ecc2DataSync.formatInt(entry.energyEu())),
                     36,
                     14,
                     0xFF283240,
                     false);
             widgets.addText(
                     Component.translatable(
-                            "jei.ecc2.energy_cost", Ecc2DataSync.formatCompact(entry.energyEu())),
+                            "jei.ecera.energy_cost", Ecc2DataSync.formatCompact(entry.energyEu())),
                     36,
                     29,
                     0xFF1A5A6E,
                     false);
             widgets.addText(
-                    Component.translatable("jei.ecc2.mt.unlimited_short"),
+                    Component.translatable("jei.ecera.mt.unlimited_short"),
                     36,
                     44,
                     0xFF556677,
@@ -304,7 +304,7 @@ public final class Ecc2EmiPlugin implements EmiPlugin {
                     false);
             widgets.addText(
                     Component.translatable(
-                            "jei.ecc2.gas_furnace.rate", entry.mbPerOp(), entry.baseTicks()),
+                            "jei.ecera.gas_furnace.rate", entry.mbPerOp(), entry.baseTicks()),
                     52,
                     22,
                     0xFF445566,
@@ -335,7 +335,7 @@ public final class Ecc2EmiPlugin implements EmiPlugin {
                     false);
             widgets.addText(
                     Component.translatable(
-                            "jei.ecc2.fuel_output",
+                            "jei.ecera.fuel_output",
                             Ecc2DataSync.formatInt(entry.euPerBucket()),
                             Ecc2DataSync.formatInt(entry.euPerTick())),
                     52,
@@ -373,7 +373,7 @@ public final class Ecc2EmiPlugin implements EmiPlugin {
             }
             widgets.addText(
                     Component.translatable(
-                            "jei.ecc2.fermenter.yield",
+                            "jei.ecera.fermenter.yield",
                             entry.nutrition(),
                             Ecc2DataSync.formatInt(entry.biogasMb())),
                     8,
@@ -382,7 +382,7 @@ public final class Ecc2EmiPlugin implements EmiPlugin {
                     false);
             widgets.addText(
                     Component.translatable(
-                            "jei.ecc2.fermenter.cost",
+                            "jei.ecera.fermenter.cost",
                             entry.cultureMb(),
                             entry.euCost(),
                             entry.ticks()),

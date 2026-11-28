@@ -168,7 +168,7 @@ public final class WaterGasMachineBlockEntity extends GasMachineBlockEntityBase
             return false;
         }
         String id = GiantGasPlatform.itemId(stack);
-        return "ic2:coal_dust".equals(id)
+        return "mhera:coal_dust".equals(id)
                 || GiantGasPlatform.hasItemTag(
                         stack, Ecc2Ids.commonTag("c", Ecc2Ids.COMMON_TAG_DUSTS_COAL));
     }
@@ -353,7 +353,7 @@ public final class WaterGasMachineBlockEntity extends GasMachineBlockEntityBase
 
     @Override
     public Component getDisplayName() {
-        return Component.translatable("container.ecc2.water_gas_machine");
+        return Component.translatable("container.ecera.water_gas_machine");
     }
 
     @Override
@@ -363,24 +363,24 @@ public final class WaterGasMachineBlockEntity extends GasMachineBlockEntityBase
 
     @Override
     protected void saveState(Ecc2DataWriter out) {
-        out.putItems("ecc2_items", items);
-        out.putDouble("ecc2_eu", engine.storedEu());
-        out.putInt("ecc2_water", engine.waterMb());
-        out.putInt("ecc2_gas", engine.waterGasMb());
-        out.putInt("ecc2_progress", engine.progress());
+        out.putItems("ecera_items", items);
+        out.putDouble("ecera_eu", engine.storedEu());
+        out.putInt("ecera_water", engine.waterMb());
+        out.putInt("ecera_gas", engine.waterGasMb());
+        out.putInt("ecera_progress", engine.progress());
     }
 
     @Override
     protected void loadState(Ecc2DataReader in) {
-        in.loadItems("ecc2_items", items);
+        in.loadItems("ecera_items", items);
         var upgrades = items.subList(UPGRADE_START, UPGRADE_START + UPGRADE_COUNT);
         engine.setUpgrades(Ecc2UpgradeHelper.readProfile(upgrades));
         engine.setSolarPowerUpgrades(Ecc2UpgradeHelper.countPvPowerUpgrades(upgrades));
         engine.setSolarEuPerTick(Ecc2Config.waterGasSolarEuPerTick());
-        engine.setStoredEu(in.getDouble("ecc2_eu", 0.0));
-        engine.setWaterMb(in.getInt("ecc2_water", 0));
-        engine.setWaterGasMb(in.getInt("ecc2_gas", 0));
-        engine.setProgress(in.getInt("ecc2_progress", 0));
+        engine.setStoredEu(in.getDouble("ecera_eu", 0.0));
+        engine.setWaterMb(in.getInt("ecera_water", 0));
+        engine.setWaterGasMb(in.getInt("ecera_gas", 0));
+        engine.setProgress(in.getInt("ecera_progress", 0));
     }
 
     // ---- Public Getters for Menus & Compat (JEI/EMI/Jade/TOP) ----

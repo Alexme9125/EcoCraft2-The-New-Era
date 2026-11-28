@@ -254,7 +254,7 @@ public final class GasGeneratorBlockEntity extends GasMachineBlockEntityBase
 
     @Override
     public Component getDisplayName() {
-        return Component.translatable("container.ecc2.gas_generator");
+        return Component.translatable("container.ecera.gas_generator");
     }
 
     @Override
@@ -264,24 +264,24 @@ public final class GasGeneratorBlockEntity extends GasMachineBlockEntityBase
 
     @Override
     protected void saveState(Ecc2DataWriter out) {
-        out.putItems("ecc2_items", items);
+        out.putItems("ecera_items", items);
         out.putString(
-                "ecc2_fuel", engine.currentFuel() == null ? "" : engine.currentFuel().fluidId());
-        out.putInt("ecc2_gas", engine.gasMb());
-        out.putDouble("ecc2_pending_eu", engine.pendingEu());
-        out.putDouble("ecc2_eu", engine.storedEu());
+                "ecera_fuel", engine.currentFuel() == null ? "" : engine.currentFuel().fluidId());
+        out.putInt("ecera_gas", engine.gasMb());
+        out.putDouble("ecera_pending_eu", engine.pendingEu());
+        out.putDouble("ecera_eu", engine.storedEu());
     }
 
     @Override
     protected void loadState(Ecc2DataReader in) {
-        in.loadItems("ecc2_items", items);
+        in.loadItems("ecera_items", items);
         applyFuelConfig();
-        GasFuelSpec fuel = GasFuelSpec.byFluidId(in.getString("ecc2_fuel", "")).orElse(null);
+        GasFuelSpec fuel = GasFuelSpec.byFluidId(in.getString("ecera_fuel", "")).orElse(null);
         engine.restoreState(
                 fuel,
-                in.getInt("ecc2_gas", 0),
-                in.getDouble("ecc2_pending_eu", 0.0),
-                in.getDouble("ecc2_eu", 0.0));
+                in.getInt("ecera_gas", 0),
+                in.getDouble("ecera_pending_eu", 0.0),
+                in.getDouble("ecera_eu", 0.0));
     }
 
     private void applyFuelConfig() {

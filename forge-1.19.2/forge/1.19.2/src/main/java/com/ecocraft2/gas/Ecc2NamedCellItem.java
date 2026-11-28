@@ -106,7 +106,7 @@ public final class Ecc2NamedCellItem extends Item {
         if (!fs.isEmpty()) {
             tooltip.add(
                     Component.translatable(
-                                    "tooltip.ecc2.cell.contents",
+                                    "tooltip.ecera.cell.contents",
                                     Component.translatable(fluidTranslationKey))
                             .withStyle(ChatFormatting.AQUA));
         }

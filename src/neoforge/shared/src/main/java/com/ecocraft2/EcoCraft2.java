@@ -35,7 +35,7 @@ import org.slf4j.LoggerFactory;
 public final class EcoCraft2 {
 
     /** Canonical EcoCraft 2 mod identifier and resource namespace. */
-    public static final String MOD_ID = "ecc2";
+    public static final String MOD_ID = "ecera";
 
     private static final Logger LOG = LoggerFactory.getLogger(EcoCraft2.class);
 
@@ -62,7 +62,7 @@ public final class EcoCraft2 {
                     "main",
                     () ->
                             CreativeModeTab.builder()
-                                    .title(Component.translatable("itemGroup.ecc2"))
+                                    .title(Component.translatable("itemGroup.ecera"))
                                     .icon(EcoCraft2::creativeTabIcon)
                                     .displayItems(
                                             (parameters, output) -> {
@@ -107,20 +107,20 @@ public final class EcoCraft2 {
         // 1. Named 1000 mB fluid cells bridged into IC2NE CellFamily & TransportPlatform.
         // Biogas cells reuse ic2:biogas_cell natively.
         Ecc2ExternalRecipes.registerNamedCell(
-                true, "ecc2:basic_culture_medium_cell", "ecc2:culture_medium");
-        Ecc2ExternalRecipes.registerNamedCell(false, "ecc2:water_gas_cell", "ecc2:water_gas");
-        Ecc2ExternalRecipes.registerNamedCell(false, "ecc2:natural_gas_cell", "ecc2:natural_gas");
+                true, "ecera:basic_culture_medium_cell", "ecera:culture_medium");
+        Ecc2ExternalRecipes.registerNamedCell(false, "ecera:water_gas_cell", "ecera:water_gas");
+        Ecc2ExternalRecipes.registerNamedCell(false, "ecera:natural_gas_cell", "ecera:natural_gas");
         Ecc2ExternalRecipes.registerNamedCell(
-                false, "ecc2:culture_medium_cell", "ecc2:culture_medium");
+                false, "ecera:culture_medium_cell", "ecera:culture_medium");
 
         // 2. Methane ice canning bottle recipe (ic2:canner mode 0 / solid_canner / classic_canner).
         Ecc2ExternalRecipes.registerCanningBottle(
-                "ic2:fluid_cell", 1, "ecc2:methane_ice_cluster", 3, "ecc2:natural_gas_cell", 1);
+                "mhera:fluid_cell", 1, "ecera:methane_ice_cluster", 3, "ecera:natural_gas_cell", 1);
 
         // 3. ASP 2 compressor recipes via #c: common tags (Iridium -> ecc2:iridium_ingot; Uranium -> ic2:uranium_ingot).
-        Ecc2ExternalRecipes.registerCompressor("#c:ores/iridium", 1, "ecc2:iridium_ingot", 1);
+        Ecc2ExternalRecipes.registerCompressor("#c:ores/iridium", 1, "ecera:iridium_ingot", 1);
         Ecc2ExternalRecipes.registerCompressor(
-                "#c:raw_materials/iridium", 1, "ecc2:iridium_ingot", 1);
+                "#c:raw_materials/iridium", 1, "ecera:iridium_ingot", 1);
         Ecc2ExternalRecipes.registerCompressor("#c:ores/uranium", 1, Ecc2Ids.IC2_URANIUM_INGOT, 1);
         Ecc2ExternalRecipes.registerCompressor(
                 "#c:raw_materials/uranium", 1, Ecc2Ids.IC2_URANIUM_INGOT, 1);
@@ -129,10 +129,10 @@ public final class EcoCraft2 {
         Ecc2ExternalRecipes.registerCompressor(
                 "#c:purified_ores/uranium", 1, Ecc2Ids.IC2_URANIUM_INGOT, 1);
         Ecc2ExternalRecipes.registerCompressor("#c:dusts/uranium", 1, Ecc2Ids.IC2_URANIUM_INGOT, 1);
-        Ecc2ExternalRecipes.registerCompressor("ic2:uranium", 1, Ecc2Ids.IC2_URANIUM_INGOT, 1);
+        Ecc2ExternalRecipes.registerCompressor("mhera:uranium", 1, Ecc2Ids.IC2_URANIUM_INGOT, 1);
 
         // 4. ASP 2 metal former extruding recipe (Reinforced Iridium Plate ic2:iridium -> ecc2:iridium_ingot).
-        Ecc2ExternalRecipes.registerExtruder("ic2:iridium", 1, "ecc2:iridium_ingot", 1);
+        Ecc2ExternalRecipes.registerExtruder("mhera:iridium", 1, "ecera:iridium_ingot", 1);
     }
 
     private static void installKnownModules(
@@ -148,12 +148,12 @@ public final class EcoCraft2 {
                                 ModContainer.class,
                                 Dist.class);
                 install.invoke(null, modBus, gameBus, container, dist);
-                LOG.info("Installed EcoCraft 2 module {}", className);
+                LOG.info("Installed Ecolera module {}", className);
             } catch (ClassNotFoundException absent) {
-                LOG.debug("EcoCraft 2 module {} not present on classpath", className);
+                LOG.debug("Ecolera module {} not present on classpath", className);
             } catch (ReflectiveOperationException failure) {
                 throw new IllegalStateException(
-                        "Failed to install EcoCraft 2 module " + className, failure);
+                        "Failed to install Ecolera module " + className, failure);
             }
         }
     }
@@ -162,17 +162,17 @@ public final class EcoCraft2 {
             IEventBus modBus, IEventBus gameBus, ModContainer container, Dist dist) {
         for (var module : ServiceLoader.load(Ecc2Module.class, EcoCraft2.class.getClassLoader())) {
             module.install(modBus, gameBus, container, dist);
-            LOG.info("Installed EcoCraft 2 service module {}", module.getClass().getName());
+            LOG.info("Installed Ecolera service module {}", module.getClass().getName());
         }
     }
 
     private static ItemStack creativeTabIcon() {
         for (String candidate :
                 List.of(
-                        "ecc2:ultimate_hybrid_solar_panel",
-                        "ecc2:advanced_solar_panel",
-                        "ecc2:water_gas_machine",
-                        "ic2:machine")) {
+                        "ecera:ultimate_hybrid_solar_panel",
+                        "ecera:advanced_solar_panel",
+                        "ecera:water_gas_machine",
+                        "mhera:machine")) {
             Item item = Ecc2BridgePlatform.findItem(candidate);
             if (item != null && item != Items.AIR) {
                 return new ItemStack(item);

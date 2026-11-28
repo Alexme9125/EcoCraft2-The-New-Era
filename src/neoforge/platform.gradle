@@ -1,16 +1,20 @@
 java.toolchain.languageVersion = JavaLanguageVersion.of(platformJava)
-base.archivesName = "ecc2-neoforge-$minecraftVersion"
+base.archivesName = "ecera-neoforge-$minecraftVersion"
 
 sourceSets.main.java.srcDir('../shared/src/main/java')
 if (file('../../minecraft/shared/src/main/java').isDirectory()) {
     sourceSets.main.java.srcDir('../../minecraft/shared/src/main/java')
 }
 
-def ic2Version = providers.gradleProperty('ic2_version').getOrElse('1.0.11')
-def ic2LibsDir = rootProject.file(providers.gradleProperty('ic2_libs_dir').getOrElse('../.ic2-libs'))
-def ic2Jar = new File(ic2LibsDir, "ic2-neoforge-${minecraftVersion}-${ic2Version}.jar")
-if (!ic2Jar.isFile()) {
-    throw new GradleException("Required IC2NE ${ic2Version} JAR not found at ${ic2Jar.absolutePath}")
+def mheraVersion = providers.gradleProperty('mhera_version').getOrElse('2.0.0')
+def mheraLibsDir = rootProject.file(
+        providers.gradleProperty('mhera_libs_dir')
+                .orElse(providers.environmentVariable('ECERA_MHERA_LIBS_DIR'))
+                .getOrElse('../.mhera-libs')
+)
+def mheraJar = new File(mheraLibsDir, "mhera-neoforge-${minecraftVersion}-${mheraVersion}.jar")
+if (!mheraJar.isFile()) {
+    throw new GradleException("Required Machinera (mhera) ${mheraVersion} JAR not found at ${mheraJar.absolutePath}")
 }
 
 configurations {
@@ -20,9 +24,9 @@ configurations {
 
 dependencies {
     implementation project(':common')
-    // Compile against IC2NE ${ic2Version} and load it in dev runs, but NEVER bundle it inside EcoCraft 2's JAR.
-    compileOnly files(ic2Jar)
-    localRuntime files(ic2Jar)
+    // Compile against Machinera (mhera) ${mheraVersion} and load it in dev runs, but NEVER bundle it inside Ecolera's JAR.
+    compileOnly files(mheraJar)
+    localRuntime files(mheraJar)
 }
 
 apply from: rootProject.file('gradle/optional-mods.gradle')
@@ -46,20 +50,20 @@ neoForge {
             } else {
                 clientData()
             }
-            programArguments.addAll '--mod', 'ecc2', '--all', '--output', file('src/generated/resources').absolutePath
+            programArguments.addAll '--mod', 'ecera', '--all', '--output', file('src/generated/resources').absolutePath
         }
     }
     mods {
-        ecc2 {
+        ecera {
             sourceSet sourceSets.main
             sourceSet project(':common').sourceSets.main
         }
     }
 }
 
-def generatedEcc2Resources = layout.buildDirectory.dir('generated/ecc2-resources')
+def generatedEceraResources = layout.buildDirectory.dir('generated/ecera-resources')
 def dataGeneratorScript = rootProject.file('assets-gen/generate_data.py')
-def generateEcc2Resources = tasks.register('generateEcc2Resources', Exec) {
+def generateEceraResources = tasks.register('generateEceraResources', Exec) {
     onlyIf { dataGeneratorScript.isFile() }
     inputs.property('minecraftTarget', minecraftVersion)
     if (dataGeneratorScript.isFile()) {
@@ -68,15 +72,15 @@ def generateEcc2Resources = tasks.register('generateEcc2Resources', Exec) {
             include '*.py', '*.json', '*.tsv'
         })
     }
-    outputs.dir(generatedEcc2Resources)
-    commandLine providers.gradleProperty('ecc2.python').getOrElse('python3'),
+    outputs.dir(generatedEceraResources)
+    commandLine providers.gradleProperty('ecera.python').getOrElse('python3'),
             dataGeneratorScript,
             '--target', "neoforge-$minecraftVersion",
-            '--output', generatedEcc2Resources.get().asFile
+            '--output', generatedEceraResources.get().asFile
 }
 
 tasks.named('processResources') {
-    dependsOn generateEcc2Resources
+    dependsOn generateEceraResources
     filteringCharset = 'UTF-8'
     inputs.properties(
             version: project.version,
@@ -94,8 +98,8 @@ tasks.named('processResources') {
             exclude '**/*.md', '**/*.csv', '**/.git*', '**/.DS_Store'
         }
     }
-    from(generatedEcc2Resources) {
-        exclude '.ecc2-generated-output'
+    from(generatedEceraResources) {
+        exclude '.ecera-generated-output'
     }
     from('../metadata') {
         expand version: project.version,
